@@ -90,8 +90,8 @@ import {
     saveInvoiceData,
     handleInvoicePreviewTrigger,
     formatNumber,
-    
-    Calculator
+    Calculator,
+    calculateSubtotal
   } = props;
 
   return (
