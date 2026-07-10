@@ -4,14 +4,14 @@ import { getPersons, updateUser } from "../../services/dataService";
 import { motion } from "motion/react";
 import { X, Save, User as UserIcon, Lock, Clock, Link as LinkIcon, Shield } from "lucide-react";
 import SearchableSelect from "../ui/SearchableSelect";
-import { useAuth } from "../../lib/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
 interface ProfileModalProps {
   onClose: () => void;
 }
 
 export default function ProfileModal({ onClose }: ProfileModalProps) {
-  const { user, updateCurrentUser } = useAuth();
+  const { user, checkAuth } = useAuth();
   
   const [name, setName] = useState(user?.name || "");
   const [password, setPassword] = useState(user?.password || "");
@@ -42,7 +42,7 @@ export default function ProfileModal({ onClose }: ProfileModalProps) {
       };
       
       const savedUser = await updateUser(String(user.id), updatedUser);
-      updateCurrentUser(savedUser);
+      await checkAuth();
       
       setMessage("اطلاعات پروفایل با موفقیت بروزرسانی شد.");
       setTimeout(() => {
