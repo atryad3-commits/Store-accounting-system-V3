@@ -6,7 +6,7 @@ import persian_fa from "react-date-object/locales/persian_fa";
 import { CompanySettings } from '../types';
 
 const cache: Record<string, { data: any, timestamp: number }> = {};
-const CACHE_DURATION = 60000; // 1 minute
+const CACHE_DURATION = 0; // Disabled cache to ensure real-time data
 const CACHEABLE_KEYS = ['company_profile', 'warehouses', 'financial_years', 'product_categories', 'person_groups'];
 
 export const getLocalData = async <T>(key: string, defaultValue: T, queryParams: Record<string, string | number> = {}, retries = 3): Promise<T> => {

@@ -1848,7 +1848,7 @@ export default function App() {
               successCount++;
             }
           }
-          await fetchProducts();
+          await fetchDataSilent();
           setSubmittingProduct(false);
           let finalMsg = `${successCount} کالا با موفقیت درون‌ریزی شد.`;
           if (skippedCount > 0) {
@@ -1936,7 +1936,7 @@ export default function App() {
         unitRatio: 10,
       });
 
-      await fetchProducts();
+      await fetchDataSilent();
     } catch (err) {
       console.error("Error generating demo data", err);
       alert("خطا در ایجاد دیتای نمونه");
@@ -2051,7 +2051,7 @@ export default function App() {
         }
       }
 
-      await fetchProducts();
+      await fetchDataSilent();
       setNewProductName("");
       setNewProductPrice("");
       setNewProductType("product");
@@ -2094,7 +2094,7 @@ export default function App() {
         setTimeout(() => setNotification(null), 3000);
       }
 
-      await fetchProducts();
+      await fetchDataSilent();
       return true;
     } catch (error) {
       console.error("Error fast saving product", error);
@@ -2174,7 +2174,7 @@ export default function App() {
     if (!confirm("آیا از حذف این کالا اطمینان دارید؟")) return;
     try {
       await deleteProduct(id.toString());
-      await fetchProducts();
+      await fetchDataSilent();
     } catch (error) {
       console.error("Error deleting product", error);
     }
@@ -2421,7 +2421,7 @@ export default function App() {
         await addPerson(payload as any);
       }
 
-      await fetchPersons();
+      await fetchDataSilent();
       setNewPersonTitle("");
       setNewPersonAlias("");
       setNewPersonGender("none");
@@ -2486,7 +2486,7 @@ export default function App() {
     if (!confirm("آیا از حذف این شخص اطمینان دارید؟")) return;
     try {
       await deletePerson(id.toString());
-      await fetchPersons();
+      await fetchDataSilent();
     } catch (error) {
       console.error("Error deleting person", error);
     }
@@ -2512,7 +2512,7 @@ export default function App() {
       }
 
       setSuccessMsg(`کد حسابداری برای ${generated} شخص با موفقیت صادر شد.`);
-      await fetchPersons();
+      await fetchDataSilent();
     } catch (error) {
       console.error(error);
       alert("خطا در صدور کدهای حسابداری");
@@ -3077,7 +3077,7 @@ description: receiptDescription,
       }
 
       await Promise.all([
-        fetchTransactions(), fetchAccountingDocuments(), fetchInvoices(),
+        fetchDataSilent(),
         fetchAccountingDocuments(),
         fetchPersons(),
         fetchAccounts(),
@@ -3234,7 +3234,7 @@ description: receiptDescription,
       setSalaryResourceId("");
 
       await Promise.all([
-        fetchTransactions(), fetchAccountingDocuments(), fetchInvoices(),
+        fetchDataSilent(),
         fetchAccounts(),
         fetchCashboxes(),
       ]);
@@ -3513,7 +3513,7 @@ description: receiptDescription,
         isSuccess = true;
       }
       if (isSuccess) {
-        await fetchProducts();
+        await fetchDataSilent();
         setSuccessMsg("کالاهای انتخاب شده با موفقیت افزوده شدند.");
       }
     } catch (e: any) {
@@ -3602,7 +3602,7 @@ description: receiptDescription,
           }
 
           await fetchPersonGroups();
-          await fetchPersons();
+          await fetchDataSilent();
         } catch (e) {
           console.error("Error deleting group", e);
         }
@@ -3882,6 +3882,30 @@ description: receiptDescription,
     }
   };
 
+  const fetchDataSilent = async () => {
+    try {
+      await Promise.all([
+        fetchPersonRoles(),
+        fetchPersonGroups(),
+        fetchPersons(),
+        fetchPersonOpeningBalances(),
+        fetchProducts(),
+        fetchAccounts(),
+        fetchCashboxes(),
+        fetchWarehouses(),
+        fetchSettings(),
+        fetchTransactions(),
+        fetchAccountingDocuments(),
+        fetchChecks(),
+        fetchSmsMessages(),
+        fetchFinancialYearInfo(),
+      ]);
+      await fetchInvoices();
+    } catch (error) {
+      console.error("Error silently fetching data:", error);
+    }
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -3901,7 +3925,7 @@ description: receiptDescription,
         fetchSmsMessages(),
         fetchFinancialYearInfo(),
       ]);
-      await fetchInvoices(); await fetchAccountingDocuments();
+      await fetchDataSilent();
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -4936,7 +4960,7 @@ description: receiptDescription,
           sendNotification(msg, person.phone, storeSettings?.notify_method);
         }
       }
-      await fetchInvoices(); await fetchAccountingDocuments();
+      await fetchDataSilent();
       await checkDebtThreshold(payload.customerId);
 
       // Reset form after short delay
@@ -5221,7 +5245,7 @@ description: receiptDescription,
         }
       }
 
-      await fetchInvoices(); await fetchAccountingDocuments();
+      await fetchDataSilent();
       clearDraft();
 
       setTimeout(() => {
@@ -7088,7 +7112,7 @@ ${errMsg}`);
                   <QuickRefund
                     showNotification={showNotification}
                     onComplete={() => {
-                      fetchTransactions();
+                      fetchDataSilent();
                       fetchPersons();
                       fetchAccounts();
                       fetchCashboxes();
@@ -8750,7 +8774,7 @@ ${errMsg}`);
                         });
                       }
                     }
-                    await fetchProducts();
+                    await fetchDataSilent();
                     setIsGroupPriceModalOpen(false);
                     if (selectedProductIds.length > 0) {
                       setSelectedProductIds([]);
@@ -10823,7 +10847,7 @@ ${errMsg}`);
                                 }
 
                                 // Refresh lists
-                                await fetchPersons();
+                                await fetchDataSilent();
                                 setIsPersonIOModalOpen(false);
                                 setSuccessMsg(
                                   `تعداد ${successCount} پرونده شخص با موفقیت به سیستم اضافه گردید.`,
