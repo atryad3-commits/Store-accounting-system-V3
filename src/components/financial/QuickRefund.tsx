@@ -455,8 +455,8 @@ export default function QuickRefund({ showNotification, onComplete }: { showNoti
 
                       <select required value={resourceId} onChange={e => setResourceId(e.target.value)} className="w-full border rounded-xl px-4 py-3 text-sm bg-gray-50 focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-bold text-gray-800">
                         <option value="">-- انتخاب {resourceType === 'bank' ? 'حساب بانکی' : 'صندوق'} --</option>
-                        {(resourceType === 'bank' ? accounts : cashboxes).map((item: any) => (
-                          <option key={item.id} value={item.id}>{item.bankName || item.name} (موجودی: {Number(item.balance).toLocaleString()} {showInvoiceCurrency(storeCur)})</option>
+                        {(resourceType === 'bank' ? accounts : cashboxes).map((item: any, idx: number) => (
+                          <option key={item.id ? `qr-${item.id}-${idx}` : `qr-idx-${idx}`} value={item.id}>{item.bankName || item.name} (موجودی: {Number(item.balance).toLocaleString()} {showInvoiceCurrency(storeCur)})</option>
                         ))}
                       </select>
                   </div>

@@ -284,8 +284,8 @@ export default function FinancialDashboard({
           <div className="bg-white rounded-2xl p-6 h-full flex flex-col">
             <h3 className="text-base font-extrabold text-gray-900 border-b border-gray-100 pb-3 mb-4 flex items-center gap-2"><CreditCard className="w-5 h-5 text-indigo-500" /> تراز حساب‌های بانکی</h3>
             <div className="flex-1 overflow-auto max-h-64 space-y-4 pr-1">
-              {(accounts || []).map((acc: any) => (
-                <div key={acc.id} className="bg-gray-50 py-3 px-4 rounded-xl border border-gray-100 flex items-center justify-between">
+              {(accounts || []).map((acc: any, idx: number) => (
+                <div key={acc.id ? `fdb-acc-${acc.id}-${idx}` : `fdb-acc-idx-${idx}`} className="bg-gray-50 py-3 px-4 rounded-xl border border-gray-100 flex items-center justify-between">
                   <div>
                     <span className="font-bold text-gray-900 block text-sm">{acc.bankName}</span>
                     <span className="text-xs text-gray-500">{acc.accountHolder}</span>
@@ -302,8 +302,8 @@ export default function FinancialDashboard({
           <div className="bg-white rounded-2xl p-6 h-full flex flex-col">
             <h3 className="text-base font-extrabold text-gray-900 border-b border-gray-100 pb-3 mb-4 flex items-center gap-2"><Wallet className="w-5 h-5 text-amber-500" /> تراز صندوق‌های نقدی</h3>
             <div className="flex-1 overflow-auto max-h-64 space-y-4 pr-1">
-              {(cashboxes || []).map((cb: any) => (
-                <div key={cb.id} className="bg-gray-50 py-3 px-4 rounded-xl border border-gray-100 flex items-center justify-between">
+              {(cashboxes || []).map((cb: any, idx: number) => (
+                <div key={cb.id ? `fdb-cb-${cb.id}-${idx}` : `fdb-cb-idx-${idx}`} className="bg-gray-50 py-3 px-4 rounded-xl border border-gray-100 flex items-center justify-between">
                   <div>
                     <span className="font-bold text-gray-900 block text-sm">{cb.name}</span>
                     <span className="text-xs text-gray-500">{cb.manager}</span>

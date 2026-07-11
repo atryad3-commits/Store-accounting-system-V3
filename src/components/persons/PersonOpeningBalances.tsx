@@ -41,8 +41,10 @@ export default function PersonOpeningBalances(props: any) {
     addCommas,
     Edit2,
     deletePersonOpeningBalance,
-    updatePersonOpeningBalance
-,
+    updatePersonOpeningBalance,
+    formatDateDisplay,
+    setLedgerPersonId,
+    setActiveTab,
     ...rest
   } = props;
   
@@ -221,8 +223,16 @@ export default function PersonOpeningBalances(props: any) {
                                           {idx + 1}
                                         </td>
                                         <td className="px-4 py-3">
-                                          <div className="font-extrabold text-slate-950">
-                                            {pObj?.name}
+                                          <div 
+                                            className="font-extrabold text-indigo-600 hover:text-indigo-800 cursor-pointer transition-colors"
+                                            onClick={() => {
+                                              if (setLedgerPersonId && setActiveTab) {
+                                                setLedgerPersonId(pObj?.id || "");
+                                                setActiveTab("person_ledger");
+                                              }
+                                            }}
+                                          >
+                                            {pObj?.alias || pObj?.name}
                                           </div>
                                           <div className="text-[10px] text-slate-400 mt-0.5 font-bold flex items-center gap-1.5">
                                             <span>کد: {pObj?.personCode}</span>
@@ -253,8 +263,8 @@ export default function PersonOpeningBalances(props: any) {
                                           {addCommas(ob.amount)}{" "}
                                           {storeSettings?.currency || "تومان"}
                                         </td>
-                                        <td className="px-4 py-3 text-slate-500 font-medium font-mono">
-                                          {ob.date}
+                                        <td className="px-4 py-3 text-slate-500 font-medium font-sans text-xs font-bold">
+                                          {formatDateDisplay ? formatDateDisplay(ob.date, storeSettings?.calendarType) : ob.date}
                                         </td>
                                         <td
                                           className="px-4 py-3 text-slate-500 max-w-xs truncate font-medium"

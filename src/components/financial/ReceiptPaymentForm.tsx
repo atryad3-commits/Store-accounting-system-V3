@@ -436,8 +436,8 @@ export default function ReceiptPaymentForm(props: any) {
                             required
                           >
                             <option value="">-- انتخاب بانک --</option>
-                            {(accounts || []).map((acc) => (
-                              <option key={acc.id} value={acc.id}>
+                            {(accounts || []).map((acc, idx) => (
+                              <option key={acc.id ? `rpf-acc-${acc.id}-${idx}` : `rpf-acc-idx-${idx}`} value={acc.id}>
                                 {acc.bankName} - {acc.accountNumber}
                               </option>
                             ))}

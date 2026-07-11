@@ -6932,6 +6932,9 @@ ${errMsg}`);
                   />
                 ) : activeTab === "person_opening_balances" ? (
                   <PersonOpeningBalances 
+                    setActiveTab={setActiveTab}
+                    setLedgerPersonId={setLedgerPersonId}
+                    formatDateDisplay={formatDateDisplay}
                     persons={persons}
                     setPersons={setPersons}
                     fetchPersons={fetchPersons}
@@ -10298,19 +10301,19 @@ ${errMsg}`);
                       </button>
                     </div>
 
-                    <div className="p-6 overflow-y-auto">
-                      <form
-                        id="accountForm"
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          confirmAction(
-                            "آیا از ثبت حساب بانکی اطمینان دارید؟",
-                            () => handleSubmitAccount(e as any),
-                          );
-                        }}
-                        className="flex flex-col gap-5"
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <form
+                      id="accountForm"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        confirmAction(
+                          "آیا از ثبت حساب بانکی اطمینان دارید؟",
+                          () => handleSubmitAccount(e as any),
+                        );
+                      }}
+                      className="flex flex-col flex-1 overflow-hidden"
+                    >
+                      <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-right">
                           <div className="w-full text-right">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               نام بانک <span className="text-red-500">*</span>
@@ -10422,39 +10425,38 @@ ${errMsg}`);
                             />
                           </div>
                         </div>
-                      </form>
-                    </div>
+                      </div>
 
-                    <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 mt-auto">
-                      <button
-                        type="button"
-                        onClick={() => setIsAccountModalOpen(false)}
-                        className="px-6 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-medium transition-colors shadow-sm"
-                      >
-                        انصراف
-                      </button>
-                      <button
-                        type="submit"
-                        form="accountForm"
-                        disabled={submittingAccount}
-                        className="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      >
-                        {submittingAccount ? (
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{
-                              repeat: Infinity,
-                              duration: 1,
-                              ease: "linear",
-                            }}
-                            className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                          />
-                        ) : (
-                          <Plus className="w-5 h-5" />
-                        )}
-                        <span>ثبت حساب</span>
-                      </button>
-                    </div>
+                      <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 mt-auto">
+                        <button
+                          type="button"
+                          onClick={() => setIsAccountModalOpen(false)}
+                          className="px-6 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-medium transition-colors shadow-sm"
+                        >
+                          انصراف
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={submittingAccount}
+                          className="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {submittingAccount ? (
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{
+                                repeat: Infinity,
+                                duration: 1,
+                                ease: "linear",
+                              }}
+                              className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                            />
+                          ) : (
+                            <Plus className="w-5 h-5" />
+                          )}
+                          <span>ثبت حساب</span>
+                        </button>
+                      </div>
+                    </form>
                   </motion.div>
                 </div>
               )}
@@ -10483,18 +10485,18 @@ ${errMsg}`);
                       </button>
                     </div>
 
-                    <div className="p-6 overflow-y-auto">
-                      <form
-                        id="cashboxForm"
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          confirmAction("آیا از ثبت صندوق اطمینان دارید؟", () =>
-                            handleSubmitCashbox(e as any),
-                          );
-                        }}
-                        className="flex flex-col gap-5"
-                      >
-                        <div className="flex flex-col gap-4">
+                    <form
+                      id="cashboxForm"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        confirmAction("آیا از ثبت صندوق اطمینان دارید؟", () =>
+                          handleSubmitCashbox(e as any),
+                        );
+                      }}
+                      className="flex flex-col flex-1 overflow-hidden"
+                    >
+                      <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-5">
+                        <div className="flex flex-col gap-4 text-right">
                           <div className="w-full text-right">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                               نام صندوق / تنخواه{" "}
@@ -10542,39 +10544,38 @@ ${errMsg}`);
                             />
                           </div>
                         </div>
-                      </form>
-                    </div>
+                      </div>
 
-                    <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 mt-auto">
-                      <button
-                        type="button"
-                        onClick={() => setIsCashboxModalOpen(false)}
-                        className="px-6 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-medium transition-colors shadow-sm"
-                      >
-                        انصراف
-                      </button>
-                      <button
-                        type="submit"
-                        form="cashboxForm"
-                        disabled={submittingCashbox}
-                        className="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                      >
-                        {submittingCashbox ? (
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{
-                              repeat: Infinity,
-                              duration: 1,
-                              ease: "linear",
-                            }}
-                            className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                          />
-                        ) : (
-                          <Plus className="w-5 h-5" />
-                        )}
-                        <span>ثبت صندوق</span>
-                      </button>
-                    </div>
+                      <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 mt-auto">
+                        <button
+                          type="button"
+                          onClick={() => setIsCashboxModalOpen(false)}
+                          className="px-6 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-medium transition-colors shadow-sm"
+                        >
+                          انصراف
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={submittingCashbox}
+                          className="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {submittingCashbox ? (
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{
+                                repeat: Infinity,
+                                duration: 1,
+                                ease: "linear",
+                              }}
+                              className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                            />
+                          ) : (
+                            <Plus className="w-5 h-5" />
+                          )}
+                          <span>ثبت صندوق</span>
+                        </button>
+                      </div>
+                    </form>
                   </motion.div>
                 </div>
               )}

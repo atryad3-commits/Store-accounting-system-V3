@@ -99,8 +99,8 @@ export default function FinancialTransfer() {
                  <select required value={fromId} onChange={e => setFromId(e.target.value)} className="w-full p-2 border rounded-lg">
                     <option value="">انتخاب کنید ...</option>
                     {fromType === 'bank' ? 
-                       (accounts || []).map(a => <option key={a.id} value={a.id}>{a.bankName} - موجودی: {Number(a.balance).toLocaleString()}</option>) :
-                       (cashboxes || []).map(c => <option key={c.id} value={c.id}>{c.name} - موجودی: {Number(c.balance).toLocaleString()}</option>)
+                       (accounts || []).map((a, idx) => <option key={a.id ? "ft-acc-" + a.id + "-" + idx : "ft-acc-idx-" + idx} value={a.id}>{a.bankName} - موجودی: {Number(a.balance).toLocaleString()}</option>) :
+                       (cashboxes || []).map((c, idx) => <option key={c.id ? "ft-cb-" + c.id + "-" + idx : "ft-cb-idx-" + idx} value={c.id}>{c.name} - موجودی: {Number(c.balance).toLocaleString()}</option>)
                     }
                  </select>
                </div>
@@ -116,8 +116,8 @@ export default function FinancialTransfer() {
                  <select required value={toId} onChange={e => setToId(e.target.value)} className="w-full p-2 border rounded-lg">
                     <option value="">انتخاب کنید ...</option>
                     {toType === 'bank' ? 
-                       (accounts || []).map(a => <option key={a.id} value={a.id}>{a.bankName} - موجودی: {Number(a.balance).toLocaleString()}</option>) :
-                       (cashboxes || []).map(c => <option key={c.id} value={c.id}>{c.name} - موجودی: {Number(c.balance).toLocaleString()}</option>)
+                       (accounts || []).map((a, idx) => <option key={a.id ? "ft-acc-" + a.id + "-" + idx : "ft-acc-idx-" + idx} value={a.id}>{a.bankName} - موجودی: {Number(a.balance).toLocaleString()}</option>) :
+                       (cashboxes || []).map((c, idx) => <option key={c.id ? "ft-cb-" + c.id + "-" + idx : "ft-cb-idx-" + idx} value={c.id}>{c.name} - موجودی: {Number(c.balance).toLocaleString()}</option>)
                     }
                  </select>
                </div>

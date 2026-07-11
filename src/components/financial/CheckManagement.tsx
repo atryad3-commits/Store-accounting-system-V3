@@ -1608,8 +1608,8 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                           className="w-full border border-amber-200 rounded-lg px-3 py-2 text-xs bg-white font-bold"
                        >
                          <option value="">-- انتخاب حساب بانکی --</option>
-                         {(accounts || []).map(a => (
-                           <option key={a.id} value={a.id}>{a.bankName} - {a.accountNumber || a.cardNumber}</option>
+                         {(accounts || []).map((a, idx) => (
+                           <option key={a.id ? "cm-dep-acc-" + a.id + "-" + idx : "cm-dep-idx-" + idx} value={a.id}>{a.bankName} - {a.accountNumber || a.cardNumber}</option>
                          ))}
                        </select>
                        <p className="text-[9px] text-amber-700 font-bold mt-1">با تایید وصولی، موجودی حساب فوق افزایش می‌یابد و سند دریافت درج خواهد شد.</p>
@@ -1626,8 +1626,8 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                           className="w-full border border-amber-200 rounded-lg px-3 py-2 text-xs bg-white font-bold"
                        >
                          <option value="">-- انتخاب حساب بانکی --</option>
-                         {(accounts || []).map(a => (
-                           <option key={a.id} value={a.id}>{a.bankName} - {a.accountNumber || a.cardNumber}</option>
+                         {(accounts || []).map((a, idx) => (
+                           <option key={a.id ? "cm-src-acc-" + a.id + "-" + idx : "cm-src-idx-" + idx} value={a.id}>{a.bankName} - {a.accountNumber || a.cardNumber}</option>
                          ))}
                        </select>
                        <p className="text-[9px] text-amber-700 font-bold mt-1">با تایید پاس شدن، موجودی حساب فوق کسر می‌گردد.</p>
