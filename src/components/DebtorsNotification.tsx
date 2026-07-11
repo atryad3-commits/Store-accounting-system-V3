@@ -203,7 +203,7 @@ export default function DebtorsNotification({
                     <div className="text-white/90 text-sm leading-relaxed flex flex-col gap-1">
                       <span className="opacity-80">مبلغ بدهی:</span>
                       <span className="font-black text-xl tracking-tight bg-white/20 px-2 py-1 rounded-lg inline-block w-max">
-                        {addCommas(debtor.debtAmount)} تومان
+                        {addCommas(debtor.debtAmount)} {settings?.currency || "تومان"}
                       </span>
                     </div>
                   </div>

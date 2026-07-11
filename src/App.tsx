@@ -1456,6 +1456,7 @@ export default function App() {
   const [editingHistoryId, setEditingHistoryId] = useState<string | null>(null);
   const [editingHistoryDate, setEditingHistoryDate] = useState<string>("");
   const [newProductDesc, setNewProductDesc] = useState("");
+  const [newProductIsActive, setNewProductIsActive] = useState(true);
 
   // Categories list
   const [productCategories, setProductCategories] = useState<any[]>([]);
@@ -1999,6 +2000,7 @@ export default function App() {
         secondaryUnit: newProductSecondaryUnit,
         unitRatio: Number(newProductUnitRatio || 1),
         description: newProductDesc,
+        isActive: newProductIsActive,
       };
 
       if (isEdit) {
@@ -2037,6 +2039,7 @@ export default function App() {
       setNewProductSecondaryUnit("");
       setNewProductUnitRatio("");
       setNewProductDesc("");
+      setNewProductIsActive(true);
       setProductFormTab("general");
       setEditingProductId(null);
       setIsProductModalOpen(false);
@@ -3422,6 +3425,20 @@ description: receiptDescription,
     }
   };
 
+  const handleToggleProductActive = async (productId: string | number, currentActiveState: boolean) => {
+    try {
+      await updateProduct(productId.toString(), { isActive: !currentActiveState });
+      await fetchDataSilent();
+      showNotification(
+        `وضعیت کالا به ${!currentActiveState ? "فعال" : "غیرفعال"} تغییر یافت.`,
+        "success"
+      );
+    } catch (error) {
+      console.error("Error toggling product active status", error);
+      alert("خطا در تغییر وضعیت کالا");
+    }
+  };
+
   const handleEditProduct = async (p: Product | any) => {
     setEditingProductId(p.id);
     const history = await getProductPriceHistory(p.id);
@@ -3441,6 +3458,7 @@ description: receiptDescription,
     setNewProductSecondaryUnit(p.secondaryUnit || "");
     setNewProductUnitRatio(p.unitRatio?.toString() || "");
     setNewProductDesc(p.description || "");
+    setNewProductIsActive(p.isActive !== false);
     setProductFormTab("general");
     setIsProductModalOpen(true);
   };
@@ -3462,6 +3480,7 @@ description: receiptDescription,
     setNewProductSecondaryUnit(p.secondaryUnit || "");
     setNewProductUnitRatio(p.unitRatio?.toString() || "");
     setNewProductDesc(p.description || "");
+    setNewProductIsActive(p.isActive !== false);
     setProductFormTab("general");
     setIsProductModalOpen(true);
   };
@@ -6921,6 +6940,9 @@ ${errMsg}`);
                     handleImportProductsData={handleImportProductsData}
                     handleDuplicateProduct={handleDuplicateProduct}
                     handleFastBarcodeScan={handleFastBarcodeScan}
+                    newProductIsActive={newProductIsActive}
+                    setNewProductIsActive={setNewProductIsActive}
+                    handleToggleProductActive={handleToggleProductActive}
                     
                     numToPersianWords={numToPersianWords}
                     DatePicker={DatePicker}
@@ -8975,6 +8997,28 @@ ${errMsg}`);
                                     </option>
                                   ))}
                                 </select>
+                              </div>
+                            </div>
+
+                            {/* وضعیت کالا */}
+                            <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-xl flex items-center justify-between">
+                              <div className="flex flex-col gap-1">
+                                <span className="text-sm font-bold text-gray-800">وضعیت فعال بودن کالا / خدمت</span>
+                                <span className="text-xs text-gray-500">کالاهای غیرفعال در بخش‌های فاکتوردهی و انبارداری نمایش داده نمی‌شوند.</span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    className="sr-only peer"
+                                    checked={newProductIsActive}
+                                    onChange={(e) => setNewProductIsActive(e.target.checked)}
+                                  />
+                                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                                </label>
+                                <span className={`text-xs font-black ${newProductIsActive ? "text-emerald-600 bg-emerald-50 px-2 py-1 rounded" : "text-rose-600 bg-rose-50 px-2 py-1 rounded"}`}>
+                                  {newProductIsActive ? "فعال" : "غیرفعال"}
+                                </span>
                               </div>
                             </div>
 

@@ -575,6 +575,9 @@ export default function ProductsTab(props: any) {
                                       قیمت فروش
                                     </th>
                                     <th className="py-4 px-6 text-center w-28">
+                                      وضعیت
+                                    </th>
+                                    <th className="py-4 px-6 text-center w-28">
                                       عملیات
                                     </th>
                                   </tr>
@@ -684,6 +687,26 @@ export default function ProductsTab(props: any) {
                                       </td>
                                       <td className="py-4 px-6 font-sans font-black text-indigo-600 text-base">
                                         {formatNumber(p.price)}
+                                      </td>
+                                      <td className="py-4 px-6 text-center">
+                                        <div className="flex items-center justify-center gap-2">
+                                          <label className="relative inline-flex items-center cursor-pointer" title={p.isActive !== false ? "غیرفعال کردن" : "فعال کردن"}>
+                                            <input
+                                              type="checkbox"
+                                              className="sr-only peer"
+                                              checked={p.isActive !== false}
+                                              onChange={() => {
+                                                if (props.handleToggleProductActive) {
+                                                  props.handleToggleProductActive(p.id, p.isActive !== false);
+                                                }
+                                              }}
+                                            />
+                                            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:right-[3px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-[14px] after:w-[14px] after:transition-all peer-checked:bg-emerald-500"></div>
+                                          </label>
+                                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.isActive !== false ? "text-emerald-700 bg-emerald-50 border border-emerald-100" : "text-rose-700 bg-rose-50 border border-rose-100"}`}>
+                                            {p.isActive !== false ? "فعال" : "غیرفعال"}
+                                          </span>
+                                        </div>
                                       </td>
                                       <td className="py-4 px-6 text-center">
                                         <div className="flex items-center justify-center gap-1 opacity-100">

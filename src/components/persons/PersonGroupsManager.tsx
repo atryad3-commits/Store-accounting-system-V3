@@ -9,7 +9,9 @@ import {
   Check,
   AlertTriangle,
   RotateCw,
+  X,
 } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   getPersonGroups,
   addPersonGroup,
@@ -41,6 +43,7 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
   const [loading, setLoading] = useState(true);
 
   // Form States
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [groupName, setGroupName] = useState("");
   const [groupColor, setGroupColor] = useState("indigo");
@@ -67,6 +70,20 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleOpenAddModal = () => {
+    setEditingGroupId(null);
+    setGroupName("");
+    setGroupColor("indigo");
+    setIsModalOpen(true);
+  };
+
+  const handleStartEdit = (group: PersonGroup) => {
+    setEditingGroupId(group.id);
+    setGroupName(group.name);
+    setGroupColor(group.color || "indigo");
+    setIsModalOpen(true);
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,6 +112,7 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
       setGroupName("");
       setGroupColor("indigo");
       setEditingGroupId(null);
+      setIsModalOpen(false);
       await loadData();
     } catch (error) {
       console.error("Error saving group", error);
@@ -105,15 +123,10 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
   };
 
   const handleCancelEdit = () => {
+    setIsModalOpen(false);
     setEditingGroupId(null);
     setGroupName("");
     setGroupColor("indigo");
-  };
-
-  const handleStartEdit = (group: PersonGroup) => {
-    setEditingGroupId(group.id);
-    setGroupName(group.name);
-    setGroupColor(group.color || "indigo");
   };
 
   const handleDelete = async (id: string) => {
@@ -152,9 +165,9 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
   };
 
   return (
-    <div className="font-sans" dir="rtl">
+    <div className="font-sans w-full" dir="rtl">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
         <div>
           <h1 className="text-xl font-black text-slate-800 flex items-center gap-2.5">
             <span className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
@@ -163,21 +176,30 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
             مدیریت گروه‌های اشخاص
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            دسته‌بندی، تخصیص رنگ‌های متمایز و مدیریت جامع گروه‌های مشتریان، تامین‌کنندگان و همکاران
+            دسته‌بندی، تخصیص رنگ‌های متمایز و مدیریت جامع گروه‌های مشتریان، تامین‌کنندگان و همکاران در یک نمای تمام‌صفحه
           </p>
         </div>
-        <button
-          onClick={loadData}
-          disabled={loading}
-          className="flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all cursor-pointer shadow-sm shrink-0"
-        >
-          <RotateCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-          به‌روزرسانی
-        </button>
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            onClick={loadData}
+            disabled={loading}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all cursor-pointer shadow-sm"
+          >
+            <RotateCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            به‌روزرسانی
+          </button>
+          <button
+            onClick={handleOpenAddModal}
+            className="flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-750 rounded-xl transition-all cursor-pointer shadow-md shadow-indigo-600/10"
+          >
+            <Plus className="w-4 h-4" />
+            افزودن گروه جدید
+          </button>
+        </div>
       </div>
 
       {loading && groups.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100 shadow-sm">
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-slate-100 shadow-sm w-full">
           <div className="relative">
             <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
             <Users className="w-5 h-5 text-indigo-600 absolute inset-0 m-auto animate-pulse" />
@@ -185,182 +207,231 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
           <p className="text-xs font-bold text-slate-500 mt-4">در حال دریافت اطلاعات گروه‌ها...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          {/* Add / Edit Form Panel */}
-          <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-            <h2 className="text-sm font-black text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
-              <span className="p-1.5 rounded-lg bg-indigo-50/50 text-indigo-500">
-                <FolderPlus className="w-4 h-4" />
+        /* Full-Width Groups List Panel */
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden w-full">
+          <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <h2 className="text-sm font-black text-slate-800 flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+                <Users className="w-4 h-4" />
               </span>
-              {editingGroupId ? "ویرایش گروه" : "ایجاد گروه جدید"}
+              لیست گروه‌های تعریف‌شده
             </h2>
+            <span className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-black">
+              {groups.length} گروه فعال
+            </span>
+          </div>
 
-            <form onSubmit={handleSave} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-2">نام گروه</label>
-                <input
-                  type="text"
-                  value={groupName}
-                  onChange={(e) => setGroupName(e.target.value)}
-                  placeholder="مثال: مشتریان VIP، همکاران پخش و..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
-                  required
-                />
-              </div>
+          {groups.length === 0 ? (
+            <div className="p-16 text-center text-slate-400">
+              <Users className="w-14 h-14 mx-auto mb-4 opacity-25" />
+              <p className="text-sm font-bold text-slate-700">هیچ گروهی تعریف نشده است.</p>
+              <p className="text-xs text-slate-400 mt-1.5">با کلیک روی دکمه «افزودن گروه جدید»، اولین گروه را بسازید.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-right">
+                <thead>
+                  <tr className="border-b border-slate-100 text-[11px] font-black text-slate-400 bg-slate-50/30">
+                    <th className="px-6 py-4 w-16">ردیف</th>
+                    <th className="px-6 py-4">عنوان گروه (رنگ متمایز)</th>
+                    <th className="px-6 py-4 w-48">تعداد اعضای فعال</th>
+                    <th className="px-6 py-4 w-60 text-left">عملیات</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {groups.map((group, index) => {
+                    const membersCount = getGroupMembersCount(group.id);
+                    const isPendingDelete = deletingGroupId === group.id;
 
-              <div>
-                <label className="block text-xs font-bold text-slate-600 mb-2 flex items-center gap-1.5">
-                  <Palette className="w-3.5 h-3.5 text-slate-400" />
-                  رنگ و جلوه ظاهری
-                </label>
-                <div className="grid grid-cols-4 gap-2">
-                  {colorPresets.map((preset) => (
-                    <button
-                      key={preset.value}
-                      type="button"
-                      onClick={() => setGroupColor(preset.value)}
-                      className={`flex flex-col items-center justify-center p-2 rounded-xl border text-[10px] font-bold transition-all relative cursor-pointer ${
-                        groupColor === preset.value
-                          ? `${preset.bg} ${preset.text} border-2 border-indigo-600 scale-[1.03] shadow-sm`
-                          : "bg-white text-slate-500 border-slate-150 hover:border-slate-300"
-                      }`}
-                    >
-                      <span className={`w-3 h-3 rounded-full ${preset.dot} mb-1`} />
-                      {preset.label}
-                      {groupColor === preset.value && (
-                        <span className="absolute top-1 left-1 bg-indigo-600 text-white rounded-full p-0.5">
-                          <Check className="w-2 h-2" strokeWidth={4} />
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    return (
+                      <tr
+                        key={group.id}
+                        className={`transition-all hover:bg-slate-50/40 ${
+                          isPendingDelete ? "bg-rose-50/30" : ""
+                        }`}
+                      >
+                        <td className="px-6 py-4 text-xs font-bold text-slate-400">
+                          {index + 1}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex px-3 py-1.5 rounded-xl text-xs font-black border ${getColorClasses(group.color || "indigo")}`}>
+                            {group.name}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold">
+                            <strong>{membersCount}</strong> عضو فعال
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-end gap-2">
+                            {isPendingDelete ? (
+                              <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-rose-100 shadow-sm animate-pulse">
+                                <span className="text-[10px] font-bold text-rose-700 px-2.5 flex items-center gap-1">
+                                  <AlertTriangle className="w-3.5 h-3.5" />
+                                  آیا از حذف گروه اطمینان دارید؟
+                                </span>
+                                <button
+                                  onClick={() => handleDelete(group.id)}
+                                  className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black rounded-lg cursor-pointer transition-colors"
+                                >
+                                  بله، حذف کن
+                                </button>
+                                <button
+                                  onClick={() => setDeletingGroupId(null)}
+                                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-black rounded-lg cursor-pointer transition-colors"
+                                >
+                                  انصراف
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => handleStartEdit(group)}
+                                  className="flex items-center gap-1.5 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                                  title="ویرایش گروه"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                  <span>ویرایش</span>
+                                </button>
+                                <button
+                                  onClick={() => setDeletingGroupId(group.id)}
+                                  className="flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                                  title="حذف گروه"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <span>حذف</span>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
-              {/* Live Preview Card */}
-              <div className="pt-3 border-t border-slate-100">
-                <label className="block text-[10px] font-black text-slate-400 mb-1.5 uppercase tracking-wider">پیش‌نمایش گروه</label>
-                <div className="p-3 bg-slate-50/50 rounded-xl border border-slate-100 flex items-center justify-between">
-                  <span className={`px-2.5 py-1 rounded-lg text-xs font-black border ${getColorClasses(groupColor)}`}>
-                    {groupName || "عنوان گروه"}
+      {/* Standard Modal for Add / Edit */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={handleCancelEdit}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+
+            {/* Modal Box */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", duration: 0.4 }}
+              className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden flex flex-col z-10"
+            >
+              <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
+                <div className="flex items-center gap-2.5">
+                  <span className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
+                    <FolderPlus className="w-4 h-4" />
                   </span>
-                  <span className="text-[10px] text-slate-400 font-bold">بدون عضو</span>
+                  <h2 className="text-sm font-black text-slate-800">
+                    {editingGroupId ? "ویرایش اطلاعات گروه" : "ایجاد گروه جدید اشخاص"}
+                  </h2>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="p-1.5 bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer border border-slate-100"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-extrabold text-xs rounded-xl cursor-pointer shadow-md shadow-indigo-600/15 transition-all"
-                >
-                  <Plus className="w-4 h-4" />
-                  {editingGroupId ? "اعمال تغییرات" : "ثبت و ذخیره"}
-                </button>
-                {editingGroupId && (
+              <form onSubmit={handleSave} className="p-6 space-y-5">
+                <div>
+                  <label className="block text-xs font-black text-slate-700 mb-2">نام گروه <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    value={groupName}
+                    onChange={(e) => setGroupName(e.target.value)}
+                    placeholder="مثال: مشتریان عمده، نمایندگان علمی، همکاران درجه یک..."
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-right"
+                    required
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-700 mb-2.5 flex items-center gap-1.5">
+                    <Palette className="w-4 h-4 text-indigo-500" />
+                    رنگ و جلوه ظاهری متمایز
+                  </label>
+                  <div className="grid grid-cols-4 gap-2.5">
+                    {colorPresets.map((preset) => (
+                      <button
+                        key={preset.value}
+                        type="button"
+                        onClick={() => setGroupColor(preset.value)}
+                        className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-[10px] font-black transition-all relative cursor-pointer ${
+                          groupColor === preset.value
+                            ? `${preset.bg} ${preset.text} border-2 border-indigo-600 scale-[1.03] shadow-sm`
+                            : "bg-white text-slate-500 border-slate-200 hover:border-slate-350"
+                        }`}
+                      >
+                        <span className={`w-3.5 h-3.5 rounded-full ${preset.dot} mb-1.5`} />
+                        {preset.label}
+                        {groupColor === preset.value && (
+                          <span className="absolute top-1 left-1 bg-indigo-600 text-white rounded-full p-0.5 shadow-sm">
+                            <Check className="w-2.5 h-2.5" strokeWidth={4} />
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Live Preview Card */}
+                <div className="pt-4 border-t border-slate-100 bg-slate-50/40 p-4 rounded-xl border border-slate-100">
+                  <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-wider">پیش‌نمایش گروه</label>
+                  <div className="flex items-center justify-between">
+                    <span className={`px-3 py-1.5 rounded-xl text-xs font-black border shadow-sm ${getColorClasses(groupColor)}`}>
+                      {groupName || "عنوان گروه شما"}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-bold bg-white px-2.5 py-1 rounded-md border border-slate-100">بدون عضو</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-3 pt-3 border-t border-slate-100 justify-end">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-extrabold text-xs rounded-xl cursor-pointer shadow-md shadow-indigo-600/15 transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>{editingGroupId ? "ثبت تغییرات گروه" : "ایجاد و ذخیره گروه"}</span>
+                  </button>
                   <button
                     type="button"
                     onClick={handleCancelEdit}
-                    className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl cursor-pointer transition-colors"
+                    className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl cursor-pointer transition-colors"
                   >
                     انصراف
                   </button>
-                )}
-              </div>
-            </form>
+                </div>
+              </form>
+            </motion.div>
           </div>
-
-          {/* Groups List Panel */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-sm font-black text-slate-800 flex items-center gap-2">
-                <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
-                  <Users className="w-4 h-4" />
-                </span>
-                لیست گروه‌های تعریف‌شده
-              </h2>
-              <span className="bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full text-[10px] font-black">
-                {groups.length} گروه فعال
-              </span>
-            </div>
-
-            {groups.length === 0 ? (
-              <div className="p-12 text-center text-slate-400">
-                <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                <p className="text-xs font-bold">هیچ گروهی تعریف نشده است.</p>
-                <p className="text-[10px] text-slate-400 mt-1">از فرم مقابل برای ساخت اولین گروه استفاده کنید.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto custom-scrollbar">
-                {groups.map((group) => {
-                  const membersCount = getGroupMembersCount(group.id);
-                  const isPendingDelete = deletingGroupId === group.id;
-
-                  return (
-                    <div
-                      key={group.id}
-                      className={`p-4 flex items-center justify-between gap-4 transition-all ${
-                        isPendingDelete ? "bg-rose-50/30" : "hover:bg-slate-50/40"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span className={`px-3 py-1 rounded-xl text-xs font-black border shrink-0 ${getColorClasses(group.color || "indigo")}`}>
-                          {group.name}
-                        </span>
-                        <div className="min-w-0">
-                          <span className="bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-lg text-[10px] font-bold">
-                            {membersCount} عضو فعال
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {isPendingDelete ? (
-                          <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-rose-100 shadow-sm">
-                            <span className="text-[10px] font-bold text-rose-700 px-2 flex items-center gap-1">
-                              <AlertTriangle className="w-3 h-3" />
-                              آیا مطمئنید؟
-                            </span>
-                            <button
-                              onClick={() => handleDelete(group.id)}
-                              className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black rounded-lg cursor-pointer transition-colors"
-                            >
-                              بله، حذف کن
-                            </button>
-                            <button
-                              onClick={() => setDeletingGroupId(null)}
-                              className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-black rounded-lg cursor-pointer transition-colors"
-                            >
-                              خیر
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => handleStartEdit(group)}
-                              className="p-1.5 bg-slate-50 hover:bg-indigo-50 text-slate-450 hover:text-indigo-600 rounded-lg transition-colors cursor-pointer"
-                              title="ویرایش گروه"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => setDeletingGroupId(group.id)}
-                              className="p-1.5 bg-slate-50 hover:bg-rose-50 text-slate-450 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
-                              title="حذف گروه"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 }

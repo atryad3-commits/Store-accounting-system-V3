@@ -668,7 +668,7 @@ const isReceipt = [
                     <div className="flex-[2]">
                       <SearchableSelect
                         options={products
-                          .filter((p) => p.type !== "service")
+                          .filter((p) => p.isActive !== false && p.type !== "service")
                           .map((p) => ({
                             value: p.id,
                             label: p.name,

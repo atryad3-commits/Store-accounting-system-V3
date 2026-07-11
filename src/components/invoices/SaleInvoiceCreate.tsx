@@ -351,9 +351,10 @@ export default function SaleInvoiceCreate(props: any) {
                         options={products
                           .filter(
                             (p) =>
-                              storeSettings.allowNegativeStock ||
-                              p.type === "service" ||
-                              calculateProductCurrentStock(p.id) > 0,
+                              p.isActive !== false &&
+                              (storeSettings.allowNegativeStock ||
+                                p.type === "service" ||
+                                calculateProductCurrentStock(p.id) > 0),
                           )
                           .map((p) => ({
                             value: p.id,
