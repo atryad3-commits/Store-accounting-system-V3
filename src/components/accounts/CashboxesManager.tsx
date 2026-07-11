@@ -37,6 +37,11 @@ export default function CashboxesManager(props: any) {
                       </div>
                       <button
                         onClick={() => {
+                          setEditingCashboxId(null);
+                          setNewCashboxName("");
+                          setNewCashboxManager("");
+                          setNewCashboxBalance("");
+                          setIsCashboxModalOpen(true);
                         }}
                         className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
                       >
@@ -80,7 +85,7 @@ export default function CashboxesManager(props: any) {
                           <tbody className="divide-y divide-gray-50">
                             {(cashboxes || []).map((box, index) => (
                               <tr
-                                key={box.id}
+                                key={box.id ? `box-${box.id}` : `box-idx-${index}`}
                                 className="hover:bg-gray-50/50 transition-colors text-gray-700"
                               >
                                 <td className="py-4 px-6 font-medium text-gray-400">

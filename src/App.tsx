@@ -1914,8 +1914,10 @@ export default function App() {
     }
   };
 
-  const handleSubmitProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitProduct = async (e?: React.FormEvent) => {
+    if (e && typeof e.preventDefault === "function") {
+      try { e.preventDefault(); } catch (err) {}
+    }
     if (!newProductName) return;
 
     setSubmittingProduct(true);
@@ -2252,8 +2254,10 @@ export default function App() {
     }
   };
 
-  const handleSubmitPerson = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitPerson = async (e?: React.FormEvent) => {
+    if (e && typeof e.preventDefault === "function") {
+      try { e.preventDefault(); } catch (err) {}
+    }
     if (newPersonType === "real" && (!newPersonFirstName || !newPersonLastName))
       return;
     if (newPersonType === "legal" && !newPersonCompanyName) return;
@@ -2499,8 +2503,10 @@ export default function App() {
     }
   };
 
-  const handleSubmitAccount = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitAccount = async (e?: React.FormEvent) => {
+    if (e && typeof e.preventDefault === "function") {
+      try { e.preventDefault(); } catch (err) {}
+    }
     if (!newAccountBankName) return;
     setSubmittingAccount(true);
     try {
@@ -3272,8 +3278,10 @@ description: receiptDescription,
       details
     );
   };
-  const handleSubmitCashbox = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitCashbox = async (e?: React.FormEvent) => {
+    if (e && typeof e.preventDefault === "function") {
+      try { e.preventDefault(); } catch (err) {}
+    }
     if (!newCashboxName) return;
     setSubmittingCashbox(true);
     try {
@@ -3318,8 +3326,10 @@ description: receiptDescription,
     }
   };
 
-  const handleSubmitWarehouse = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitWarehouse = async (e?: React.FormEvent) => {
+    if (e && typeof e.preventDefault === "function") {
+      try { e.preventDefault(); } catch (err) {}
+    }
     if (!newWarehouseName) return;
     setSubmittingWarehouse(true);
     try {
@@ -11239,7 +11249,7 @@ ${errMsg}`);
 
                                           return (
                                             <tr
-                                              key={entry.id}
+                                              key={`${entry.id}-${idx}`}
                                               className="hover:bg-slate-50 cursor-pointer transition-colors"
                                               onClick={() => {
                                                 if (entry.entryType === "invoice" && entry.rawItem) {

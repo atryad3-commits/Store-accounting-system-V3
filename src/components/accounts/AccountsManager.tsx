@@ -41,6 +41,15 @@ export default function AccountsManager(props: any) {
                       </div>
                       <button
                         onClick={() => {
+                          setEditingAccountId(null);
+                          setNewAccountBankName("");
+                          setNewAccountBranchName("");
+                          setNewAccountNumber("");
+                          setNewAccountCardNumber("");
+                          setNewAccountShebaNumber("");
+                          setNewAccountBalance("");
+                          setNewAccountHolder("");
+                          setIsAccountModalOpen(true);
                         }}
                         className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
                       >
@@ -94,7 +103,7 @@ export default function AccountsManager(props: any) {
                           <tbody className="divide-y divide-gray-50">
                             {(accounts || []).map((acc, index) => (
                               <tr
-                                key={acc.id}
+                                key={acc.id ? `acc-${acc.id}` : `acc-idx-${index}`}
                                 className="hover:bg-gray-50/50 transition-colors text-gray-700"
                               >
                                 <td className="py-4 px-6 font-medium text-gray-400">
