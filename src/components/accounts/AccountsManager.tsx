@@ -57,7 +57,7 @@ export default function AccountsManager(props: any) {
                     )}
 
                     <div className="p-0 overflow-x-auto">
-                      {accounts.length === 0 ? (
+                      {(!accounts || accounts.length === 0) ? (
                         <div className="py-12 text-center text-gray-500 font-medium">
                           هیچ حساب بانکی ثبت نشده است. برای شروع یک حساب جدید
                           تعریف کنید.

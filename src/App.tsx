@@ -6957,19 +6957,39 @@ ${errMsg}`);
                   <PersonRolesManager showNotification={showNotification} />
                 ) : activeTab === "accounts" ? (
                   <AccountsManager
-                    fetchAccounts={fetchAccounts}
-                    customAlert={customAlert}
+                    setEditingAccountId={setEditingAccountId}
+                    setNewAccountBankName={setNewAccountBankName}
+                    setNewAccountBranchName={setNewAccountBranchName}
+                    setNewAccountNumber={setNewAccountNumber}
+                    setNewAccountCardNumber={setNewAccountCardNumber}
+                    setNewAccountShebaNumber={setNewAccountShebaNumber}
+                    setNewAccountBalance={setNewAccountBalance}
+                    setNewAccountHolder={setNewAccountHolder}
+                    setIsAccountModalOpen={setIsAccountModalOpen}
+                    successMsg={successMsg}
+                    accounts={accounts}
+                    formatNumber={formatNumber}
+                    handleEditAccount={handleEditAccount}
                     confirmAction={confirmAction}
-                    showNotification={showNotification}
-                    formatCurrency={formatCurrency}
+                    handleDeleteAccount={handleDeleteAccount}
+                    toPersianDigits={toPersianDigits}
+                    storeSettings={storeSettings}
                   />
                 ) : activeTab === "cashboxes" ? (
                   <CashboxesManager
-                    fetchCashboxes={fetchCashboxes}
-                    customAlert={customAlert}
+                    setEditingCashboxId={setEditingCashboxId}
+                    setNewCashboxName={setNewCashboxName}
+                    setNewCashboxManager={setNewCashboxManager}
+                    setNewCashboxBalance={setNewCashboxBalance}
+                    setIsCashboxModalOpen={setIsCashboxModalOpen}
+                    successMsg={successMsg}
+                    cashboxes={cashboxes}
+                    formatNumber={formatNumber}
+                    handleEditCashbox={handleEditCashbox}
                     confirmAction={confirmAction}
-                    showNotification={showNotification}
-                    formatCurrency={formatCurrency}
+                    handleDeleteCashbox={handleDeleteCashbox}
+                    toPersianDigits={toPersianDigits}
+                    storeSettings={storeSettings}
                   />
                 ) : activeTab === "warehouses" ? (
                   <WarehouseManager 

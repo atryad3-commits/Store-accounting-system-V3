@@ -302,7 +302,7 @@ export default function PersonProfileView({
             ) : (
               <div className="space-y-3">
                 {followUps.slice(0, 5).map(f => (
-                  <div key={f.id} className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div key={f.id || `file-${Math.random()}`} className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
                     <div className="flex items-center gap-2 mb-2">
                       <span className={`text-[10px] font-bold px-2 py-1 rounded-md ${
                           f.type === 'call' ? 'bg-blue-100 text-blue-700' :
@@ -339,7 +339,7 @@ export default function PersonProfileView({
             ) : (
               <div className="space-y-3">
                 {recentInvoices.map(inv => (
-                  <div key={inv.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div key={inv.id || `inv-${Math.random()}`} className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-xl ${inv.type === 'sale' ? 'bg-blue-100 text-blue-700' : inv.type === 'purchase' ? 'bg-purple-100 text-purple-700' : 'bg-slate-200 text-slate-700'}`}>
                         <Receipt className="w-4 h-4" />

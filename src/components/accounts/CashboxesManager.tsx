@@ -53,7 +53,7 @@ export default function CashboxesManager(props: any) {
                     )}
 
                     <div className="p-0 overflow-x-auto">
-                      {cashboxes.length === 0 ? (
+                      {(!cashboxes || cashboxes.length === 0) ? (
                         <div className="py-12 text-center text-gray-500 font-medium">
                           هیچ صندوق یا تنخواه‌گردانی ثبت نشده است. برای شروع یک
                           مورد جدید ثبت کنید.
