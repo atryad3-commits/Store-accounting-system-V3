@@ -191,7 +191,7 @@ export default function ProductCategoriesView({
           <div>
             <span className="text-xs font-bold text-gray-400 block mb-1">کالاهای دسته‌بندی شده</span>
             <span className="text-2xl font-black text-rose-950 font-mono" dir="ltr">
-              {products.filter((p) => p.categoryId || p.category).length}
+              {(products || []).filter((p) => p.categoryId || p.category).length}
             </span>
           </div>
           <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
@@ -395,7 +395,7 @@ export default function ProductCategoriesView({
                           p.id.toString() === cat.parentId?.toString()
                       )
                     : null;
-                  const prodQty = products.filter(
+                  const prodQty = (products || []).filter(
                     (p) =>
                       String(p.categoryId) === String(cat.id) ||
                       p.category === cat.name

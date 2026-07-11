@@ -182,7 +182,7 @@ const InventoryReport: React.FC<InventoryReportProps> = ({ showNotification, cat
                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 font-sans text-sm outline-none"
              >
                <option value="all">تمام انبارها (کلي)</option>
-               {warehouses.filter(w => w.isActive !== false).map(w => (
+               {(warehouses || []).filter(w => w.isActive !== false).map(w => (
                  <option key={w.id} value={w.id}>{w.name}</option>
                ))}
              </select>

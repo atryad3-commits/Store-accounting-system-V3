@@ -365,7 +365,13 @@ async function getAllDbData() {
     return allData;
   } else {
     const rows = db.prepare('SELECT key, value FROM store').all();
-    return rows.map((r: any) => ({ key: r.key, value: JSON.parse(r.value) }));
+    return rows.map((r: any) => {
+      try {
+        return { key: r.key, value: JSON.parse(r.value) };
+      } catch (e) {
+        return { key: r.key, value: r.value };
+      }
+    });
   }
 }
 

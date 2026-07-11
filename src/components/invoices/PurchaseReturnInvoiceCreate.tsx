@@ -240,7 +240,7 @@ import {
                   </label>
                   <div className="border border-emerald-100 rounded-xl bg-emerald-50/30 focus-within:ring-2 focus-within:ring-emerald-500 transition-colors">
                     <SearchableSelect
-                      options={activePersonsOnly.map((p) => ({
+                      options={(activePersonsOnly || []).map((p) => ({
                         value: p.id,
                         label: p.alias || p.name,
                         subLabel: p.phone || undefined,
@@ -349,7 +349,7 @@ import {
                   <div className="flex-[2] relative z-10 w-full">
                     <div className="border hover:border-emerald-300 rounded-xl bg-white shadow-sm transition-colors relative">
                       <SearchableSelect
-                        options={products.map((p) => ({
+                        options={(products || []).map((p) => ({
                           value: p.id,
                           label: p.name,
                           subLabel:
@@ -410,7 +410,7 @@ import {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-emerald-50/50">
-                    {items.length === 0 && (
+                    {(items || []).length === 0 && (
                       <tr>
                         <td
                           colSpan={8}
@@ -426,7 +426,7 @@ import {
                         </td>
                       </tr>
                     )}
-                    {items.map((item, index) => (
+                    {(items || []).map((item, index) => (
                       <tr
                         key={item.id}
                         className="hover:bg-emerald-50/20 transition-colors"
@@ -612,7 +612,7 @@ import {
                         </td>
                       </tr>
                     ))}
-                    {items.length === 0 && (
+                    {(items || []).length === 0 && (
                       <tr>
                         <td colSpan={7} className="p-16 text-center">
                           <div className="flex flex-col items-center justify-center gap-4 text-emerald-600/50">
@@ -731,7 +731,7 @@ import {
               <div className="p-6 bg-emerald-50/20 border-t border-emerald-100 flex justify-end gap-3">
                 <button
                   type="button"
-                  disabled={submitting || items.length === 0 || !customerId}
+                  disabled={submitting || (items || []).length === 0 || !customerId}
                   onClick={() => {
                     if (
                       confirm(
@@ -748,7 +748,7 @@ import {
                 </button>
                 <button
                   onClick={handleInvoicePreviewTrigger}
-                  disabled={submitting || items.length === 0 || !customerId}
+                  disabled={submitting || (items || []).length === 0 || !customerId}
                   className="px-10 py-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-200 text-white rounded-2xl font-black flex items-center justify-center gap-3 transition-colors shadow-sm outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
                 >
                   {submitting ? (

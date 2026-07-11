@@ -33,7 +33,7 @@ export default function InvoicePrintTemplate({
     (p) => p.id === data.customerId
   );
 
-  const allocatedTransactions = transactions.filter((t: any) => {
+  const allocatedTransactions = (transactions || []).filter((t: any) => {
     return t.linkedInvoices && t.linkedInvoices[data.id] && t.linkedInvoices[data.id] > 0;
   });
 
@@ -62,7 +62,7 @@ export default function InvoicePrintTemplate({
 
     // 2. Invoices (<= invoiceDateStr)
     // We include THIS invoice regardless of its date, because the user asked "با احتساب این فاکتور"
-    invoices.filter(i => 
+    (invoices || []).filter(i => 
       i.customerId?.toString() === personIdStr && 
       !i.isDraft && i.status !== "draft" &&
       i.type !== "warehouse_receipt" && i.type !== "warehouse_remittance" && i.type !== "proforma" &&
@@ -76,7 +76,7 @@ export default function InvoicePrintTemplate({
     });
 
     // 3. Transactions
-    transactions.filter(t => 
+    (transactions || []).filter(t => 
       t.personId?.toString() === personIdStr && t.method !== "check" &&
       (t.date || t.createdAt || "") <= invoiceDateStr
     ).forEach(t => {
@@ -86,7 +86,7 @@ export default function InvoicePrintTemplate({
     });
 
     // 4. Issued Checks
-    issuedChecks.filter(c => 
+    (issuedChecks || []).filter(c => 
       c.payeeId?.toString() === personIdStr &&
       c.status !== "cancelled" && c.status !== "bounced" && c.status !== "cashed" &&
       (c.date || c.createdAt || "") <= invoiceDateStr
@@ -95,7 +95,7 @@ export default function InvoicePrintTemplate({
     });
 
     // 5. Received Checks
-    receivedChecks.filter(c => 
+    (receivedChecks || []).filter(c => 
       c.payerId?.toString() === personIdStr &&
       c.status !== "returned" && c.status !== "bounced" && c.status !== "cashed" &&
       (c.date || c.createdAt || "") <= invoiceDateStr

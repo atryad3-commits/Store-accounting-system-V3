@@ -56,7 +56,7 @@ export default function AccountingDocsList({ onNavigateToCreate, onNavigateToVie
     }
   };
 
-  const filteredDocs = docs.filter(d => {
+  const filteredDocs = (docs || []).filter(d => {
     const matchSearch = d.documentNumber?.toString().includes(searchTerm) || d.description?.includes(searchTerm);
     const docDate = new Date(d.date);
     const matchFromDate = fromDate ? docDate >= new Date(fromDate) : true;
@@ -155,7 +155,7 @@ export default function AccountingDocsList({ onNavigateToCreate, onNavigateToVie
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm"
             >
               <option value="">همه حساب‌ها</option>
-              {accounts.filter(a => ['general', 'subsidiary', 'detailed'].includes(a.type)).map(a => (
+              {(accounts || []).filter(a => ['general', 'subsidiary', 'detailed'].includes(a.type)).map(a => (
                 <option key={a.id} value={a.id}>{a.code} - {a.title}</option>
               ))}
             </select>

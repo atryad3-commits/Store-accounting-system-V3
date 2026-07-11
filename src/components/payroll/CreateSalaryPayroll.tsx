@@ -32,7 +32,7 @@ export default function CreateSalaryPayroll(props: any) {
                       انتخاب کارمند
                     </label>
                     <SearchableSelect
-                      options={activePersonsOnly.map((p) => ({
+                      options={(activePersonsOnly || []).map((p) => ({
                         value: p.id,
                         label: p.alias || p.name,
                         subLabel: p.personCode

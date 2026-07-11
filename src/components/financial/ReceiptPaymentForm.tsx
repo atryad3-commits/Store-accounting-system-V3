@@ -259,7 +259,7 @@ export default function ReceiptPaymentForm(props: any) {
                         setReceiptPersonId(option ? option.value : "");
                         setReceiptLinkedInvoices({});
                       }}
-                      options={activePersonsOnly.map(mapPersonToOption) as any}
+                      options={(activePersonsOnly || []).map(mapPersonToOption) as any}
                       filterOption={customPersonFilter}
                       formatOptionLabel={(option: any) => (
                         <div className="flex items-center gap-3">
@@ -436,7 +436,7 @@ export default function ReceiptPaymentForm(props: any) {
                             required
                           >
                             <option value="">-- انتخاب بانک --</option>
-                            {accounts.map((acc) => (
+                            {(accounts || []).map((acc) => (
                               <option key={acc.id} value={acc.id}>
                                 {acc.bankName} - {acc.accountNumber}
                               </option>
@@ -452,7 +452,7 @@ export default function ReceiptPaymentForm(props: any) {
                             required
                           >
                             <option value="">-- انتخاب صندوق --</option>
-                            {cashboxes.map((cb) => (
+                            {(cashboxes || []).map((cb) => (
                               <option key={cb.id} value={cb.id}>
                                 {cb.name}
                               </option>
@@ -531,7 +531,7 @@ export default function ReceiptPaymentForm(props: any) {
                           required
                         >
                           <option value="">-- انتخاب دسته چک --</option>
-                          {checkbooks.map((cb) => {
+                          {(checkbooks || []).map((cb) => {
                             const bankAccount = accounts.find(
                               (a) => a.id === cb.accountId,
                             );
@@ -566,7 +566,7 @@ export default function ReceiptPaymentForm(props: any) {
                                   String(c.id) === String(receiptCheckbookId),
                               );
                               if (!cb) return null;
-                              const available = issuedChecks.filter((ic: any) => String(ic.checkbookId) === String(receiptCheckbookId) && ic.status === 'blank');
+                              const available = (issuedChecks || []).filter((ic: any) => String(ic.checkbookId) === String(receiptCheckbookId) && ic.status === 'blank');
                               return available.map((c: any) => (
                                 <option key={c.id} value={c.checkNumber}>
                                   {c.checkNumber}
@@ -631,7 +631,7 @@ export default function ReceiptPaymentForm(props: any) {
 
                   {receiptPersonId &&
                     (() => {
-                      const personInvoices = invoices.filter(
+                      const personInvoices = (invoices || []).filter(
                         (inv) =>
                           !inv.isDraft &&
                           inv.status !== "draft" && inv.status !== "voided" &&

@@ -158,22 +158,10 @@ export default function DatabaseDashboard({ showNotification }: DatabaseDashboar
 
   const handleBackup = async () => {
     try {
-      const res = await fetch('/api/db/backup');
-      if (!res.ok) throw new Error('Network response was not ok');
-      const blob = await res.blob();
-      const isSql = res.headers.get('Content-Type')?.includes('sql');
-      const extension = isSql ? 'sql' : 'json';
-      const a = document.createElement('a');
-      const url = window.URL.createObjectURL(blob);
-      a.href = url;
-      a.download = `حسابداری-پشتیبان-${new Date().toLocaleDateString('fa-IR').replace(/\//g, '-')}.${extension}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      showNotification('نسخه پشتیبان با موفقیت دانلود شد', 'success');
+      window.open('/api/db/backup', '_blank');
+      showNotification('درخواست دانلود فایل پشتیبان ارسال شد', 'success');
     } catch (e) {
-      showNotification('خطا در دانلود نسخه پشتیبان', 'error');
+      showNotification('خطا در درخواست دانلود نسخه پشتیبان', 'error');
     }
   };
 
@@ -894,7 +882,7 @@ export default function DatabaseDashboard({ showNotification }: DatabaseDashboar
                             const tableColumns = getColumnsForTable(selectedTable);
                             
                             return (
-                              <React.Fragment key={item.id || index}>
+                              <React.Fragment key={item.id ? `rec-${item.id}-${index}` : `idx-${index}`}>
                                 {/* Row element */}
                                 <tr className={`hover:bg-slate-50/50 transition-colors ${isExpanded ? 'bg-slate-50' : ''}`}>
                                   <td className="py-3.5 px-4 text-center">

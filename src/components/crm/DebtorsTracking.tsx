@@ -165,7 +165,7 @@ export default function DebtorsTracking({ persons, showNotification }: any) {
     } else {
       let filteredPersons = persons;
       if (selectedGroupRole !== 'all') {
-        filteredPersons = persons.filter((p: any) => p.role === selectedGroupRole);
+        filteredPersons = (persons || []).filter((p: any) => p.role === selectedGroupRole);
       }
       
       let addedCount = 0;
@@ -200,7 +200,7 @@ export default function DebtorsTracking({ persons, showNotification }: any) {
   const handleSaveNote = async () => {
     if (!newNote && !newNextDate) return;
     
-    const newItems = items.map(item => {
+    const newItems = (items || []).map(item => {
       if (item.id === selectedItem.id) {
         const notes = item.notes || [];
         return {
@@ -223,14 +223,14 @@ export default function DebtorsTracking({ persons, showNotification }: any) {
 
   const handleRemoveItem = async (id: string) => {
     if (!window.confirm('آیا از حذف این مورد اطمینان دارید؟')) return;
-    const newItems = items.filter(i => i.id !== id);
+    const newItems = (items || []).filter(i => i.id !== id);
     setItems(newItems);
     await saveDebtorsTrackings(newItems);
     setIsNoteModalOpen(false);
     showNotification('حذف شد', 'success');
   };
 
-  const filteredItems = items.filter(item => {
+  const filteredItems = (items || []).filter(item => {
     const person = persons.find((p: any) => String(p.id) === item.personId);
     const name = person ? (person.name || person.companyName || '') : '';
     return name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -363,7 +363,7 @@ export default function DebtorsTracking({ persons, showNotification }: any) {
                       <label className="block text-xs font-black text-gray-700 mb-1.5">انتخاب شخص</label>
                       <select required value={selectedPersonId} onChange={e => setSelectedPersonId(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:ring-2 focus:ring-indigo-500/20 outline-none">
                         <option value="">-- انتخاب کنید --</option>
-                        {persons.map((p: any) => (
+                        {(persons || []).map((p: any) => (
                            <option key={p.id} value={p.id}>{p.name || p.companyName}</option>
                         ))}
                       </select>

@@ -15,7 +15,7 @@ export default function AccountingDocCreate({ showNotification, onBack, initialD
   const [date, setDate] = useState(initialDoc?.date ? convertToGregorian(initialDoc.date).split('T')[0] : new Date().toISOString().split('T')[0]);
   const [docNumber, setDocNumber] = useState(initialDoc?.documentNumber || '');
   const [description, setDescription] = useState(initialDoc?.description || '');
-  const [items, setItems] = useState<any[]>(initialDoc?.items?.length > 0 ? initialDoc.items : [
+  const [items, setItems] = useState<any[]>((initialDoc?.items && initialDoc.items.length > 0) ? initialDoc.items : [
     { ledgerAccountId: '', detailedAccountId: '', description: '', debit: 0, credit: 0 },
     { ledgerAccountId: '', detailedAccountId: '', description: '', debit: 0, credit: 0 }
   ]);
@@ -65,7 +65,7 @@ export default function AccountingDocCreate({ showNotification, onBack, initialD
   };
 
   const removeItemRow = (index: number) => {
-    if (items.length <= 2) return;
+    if ((items || []).length <= 2) return;
     const newItems = [...items];
     newItems.splice(index, 1);
     setItems(newItems);
@@ -76,13 +76,13 @@ export default function AccountingDocCreate({ showNotification, onBack, initialD
   const isBalanced = totalDebit === totalCredit && totalDebit > 0;
 
   const handleSave = async (status: 'draft' | 'approved') => {
-    if (!description || items.length < 2) {
+    if (!description || (items || []).length < 2) {
       showNotification('تکمیل شرح سند و حداقل ۲ آرتیکل الزامی است', 'error');
       return;
     }
     
     // Check validation
-    const invalidItems = items.filter(i => !i.ledgerAccountId || (Number(i.debit) === 0 && Number(i.credit) === 0));
+    const invalidItems = (items || []).filter(i => !i.ledgerAccountId || (Number(i.debit) === 0 && Number(i.credit) === 0));
     if (invalidItems.length > 0) {
       showNotification('لطفا اطلاعات تمام آرتیکل‌ها (حساب و مبلغ) را کامل کنید', 'error');
       return;
@@ -180,7 +180,7 @@ export default function AccountingDocCreate({ showNotification, onBack, initialD
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {items.map((item, index) => (
+              {(items || []).map((item, index) => (
                 <tr key={index} className="hover:bg-slate-50/50">
                   <td className="p-2 text-center text-slate-400 text-sm font-mono">{index + 1}</td>
                   <td className="p-2 min-w-[200px]">
@@ -190,7 +190,7 @@ export default function AccountingDocCreate({ showNotification, onBack, initialD
                       className="w-full bg-white border border-slate-200 rounded-md px-2 py-1.5 text-xs"
                     >
                       <option value="">-- انتخاب حساب --</option>
-                      {accounts.filter(a => ['general', 'subsidiary', 'detailed'].includes(a.type)).map(a => (
+                      {(accounts || []).filter(a => ['general', 'subsidiary', 'detailed'].includes(a.type)).map(a => (
                         <option key={a.id} value={a.id}>{a.code} - {a.title} ({a.type === 'general' ? 'کل' : a.type === 'subsidiary' ? 'معین' : 'تفصیلی'})</option>
                       ))}
                     </select>
@@ -202,7 +202,7 @@ export default function AccountingDocCreate({ showNotification, onBack, initialD
                       className="w-full bg-white border border-slate-200 rounded-md px-2 py-1.5 text-xs text-slate-600"
                     >
                        <option value="">بدون شخص</option>
-                       {persons.filter(p => p.isActive !== false).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                       {(persons || []).filter(p => p.isActive !== false).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                   </td>
                   <td className="p-2 min-w-[200px]">
@@ -235,7 +235,7 @@ export default function AccountingDocCreate({ showNotification, onBack, initialD
                     />
                   </td>
                   <td className="p-2 text-center">
-                    <button onClick={() => removeItemRow(index)} disabled={items.length <= 2} className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded disabled:opacity-30">
+                    <button onClick={() => removeItemRow(index)} disabled={(items || []).length <= 2} className="p-1.5 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded disabled:opacity-30">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>

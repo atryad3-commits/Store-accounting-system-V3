@@ -12,7 +12,7 @@ export default function ReceiptsList(props: any) {
 
       
         const isReceive = activeTab === "list_receive_receipt";
-        const filteredTxs = transactions.filter(
+        const filteredTxs = (transactions || []).filter(
           (t) => t.type === (isReceive ? "receive" : "pay"),
         );
 

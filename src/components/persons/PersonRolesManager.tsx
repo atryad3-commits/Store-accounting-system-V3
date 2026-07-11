@@ -145,7 +145,7 @@ export default function PersonRolesManager({ showNotification }: PersonRolesMana
       await deletePersonRole(id);
 
       // Reset roles for persons affected
-      const affectedPersons = persons.filter((p) => p.role === id);
+      const affectedPersons = (persons || []).filter((p) => p.role === id);
       let updatedCount = 0;
       for (const p of affectedPersons) {
         if (p.id) {
@@ -167,7 +167,7 @@ export default function PersonRolesManager({ showNotification }: PersonRolesMana
   };
 
   const getRoleMembersCount = (roleId: string) => {
-    return persons.filter((p) => p.role === roleId).length;
+    return (persons || []).filter((p) => p.role === roleId).length;
   };
 
   return (

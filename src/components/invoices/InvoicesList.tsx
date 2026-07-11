@@ -362,9 +362,9 @@ export default function InvoicesList(props: any) {
                               </td>
                             </tr>
                           )}
-                        {group.invoices.map((inv) => (
+                        {(group.invoices || []).map((inv, invIdx) => (
                           <tr
-                            key={inv.id}
+                            key={inv.id ? `inv-${inv.id}-${invIdx}` : `invIdx-${group.groupName}-${invIdx}`}
                             className={`transition-colors ${inv.status === "voided" ? "bg-rose-50/60 hover:bg-rose-100/60 opacity-80" : "hover:bg-gray-50/80"}`}
                           >
                             <td className="p-4 font-sans text-right font-black text-slate-705 text-sm whitespace-nowrap">

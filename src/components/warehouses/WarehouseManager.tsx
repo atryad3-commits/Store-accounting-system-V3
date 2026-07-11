@@ -151,7 +151,7 @@ export default function WarehouseManager(props: any) {
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
-                              {warehouses.map((wh, index) => (
+                              {(warehouses || []).map((wh, index) => (
                                 <tr
                                   key={wh.id}
                                   className="hover:bg-gray-50/50 transition-colors text-gray-700"

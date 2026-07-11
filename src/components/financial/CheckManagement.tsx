@@ -437,7 +437,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
   };
 
   // Filtered queries and statistical sums
-  const filteredIssuedChecks = issuedChecks.filter(c => {
+  const filteredIssuedChecks = (issuedChecks || []).filter(c => {
     // Hide blank checks
     if (!c.payeeId && (!c.amount || Number(c.amount) === 0) && !c.description) {
       return false;
@@ -469,7 +469,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
     return issuedSortDir === 'asc' ? diff : -diff;
   });
 
-  const filteredReceivedChecks = receivedChecks.filter(c => {
+  const filteredReceivedChecks = (receivedChecks || []).filter(c => {
     const payerName = String(persons.find(p => p.id?.toString() === c.payerId?.toString())?.name || c.payerId || '');
     const query = receivedSearchQuery.toLowerCase();
     const searchMatch = (
@@ -491,14 +491,14 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
 
   // KPI Calculations
   const totalIssuedAmount = issuedChecks.reduce((sum, c) => sum + Number(c.amount || 0), 0);
-  const cashedIssuedAmount = issuedChecks.filter(c => c.status === 'cashed').reduce((sum, c) => sum + Number(c.amount || 0), 0);
-  const bouncedIssuedAmount = issuedChecks.filter(c => c.status === 'bounced').reduce((sum, c) => sum + Number(c.amount || 0), 0);
-  const pendingIssuedAmount = issuedChecks.filter(c => c.status === 'issued' || !c.status).reduce((sum, c) => sum + Number(c.amount || 0), 0);
+  const cashedIssuedAmount = (issuedChecks || []).filter(c => c.status === 'cashed').reduce((sum, c) => sum + Number(c.amount || 0), 0);
+  const bouncedIssuedAmount = (issuedChecks || []).filter(c => c.status === 'bounced').reduce((sum, c) => sum + Number(c.amount || 0), 0);
+  const pendingIssuedAmount = (issuedChecks || []).filter(c => c.status === 'issued' || !c.status).reduce((sum, c) => sum + Number(c.amount || 0), 0);
 
   const totalReceivedAmount = receivedChecks.reduce((sum, c) => sum + Number(c.amount || 0), 0);
-  const cashedReceivedAmount = receivedChecks.filter(c => c.status === 'cashed').reduce((sum, c) => sum + Number(c.amount || 0), 0);
-  const bouncedReceivedAmount = receivedChecks.filter(c => c.status === 'bounced').reduce((sum, c) => sum + Number(c.amount || 0), 0);
-  const inHandReceivedAmount = receivedChecks.filter(c => c.status === 'received' || c.status === 'deposited' || !c.status).reduce((sum, c) => sum + Number(c.amount || 0), 0);
+  const cashedReceivedAmount = (receivedChecks || []).filter(c => c.status === 'cashed').reduce((sum, c) => sum + Number(c.amount || 0), 0);
+  const bouncedReceivedAmount = (receivedChecks || []).filter(c => c.status === 'bounced').reduce((sum, c) => sum + Number(c.amount || 0), 0);
+  const inHandReceivedAmount = (receivedChecks || []).filter(c => c.status === 'received' || c.status === 'deposited' || !c.status).reduce((sum, c) => sum + Number(c.amount || 0), 0);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden print:border-none print:shadow-none print:m-0 print:p-0" dir="rtl">
@@ -649,7 +649,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                     className="bg-transparent text-xs font-bold text-gray-700 outline-none px-2 py-1 cursor-pointer max-w-[120px] truncate"
                   >
                     <option value="all">همه دسته‌چک‌ها</option>
-                    {checkbooks.map(cb => {
+                    {(checkbooks || []).map(cb => {
                       const bank = accounts.find(a => a.id == cb.accountId)?.bankName || 'حساب';
                       return <option key={cb.id} value={cb.id.toString()}>{bank} ({cb.startNumber})</option>
                     })}
@@ -1149,7 +1149,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                     چک‌های دریافتی روز
                   </div>
                   <div className="p-4 flex flex-col gap-3">
-                    {receivedChecks.filter(c => {
+                    {(receivedChecks || []).filter(c => {
                        const cDate = normalizeDate(c.dueDate);
                        const range = getSelectedRange();
                        if (range.start === 0) return false;
@@ -1178,7 +1178,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                         </div>
                       </div>
                     ))}
-                    {receivedChecks.filter(c => {
+                    {(receivedChecks || []).filter(c => {
                        const cDate = normalizeDate(c.dueDate);
                        const range = getSelectedRange();
                        if (range.start === 0) return false;
@@ -1196,7 +1196,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                     چک‌های پرداختی روز
                   </div>
                   <div className="p-4 flex flex-col gap-3">
-                    {issuedChecks.filter(c => {
+                    {(issuedChecks || []).filter(c => {
                        const cDate = normalizeDate(c.dueDate);
                        const range = getSelectedRange();
                        if (range.start === 0) return false;
@@ -1225,7 +1225,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                         </div>
                       </div>
                     ))}
-                    {issuedChecks.filter(c => {
+                    {(issuedChecks || []).filter(c => {
                        const cDate = normalizeDate(c.dueDate);
                        const range = getSelectedRange();
                        if (range.start === 0) return false;
@@ -1354,7 +1354,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                       }
                     }} className="w-full border rounded-xl px-4 py-2 text-sm bg-white">
                       <option value="">-- بدون انتخاب (صدور مستقیم) --</option>
-                      {checkbooks.map(cb => {
+                      {(checkbooks || []).map(cb => {
                         const acc = accounts.find(a => a.id == cb.accountId);
                         return <option key={cb.id} value={cb.id}>{acc?.bankName || 'نامشخص'} (برگه‌های: {cb.startNumber} تا {cb.endNumber})</option>;
                       })}
@@ -1365,7 +1365,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                     {icCheckbookId ? (
                       <select required value={icCheckNumber} onChange={e => setIcCheckNumber(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-sm font-mono text-center bg-white" dir="ltr">
                         <option value="">-- انتخاب از برگ‌های سفید --</option>
-                        {issuedChecks.filter(ic => String(ic.checkbookId) === String(icCheckbookId) && ic.status === 'blank').map(c => (
+                        {(issuedChecks || []).filter(ic => String(ic.checkbookId) === String(icCheckbookId) && ic.status === 'blank').map(c => (
                           <option key={c.id} value={c.checkNumber}>{c.checkNumber}</option>
                         ))}
                       </select>
@@ -1379,7 +1379,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                   <label className="block text-xs font-black text-gray-700 mb-1">گیرنده چک (طرف حساب ذینفع) *</label>
                   <select required value={icPayeeId} onChange={e => setIcPayeeId(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-sm bg-white">
                     <option value="">-- انتخاب طرف حساب --</option>
-                    {persons.filter(p => p.isActive !== false).map(p => (
+                    {(persons || []).filter(p => p.isActive !== false).map(p => (
                       <option key={p.id} value={p.id}>{p.name} ({p.role === 'customer' ? 'مشتری' : p.role === 'supplier' ? 'تامین کننده' : 'همکار'})</option>
                     ))}
                   </select>
@@ -1454,7 +1454,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                   <label className="block text-xs font-black text-gray-700 mb-1">پرداخت‌کننده (طرف حساب متعهد چک) *</label>
                   <select required value={rcPayerId} onChange={e => setRcPayerId(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-sm bg-white">
                     <option value="">-- انتخاب پرداخت‌کننده --</option>
-                    {persons.filter(p => p.isActive !== false).map(p => (
+                    {(persons || []).filter(p => p.isActive !== false).map(p => (
                       <option key={p.id} value={p.id}>{p.name} ({p.role === 'customer' ? 'مشتری' : p.role === 'supplier' ? 'تامین کننده' : 'همکار'})</option>
                     ))}
                   </select>
@@ -1608,7 +1608,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                           className="w-full border border-amber-200 rounded-lg px-3 py-2 text-xs bg-white font-bold"
                        >
                          <option value="">-- انتخاب حساب بانکی --</option>
-                         {accounts.map(a => (
+                         {(accounts || []).map(a => (
                            <option key={a.id} value={a.id}>{a.bankName} - {a.accountNumber || a.cardNumber}</option>
                          ))}
                        </select>
@@ -1626,7 +1626,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                           className="w-full border border-amber-200 rounded-lg px-3 py-2 text-xs bg-white font-bold"
                        >
                          <option value="">-- انتخاب حساب بانکی --</option>
-                         {accounts.map(a => (
+                         {(accounts || []).map(a => (
                            <option key={a.id} value={a.id}>{a.bankName} - {a.accountNumber || a.cardNumber}</option>
                          ))}
                        </select>
@@ -1644,7 +1644,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                           className="w-full bg-white border border-amber-200 rounded-lg px-3 py-2 text-xs font-semibold focus:ring-2 focus:ring-amber-500/20"
                        >
                           <option value="">-- انتخاب شخص --</option>
-                          {persons.map(p => (
+                          {(persons || []).map(p => (
                             <option key={p.id} value={p.id}>{p.name}</option>
                           ))}
                        </select>

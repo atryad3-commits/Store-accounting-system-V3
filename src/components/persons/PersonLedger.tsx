@@ -129,7 +129,7 @@ export default function PersonLedger(props: any) {
                           onChange={(option: any) =>
                             setLedgerPersonId(option ? option.value : "")
                           }
-                          options={persons.map(mapPersonToOption) as any}
+                          options={(persons || []).map(mapPersonToOption) as any}
                           filterOption={customPersonFilter}
                           formatOptionLabel={(option: any) => (
                             <div className="flex items-center gap-3">

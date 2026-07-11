@@ -122,7 +122,7 @@ export default function PersonIOModal({
                         <div className="space-y-4">
                           <div className="bg-indigo-50/50 border border-indigo-100/50 p-4 rounded-xl text-indigo-950 font-medium leading-relaxed">
                             در این بخش می‌توانید لیست جامع اطلاعات تمامی اشخاص
-                            ثبت شده در سیستم ({persons.length} شخص) را با فرمت
+                            ثبت شده در سیستم ({(persons || []).length} شخص) را با فرمت
                             استانداردی چون JSON یا اکسل (CSV کاملاً سازگار با
                             حروف فارسی) دریافت و بر روی سیستم خود ذخیره نمایید.
                           </div>
@@ -171,7 +171,7 @@ export default function PersonIOModal({
 
                                   const csvContent = [
                                     headers.join(","),
-                                    ...persons.map((p, index) => {
+                                    ...(persons || []).map((p, index) => {
                                       const row = [
                                         p.personCode || "",
                                         p.name || "",
@@ -629,7 +629,7 @@ export default function PersonIOModal({
                           )}
 
                           {/* TWO: COLUMN MAPPER STEP (show when we have parsed rows and headers) */}
-                          {parsedHeaders.length > 0 &&
+                          {(parsedHeaders || []).length > 0 &&
                             personsIOFileType !== "json" && (
                               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
                                 <div className="flex items-center gap-1.5 border-b border-slate-150 pb-2">
@@ -902,9 +902,9 @@ export default function PersonIOModal({
                                                 ستون {i + 1}: {h || "-"}
                                               </th>
                                             ))}
-                                          {parsedHeaders.length > 7 && (
+                                          {(parsedHeaders || []).length > 7 && (
                                             <th className="py-2 px-3">
-                                              ... ({parsedHeaders.length - 7}{" "}
+                                              ... ({(parsedHeaders || []).length - 7}{" "}
                                               ستون دیگر)
                                             </th>
                                           )}
@@ -929,7 +929,7 @@ export default function PersonIOModal({
                                                     )}
                                                   </td>
                                                 ))}
-                                              {row.length > 7 && (
+                                              {(row || []).length > 7 && (
                                                 <td className="py-2 px-3 text-slate-400">
                                                   ...
                                                 </td>
@@ -944,7 +944,7 @@ export default function PersonIOModal({
                             )}
 
                           {/* Preview Table for JSON (Standard Backups) */}
-                          {parsedHeaders.length > 0 &&
+                          {(parsedHeaders || []).length > 0 &&
                             personsIOFileType === "json" && (
                               <div className="bg-emerald-50/50 border border-emerald-150/50 p-4 rounded-xl space-y-2 text-emerald-950">
                                 <div className="flex items-center justify-between">
@@ -958,7 +958,7 @@ export default function PersonIOModal({
                                   <span className="text-xs font-bold text-slate-500">
                                     تعداد افراد برای ایمپورت:{" "}
                                     <strong className="text-emerald-700 font-sans font-black">
-                                      {parsedRows.length}
+                                      {(parsedRows || []).length}
                                     </strong>{" "}
                                     نفر
                                   </span>
@@ -995,15 +995,15 @@ export default function PersonIOModal({
                           <button
                             type="button"
                             disabled={
-                              parsedRows.length === 0 ||
+                              (parsedRows || []).length === 0 ||
                               (personsIOFileType !== "json" &&
                                 personIOMappings.name === -1)
                             }
                             onClick={() => {
                               const confirmMsg =
                                 personsIOFileType === "json"
-                                  ? `آیا از ورود نهایی ${parsedRows.length} نفر شخص جدید به پایگاه داده از روی فایل پشتیبان اطمینان دارید؟`
-                                  : `آیا از ثبت گروهی ${parsedRows.length} شخص طبق تناظر ستونی انتخاب‌شده اطمینان دارید؟`;
+                                  ? `آیا از ورود نهایی ${(parsedRows || []).length} نفر شخص جدید به پایگاه داده از روی فایل پشتیبان اطمینان دارید؟`
+                                  : `آیا از ثبت گروهی ${(parsedRows || []).length} شخص طبق تناظر ستونی انتخاب‌شده اطمینان دارید؟`;
 
                               confirmAction(confirmMsg, async () => {
                                 let successCount = 0;
@@ -1164,7 +1164,7 @@ export default function PersonIOModal({
                               });
                             }}
                             className={`px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer border-none shadow-md ${
-                              parsedRows.length > 0 &&
+                              (parsedRows || []).length > 0 &&
                               (personsIOFileType === "json" ||
                                 personIOMappings.name !== -1)
                                 ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-100/60 active:scale-98"

@@ -680,7 +680,7 @@ export const ensureLedgerAccount = async (
 export const getAccounts = async () => {
   const accounts = await getLocalData<any[]>('accounts', []);
   let modified = false;
-  for (let i = 0; i < accounts.length; i++) {
+  for (let i = 0; i < (accounts || []).length; i++) {
     if (!accounts[i].accountingCode || String(accounts[i].accountingCode).trim() === '') {
       accounts[i].accountingCode = await ensureLedgerAccount(
         accounts[i],
@@ -726,7 +726,7 @@ export const deleteAccount = async (id: string) => {
 export const getCashboxes = async () => {
   const cashboxes = await getLocalData<any[]>('cashboxes', []);
   let modified = false;
-  for (let i = 0; i < cashboxes.length; i++) {
+  for (let i = 0; i < (cashboxes || []).length; i++) {
     if (!cashboxes[i].accountingCode || String(cashboxes[i].accountingCode).trim() === '') {
       cashboxes[i].accountingCode = await ensureLedgerAccount(
         cashboxes[i],
@@ -804,7 +804,7 @@ export const addProductCategory = async (category: any) => {
   const now = Date.now();
   
   let maxCatCode = 0;
-  for (let i = 0; i < categories.length; i++) {
+  for (let i = 0; i < (categories || []).length; i++) {
     const c = categories[i];
     if (c.code) {
       const num = parseInt(c.code, 10);

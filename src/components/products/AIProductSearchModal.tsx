@@ -47,7 +47,7 @@ export default function AIProductSearchModal({
 
       const data = await res.json();
       if (data.products && Array.isArray(data.products)) {
-        setResults(data.products.map((p: any, index: number) => ({ ...p, id: index })));
+        setResults((data.products || []).map((p: any, index: number) => ({ ...p, id: index })));
       } else {
         setResults([]);
       }

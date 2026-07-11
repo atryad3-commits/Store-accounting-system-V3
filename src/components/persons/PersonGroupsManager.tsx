@@ -121,7 +121,7 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
       await deletePersonGroup(id);
 
       // Remove group from all persons belonging to this group
-      const affectedPersons = persons.filter((p) => p.group === id);
+      const affectedPersons = (persons || []).filter((p) => p.group === id);
       let updatedCount = 0;
       for (const p of affectedPersons) {
         if (p.id) {
@@ -143,7 +143,7 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
   };
 
   const getGroupMembersCount = (groupId: string) => {
-    return persons.filter((p) => p.group === groupId).length;
+    return (persons || []).filter((p) => p.group === groupId).length;
   };
 
   const getColorClasses = (colorValue: string) => {

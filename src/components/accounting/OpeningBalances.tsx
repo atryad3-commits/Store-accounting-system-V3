@@ -15,7 +15,7 @@ import { addCommas, removeCommas, convertToGregorian } from "../../utils/format"
 function PersonSearchSelect({ persons, value, onChange }: any) {
   const options = [
     { value: "", label: "بدون شخص (حساب کل)" },
-    ...persons.map((p: any) => ({
+    ...(persons || []).map((p: any) => ({
       value: p.id.toString(),
       label: `${p.name} ${p.family || ""} ${p.nationalId ? `(${p.nationalId})` : ""} ${p.phone ? `(${p.phone})` : ""}`,
       person: p
@@ -214,7 +214,7 @@ export default function OpeningBalances({ showNotification, onBack }: any) {
                 className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20"
               >
                 <option value="">-- انتخاب حساب --</option>
-                {accounts.filter(a => ['general', 'subsidiary', 'detailed'].includes(a.type)).map(a => (
+                {(accounts || []).filter(a => ['general', 'subsidiary', 'detailed'].includes(a.type)).map(a => (
                   <option key={a.id} value={a.id}>{a.code} - {a.title}</option>
                 ))}
               </select>

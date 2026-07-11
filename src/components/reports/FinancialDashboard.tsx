@@ -159,12 +159,12 @@ export default function FinancialDashboard({
   const renderWidgetContent = (widget: any) => {
     switch (widget.id) {
       case 'alert_checks': {
-        const upcomingIssued = issuedChecks.filter((c: any) => {
+        const upcomingIssued = (issuedChecks || []).filter((c: any) => {
           if (["cashed", "bounced", "cancelled"].includes(c.status)) return false;
           const n = normalizeDateStr(c.dueDate);
           return n >= startNormAlert && n <= endNormAlert;
         });
-        const upcomingReceived = receivedChecks.filter((c: any) => {
+        const upcomingReceived = (receivedChecks || []).filter((c: any) => {
           if (["cashed", "deposited", "bounced", "returned"].includes(c.status)) return false;
           const n = normalizeDateStr(c.dueDate);
           return n >= startNormAlert && n <= endNormAlert;
@@ -189,8 +189,8 @@ export default function FinancialDashboard({
         );
       }
       case 'kpi_sales': {
-        const amt = invoices.filter(inv => !inv.isDraft && inv.status !== "draft" && inv.status !== "voided" && (inv.type === "sale" || inv.type === "sale_return") && (!reportDateRange || reportDateRange.length !== 2 || (new Date(inv.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(inv.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).reduce((sum, inv) => sum + (inv.type === "sale" ? inv.totalAmount || 0 : -(inv.totalAmount || 0)) * getDefaultExchangeRate(inv.currency, storeSettings.currency), 0);
-        const count = invoices.filter(inv => !inv.isDraft && inv.status !== "draft" && inv.status !== "voided" && inv.type === "sale" && (!reportDateRange || reportDateRange.length !== 2 || (new Date(inv.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(inv.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).length;
+        const amt = (invoices || []).filter(inv => !inv.isDraft && inv.status !== "draft" && inv.status !== "voided" && (inv.type === "sale" || inv.type === "sale_return") && (!reportDateRange || reportDateRange.length !== 2 || (new Date(inv.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(inv.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).reduce((sum, inv) => sum + (inv.type === "sale" ? inv.totalAmount || 0 : -(inv.totalAmount || 0)) * getDefaultExchangeRate(inv.currency, storeSettings.currency), 0);
+        const count = (invoices || []).filter(inv => !inv.isDraft && inv.status !== "draft" && inv.status !== "voided" && inv.type === "sale" && (!reportDateRange || reportDateRange.length !== 2 || (new Date(inv.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(inv.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).length;
         return (
           <div className="bg-white rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden h-full">
             <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-indigo-500"></div>
@@ -204,8 +204,8 @@ export default function FinancialDashboard({
         );
       }
       case 'kpi_purchases': {
-        const amt = invoices.filter(inv => !inv.isDraft && inv.status !== "draft" && inv.status !== "voided" && (inv.type === "purchase" || inv.type === "purchase_return") && (!reportDateRange || reportDateRange.length !== 2 || (new Date(inv.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(inv.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).reduce((sum, inv) => sum + (inv.type === "purchase" ? inv.totalAmount || 0 : -(inv.totalAmount || 0)) * getDefaultExchangeRate(inv.currency, storeSettings.currency), 0);
-        const count = invoices.filter(inv => !inv.isDraft && inv.status !== "draft" && inv.status !== "voided" && inv.type === "purchase" && (!reportDateRange || reportDateRange.length !== 2 || (new Date(inv.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(inv.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).length;
+        const amt = (invoices || []).filter(inv => !inv.isDraft && inv.status !== "draft" && inv.status !== "voided" && (inv.type === "purchase" || inv.type === "purchase_return") && (!reportDateRange || reportDateRange.length !== 2 || (new Date(inv.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(inv.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).reduce((sum, inv) => sum + (inv.type === "purchase" ? inv.totalAmount || 0 : -(inv.totalAmount || 0)) * getDefaultExchangeRate(inv.currency, storeSettings.currency), 0);
+        const count = (invoices || []).filter(inv => !inv.isDraft && inv.status !== "draft" && inv.status !== "voided" && inv.type === "purchase" && (!reportDateRange || reportDateRange.length !== 2 || (new Date(inv.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(inv.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).length;
         return (
           <div className="bg-white rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden h-full">
             <div className="absolute right-0 top-0 bottom-0 w-1.5 bg-amber-500"></div>
@@ -219,8 +219,8 @@ export default function FinancialDashboard({
         );
       }
       case 'kpi_net_balance': {
-        const sales = invoices.filter(inv => !inv.isDraft && inv.status !== "draft" && inv.status !== "voided" && (inv.type === "sale" || inv.type === "sale_return") && (!reportDateRange || reportDateRange.length !== 2 || (new Date(inv.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(inv.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).reduce((sum, inv) => sum + (inv.type === "sale" ? inv.totalAmount || 0 : -(inv.totalAmount || 0)) * getDefaultExchangeRate(inv.currency, storeSettings.currency), 0);
-        const purchases = invoices.filter(inv => !inv.isDraft && inv.status !== "draft" && inv.status !== "voided" && (inv.type === "purchase" || inv.type === "purchase_return") && (!reportDateRange || reportDateRange.length !== 2 || (new Date(inv.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(inv.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).reduce((sum, inv) => sum + (inv.type === "purchase" ? inv.totalAmount || 0 : -(inv.totalAmount || 0)) * getDefaultExchangeRate(inv.currency, storeSettings.currency), 0);
+        const sales = (invoices || []).filter(inv => !inv.isDraft && inv.status !== "draft" && inv.status !== "voided" && (inv.type === "sale" || inv.type === "sale_return") && (!reportDateRange || reportDateRange.length !== 2 || (new Date(inv.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(inv.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).reduce((sum, inv) => sum + (inv.type === "sale" ? inv.totalAmount || 0 : -(inv.totalAmount || 0)) * getDefaultExchangeRate(inv.currency, storeSettings.currency), 0);
+        const purchases = (invoices || []).filter(inv => !inv.isDraft && inv.status !== "draft" && inv.status !== "voided" && (inv.type === "purchase" || inv.type === "purchase_return") && (!reportDateRange || reportDateRange.length !== 2 || (new Date(inv.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(inv.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).reduce((sum, inv) => sum + (inv.type === "purchase" ? inv.totalAmount || 0 : -(inv.totalAmount || 0)) * getDefaultExchangeRate(inv.currency, storeSettings.currency), 0);
         const netVal = sales - purchases;
         const isPositive = netVal >= 0;
         return (
@@ -242,8 +242,8 @@ export default function FinancialDashboard({
         );
       }
       case 'kpi_due_checks': {
-        const dueIssued = issuedChecks.filter((c: any) => c.dueDate === todayStr).length;
-        const dueReceived = receivedChecks.filter((c: any) => c.dueDate === todayStr).length;
+        const dueIssued = (issuedChecks || []).filter((c: any) => c.dueDate === todayStr).length;
+        const dueReceived = (receivedChecks || []).filter((c: any) => c.dueDate === todayStr).length;
         const totalDue = dueIssued + dueReceived;
         return (
           <div onClick={() => setActiveTab("check_calendar")} className="bg-white rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden cursor-pointer hover:border-indigo-200 hover:shadow-md transition-all group h-full">
@@ -284,7 +284,7 @@ export default function FinancialDashboard({
           <div className="bg-white rounded-2xl p-6 h-full flex flex-col">
             <h3 className="text-base font-extrabold text-gray-900 border-b border-gray-100 pb-3 mb-4 flex items-center gap-2"><CreditCard className="w-5 h-5 text-indigo-500" /> تراز حساب‌های بانکی</h3>
             <div className="flex-1 overflow-auto max-h-64 space-y-4 pr-1">
-              {accounts.map((acc: any) => (
+              {(accounts || []).map((acc: any) => (
                 <div key={acc.id} className="bg-gray-50 py-3 px-4 rounded-xl border border-gray-100 flex items-center justify-between">
                   <div>
                     <span className="font-bold text-gray-900 block text-sm">{acc.bankName}</span>
@@ -302,7 +302,7 @@ export default function FinancialDashboard({
           <div className="bg-white rounded-2xl p-6 h-full flex flex-col">
             <h3 className="text-base font-extrabold text-gray-900 border-b border-gray-100 pb-3 mb-4 flex items-center gap-2"><Wallet className="w-5 h-5 text-amber-500" /> تراز صندوق‌های نقدی</h3>
             <div className="flex-1 overflow-auto max-h-64 space-y-4 pr-1">
-              {cashboxes.map((cb: any) => (
+              {(cashboxes || []).map((cb: any) => (
                 <div key={cb.id} className="bg-gray-50 py-3 px-4 rounded-xl border border-gray-100 flex items-center justify-between">
                   <div>
                     <span className="font-bold text-gray-900 block text-sm">{cb.name}</span>
@@ -316,8 +316,8 @@ export default function FinancialDashboard({
         );
       }
       case 'cash_flow': {
-        const received = transactions.filter((t: any) => t.type === "receive" && (!reportDateRange || reportDateRange.length !== 2 || (new Date(t.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(t.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).reduce((sum: any, t: any) => sum + (t.amount || 0), 0);
-        const paid = transactions.filter((t: any) => t.type === "pay" && (!reportDateRange || reportDateRange.length !== 2 || (new Date(t.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(t.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).reduce((sum: any, t: any) => sum + (t.amount || 0), 0);
+        const received = (transactions || []).filter((t: any) => t.type === "receive" && (!reportDateRange || reportDateRange.length !== 2 || (new Date(t.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(t.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).reduce((sum: any, t: any) => sum + (t.amount || 0), 0);
+        const paid = (transactions || []).filter((t: any) => t.type === "pay" && (!reportDateRange || reportDateRange.length !== 2 || (new Date(t.date).setHours(0,0,0,0) >= new Date(reportDateRange[0]).setHours(0,0,0,0) && new Date(t.date).valueOf() <= new Date(reportDateRange[1]).setHours(23,59,59,999)))).reduce((sum: any, t: any) => sum + (t.amount || 0), 0);
         return (
           <div className="bg-white rounded-2xl p-6 h-full">
             <h3 className="text-base font-extrabold text-gray-900 border-b border-gray-100 pb-3 mb-4">خلاصه گردش اسناد دریافت و پرداخت</h3>
@@ -336,7 +336,7 @@ export default function FinancialDashboard({
       }
       case 'payable_checks': {
         const limit = widget.settings.limit || 5;
-        let checks = issuedChecks.filter((c: any) => c.status === 'issued' || !c.status);
+        let checks = (issuedChecks || []).filter((c: any) => c.status === 'issued' || !c.status);
         checks.sort((a: any, b: any) => normalizeDateStr(a.dueDate) - normalizeDateStr(b.dueDate));
         checks = checks.slice(0, limit);
         return (
@@ -364,7 +364,7 @@ export default function FinancialDashboard({
       }
       case 'receivable_checks': {
         const limit = widget.settings.limit || 5;
-        let checks = receivedChecks.filter((c: any) => c.status === 'received' || c.status === 'deposited' || !c.status);
+        let checks = (receivedChecks || []).filter((c: any) => c.status === 'received' || c.status === 'deposited' || !c.status);
         checks.sort((a: any, b: any) => normalizeDateStr(a.dueDate) - normalizeDateStr(b.dueDate));
         checks = checks.slice(0, limit);
         return (
@@ -444,8 +444,8 @@ export default function FinancialDashboard({
       }
       case 'checks_chart': {
         const allC = [
-          ...receivedChecks.map((c: any) => ({ ...c, type: "receive", isPending: c.status === 'received' || c.status === 'deposited' || !c.status })),
-          ...issuedChecks.map((c: any) => ({ ...c, type: "issue", isPending: c.status === 'issued' || !c.status })),
+          ...(receivedChecks || []).map((c: any) => ({ ...c, type: "receive", isPending: c.status === 'received' || c.status === 'deposited' || !c.status })),
+          ...(issuedChecks || []).map((c: any) => ({ ...c, type: "issue", isPending: c.status === 'issued' || !c.status })),
         ];
         const monthMap = new Map();
         allC.forEach((c) => {

@@ -32,7 +32,7 @@ export default function GroupPriceUpdateWizard({
 }: GroupPriceUpdateWizardProps) {
   const [items, setItems] = useState<any[]>([]);
   const [filterType, setFilterType] = useState<"selected" | "category" | "all">(
-    initialSelectedIds.length > 0 ? "selected" : "category"
+    (initialSelectedIds || []).length > 0 ? "selected" : "category"
   );
   const [targetCategory, setTargetCategory] = useState("all");
   
@@ -48,12 +48,12 @@ export default function GroupPriceUpdateWizard({
   useEffect(() => {
     let targets = [];
     if (filterType === "selected") {
-      targets = products.filter(p => initialSelectedIds.includes(p.id));
+      targets = (products || []).filter(p => initialSelectedIds.includes(p.id));
     } else if (filterType === "category") {
       if (targetCategory === "all") {
         targets = [...products];
       } else {
-        targets = products.filter(p => p.categoryId === targetCategory || p.category === targetCategory);
+        targets = (products || []).filter(p => p.categoryId === targetCategory || p.category === targetCategory);
       }
     } else {
       targets = [...products];
@@ -156,7 +156,7 @@ export default function GroupPriceUpdateWizard({
                   onChange={e => setFilterType(e.target.value as any)}
                   className="p-2 border border-slate-200 rounded-xl text-sm font-bold"
                 >
-                  <option value="selected">موارد انتخاب شده ({initialSelectedIds.length})</option>
+                  <option value="selected">موارد انتخاب شده ({(initialSelectedIds || []).length})</option>
                   <option value="category">بر اساس دسته‌بندی</option>
                   <option value="all">همه کالاها</option>
                 </select>
@@ -241,7 +241,7 @@ export default function GroupPriceUpdateWizard({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {items.map((item, idx) => (
+                {(items || []).map((item, idx) => (
                   <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="p-4 text-center font-sans font-bold text-slate-500 text-xs border-l border-slate-100/50">
                       {toPersianDigits(idx + 1)}
@@ -286,7 +286,7 @@ export default function GroupPriceUpdateWizard({
                     </td>
                   </tr>
                 ))}
-                {items.length === 0 && (
+                {(items || []).length === 0 && (
                   <tr>
                     <td colSpan={4} className="p-8 text-center text-slate-500 font-bold">
                       هیچ کالایی برای ویرایش یافت نشد.
@@ -300,7 +300,7 @@ export default function GroupPriceUpdateWizard({
         
         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
           <span className="text-xs font-bold text-slate-500">
-            شما در حال ویرایش {toPersianDigits(items.length)} کالا هستید.
+            شما در حال ویرایش {toPersianDigits((items || []).length)} کالا هستید.
           </span>
           <div className="flex gap-3">
             <button
@@ -314,7 +314,7 @@ export default function GroupPriceUpdateWizard({
             <button
               type="button"
               onClick={handleSave}
-              disabled={isSaving || items.length === 0}
+              disabled={isSaving || (items || []).length === 0}
               className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 flex items-center gap-2 shadow-sm transition-all hover:-translate-y-0.5 disabled:opacity-50"
             >
               <Save className="w-5 h-5" />

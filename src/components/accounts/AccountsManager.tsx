@@ -92,7 +92,7 @@ export default function AccountsManager(props: any) {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-50">
-                            {accounts.map((acc, index) => (
+                            {(accounts || []).map((acc, index) => (
                               <tr
                                 key={acc.id}
                                 className="hover:bg-gray-50/50 transition-colors text-gray-700"

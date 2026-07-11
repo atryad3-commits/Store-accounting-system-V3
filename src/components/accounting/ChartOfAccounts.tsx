@@ -65,7 +65,7 @@ export default function ChartOfAccounts({ showNotification, currentUser }: any) 
   };
 
   const renderTree = (parentId: string | number | null | undefined, depth = 0) => {
-    const children = accounts.filter(a => {
+    const children = (accounts || []).filter(a => {
       if (!parentId) return !a.parentId;
       return a.parentId === parentId || a.parentId?.toString() === parentId.toString();
     }).sort((a, b) => a.code.localeCompare(b.code));
@@ -195,7 +195,7 @@ export default function ChartOfAccounts({ showNotification, currentUser }: any) 
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm font-sans"
                 >
                   <option value="">-- فاقد پدر (سطح اول) --</option>
-                  {accounts.filter(a => a.id !== editingId && ['group', 'general', 'subsidiary'].includes(a.type)).map(a => (
+                  {(accounts || []).filter(a => a.id !== editingId && ['group', 'general', 'subsidiary'].includes(a.type)).map(a => (
                     <option key={a.id} value={a.id}>{a.code} - {a.title} ({a.type === 'group'?'گروه':a.type==='general'?'کل':'معین'})</option>
                   ))}
                 </select>

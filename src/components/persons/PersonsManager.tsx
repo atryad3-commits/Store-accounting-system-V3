@@ -252,9 +252,9 @@ export default function PersonsManager(props: any) {
                               >
                                 همه نقش‌ها
                               </button>
-                              {personRoles.map((r, index) => (
+                              {(personRoles || []).map((r, index) => (
                                 <button
-                                  key={r.id || index}
+                                  key={r.id ? `id-${r.id}` : `idx-${index}`}
                                   onClick={() => {
                                     setSelectedPersonRole(r.id);
                                     setPersonCurrentPage(1);
@@ -294,7 +294,7 @@ export default function PersonsManager(props: any) {
                               {personGroups.slice(0, 3).map((g, index) => {
               return (
                                   <button
-                                    key={g.id || index}
+                                    key={g.id ? `id-${g.id}` : `idx-${index}`}
                                     onClick={() => setSelectedPersonGroup(g.id)}
                                     className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all border-none cursor-pointer ${
                                       selectedPersonGroup === g.id
@@ -330,7 +330,7 @@ export default function PersonsManager(props: any) {
                                   </option>
                                   {personGroups.slice(3).map((g, index) => {
                   return (
-                                      <option key={g.id || index} value={g.id}>
+                                      <option key={g.id ? `id-${g.id}` : `idx-${index}`} value={g.id}>
                                         {g.name}
                                       </option>
                                     );
@@ -387,7 +387,7 @@ export default function PersonsManager(props: any) {
   initial={{ opacity: 0, y: 10 }}
   animate={{ opacity: 1, y: 0 }}
   transition={{ delay: index * 0.03 }}
-  key={p.id || index}
+  key={p.id ? `id-${p.id}` : `idx-${index}`}
   onClick={() => {
     setProfilePersonId(p.id);
     setActiveTab("person_profile");
@@ -634,7 +634,7 @@ export default function PersonsManager(props: any) {
 
                     return (
                                         <tr
-                                          key={p.id || index}
+                                          key={p.id ? `id-${p.id}` : `idx-${index}`}
                                           onClick={() => {
                                             setProfilePersonId(p.id);
                                             setActiveTab("person_profile");

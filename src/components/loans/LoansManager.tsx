@@ -65,7 +65,7 @@ export default function LoansManager({
     if (!person) return null;
     
     let balance = 0;
-    transactions.filter(t => t.personId?.toString() === personIdStr).forEach(t => {
+    (transactions || []).filter(t => t.personId?.toString() === personIdStr).forEach(t => {
         if (t.type === 'receive') balance -= (t.amount || 0);
         else if (t.type === 'pay') balance += (t.amount || 0);
         else if (t.type === 'salary') balance -= (t.amount || 0);
@@ -367,7 +367,7 @@ export default function LoansManager({
                   className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-medium"
                 >
                   <option value="">انتخاب شخص...</option>
-                  {persons.filter(p => p.isActive !== false).map(p => (
+                  {(persons || []).filter(p => p.isActive !== false).map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
@@ -443,7 +443,7 @@ export default function LoansManager({
                     className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-medium"
                   >
                     <option value="">انتخاب حساب...</option>
-                    {accounts.map(a => (
+                    {(accounts || []).map(a => (
                       <option key={a.id} value={a.id}>{a.bankName}</option>
                     ))}
                   </select>
@@ -636,7 +636,7 @@ export default function LoansManager({
              </div>
           ) : (
             loans.map(loan => {
-               const loanInsts = installments.filter(i => i.loanId === loan.id);
+               const loanInsts = (installments || []).filter(i => i.loanId === loan.id);
                const paidInsts = loanInsts.filter(i => i.status === 'paid').length;
                const totalInsts = loanInsts.length;
                const isExpanded = expandedLoanId === loan.id;
@@ -721,7 +721,7 @@ export default function LoansManager({
                                                  className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none w-full md:w-40 font-medium"
                                                >
                                                  <option value="">انتخاب حساب</option>
-                                                 {accounts.map(a => <option key={a.id} value={a.id}>{a.bankName}</option>)}
+                                                 {(accounts || []).map(a => <option key={a.id} value={a.id}>{a.bankName}</option>)}
                                                </select>
                                                <div className="flex flex-wrap items-center gap-1 w-full md:w-auto">
                                                  <button

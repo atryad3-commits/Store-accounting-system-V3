@@ -47,13 +47,13 @@ export default function InvoiceAllocation({
     }
   };
 
-  const personOptions = persons.filter(p => p.isActive !== false).map(p => ({
+  const personOptions = (persons || []).filter(p => p.isActive !== false).map(p => ({
     value: p.id,
     label: `${p.personCode ? '[' + p.personCode + '] ' : ''}${p.alias || p.name}`
   }));
 
   // Filter open invoices for the selected person
-  const openInvoices = invoices.filter(inv => 
+  const openInvoices = (invoices || []).filter(inv => 
     inv.customerId?.toString() === selectedPersonId.toString() && 
     (inv.type === 'sale' || inv.type === 'purchase' || inv.type === 'sale_return' || inv.type === 'purchase_return') && 
     (inv.paymentStatus !== 'paid' || 
@@ -65,7 +65,7 @@ export default function InvoiceAllocation({
   useEffect(() => {
     if (selectedPersonId) {
       const initialAllocations: Record<string, Record<string, number>> = {};
-      transactions.filter(tx => tx.personId?.toString() === selectedPersonId.toString()).forEach(tx => {
+      (transactions || []).filter(tx => tx.personId?.toString() === selectedPersonId.toString()).forEach(tx => {
         if (tx.linkedInvoices && Object.keys(tx.linkedInvoices).length > 0) {
           initialAllocations[tx.id] = { ...tx.linkedInvoices };
         }
@@ -77,7 +77,7 @@ export default function InvoiceAllocation({
   }, [selectedPersonId, transactions]);
 
   // Filter open transactions for the selected person
-  const openTransactions = transactions.filter(tx => 
+  const openTransactions = (transactions || []).filter(tx => 
     tx.personId?.toString() === selectedPersonId.toString() && 
     (tx.type === 'receive' || tx.type === 'pay')
   ).map(tx => {
@@ -113,7 +113,7 @@ export default function InvoiceAllocation({
         // Process each transaction that has allocations OR had allocations
         const allTxIds = Array.from(new Set([
            ...Object.keys(allocations),
-           ...transactions.filter(t => t.personId?.toString() === selectedPersonId.toString() && t.linkedInvoices && Object.keys(t.linkedInvoices).length > 0).map(t => t.id.toString())
+           ...(transactions || []).filter(t => t.personId?.toString() === selectedPersonId.toString() && t.linkedInvoices && Object.keys(t.linkedInvoices).length > 0).map(t => t.id.toString())
         ]));
 
         for (const txId of allTxIds) {
@@ -253,7 +253,7 @@ export default function InvoiceAllocation({
                                 const paidInDB = (inv.paidAmount || 0);
                                 
                                 let oldAllocationsSum = 0;
-                                transactions.filter(t => t.personId?.toString() === selectedPersonId.toString()).forEach(t => {
+                                (transactions || []).filter(t => t.personId?.toString() === selectedPersonId.toString()).forEach(t => {
                                     oldAllocationsSum += (t.linkedInvoices?.[inv.id] || 0);
                                 });
                                 

@@ -62,7 +62,7 @@ export default function SidebarNavigation({
     
     // Process each group, filtering its items
     const searchedGroups = filteredSidebarGroups.map(group => {
-      const matchedItems = group.items.filter(item => {
+      const matchedItems = (group.items).filter(item => {
         const matchesSearch = item.label.toLowerCase().includes(searchLower);
         const matchesRole = !user || item.roles.includes(user.role);
         return matchesSearch && matchesRole;
@@ -71,7 +71,7 @@ export default function SidebarNavigation({
         ...group,
         items: matchedItems
       };
-    }).filter(group => group.items.length > 0);
+    }).filter(group => (group.items || []).length > 0);
 
     return (
       <div className="flex flex-col h-full font-sans text-right select-none">
@@ -192,7 +192,7 @@ export default function SidebarNavigation({
         dir="rtl"
       >
         {filteredSidebarGroups.map((group) => {
-          const visibleItems = group.items.filter(
+          const visibleItems = (group.items).filter(
             (item) => !user || item.roles.includes(user.role),
           );
           if (visibleItems.length === 0) return null;

@@ -294,7 +294,7 @@ const isReceipt = [
           }
 
           const relevantInvoices = expectedType
-            ? invoices.filter(
+            ? (invoices || []).filter(
                 (i) =>
                   i.type === expectedType && hasRemainingWarehouseItems(i.id),
               )
@@ -406,7 +406,7 @@ const isReceipt = [
                             let processedAmounts = {};
                             if (deletePreviousDocs) {
                               // Delete past docs
-                              const pastDocs = invoices.filter(
+                              const pastDocs = (invoices || []).filter(
                                 (i) =>
                                   i.sourceInvoiceId?.toString() ===
                                     sourceInvoiceId?.toString() &&
@@ -429,7 +429,7 @@ const isReceipt = [
                                   fetchInvoices();
                               }
                             } else {
-                              const pastDocs = invoices.filter(
+                              const pastDocs = (invoices || []).filter(
                                 (i) =>
                                   i.sourceInvoiceId?.toString() ===
                                     sourceInvoiceId?.toString() &&
@@ -589,7 +589,7 @@ const isReceipt = [
                       <User className="w-4 h-4" /> نام تامین کننده یا خریدار
                     </label>
                     <SearchableSelect
-                      options={activePersonsOnly.map((p) => ({
+                      options={(activePersonsOnly || []).map((p) => ({
                         value: p.id,
                         label: p.alias || p.name,
                         subLabel: p.phone || undefined,
@@ -704,7 +704,7 @@ const isReceipt = [
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {items.length === 0 && (
+                      {(items || []).length === 0 && (
                         <tr>
                           <td
                             colSpan={5}
@@ -717,7 +717,7 @@ const isReceipt = [
                           </td>
                         </tr>
                       )}
-                      {items.map((item, index) => (
+                      {(items || []).map((item, index) => (
                         <tr
                           key={item.id}
                           className="hover:bg-slate-50/50 transition-colors"
@@ -868,7 +868,7 @@ const isReceipt = [
                 <div className="p-4 bg-gray-50 flex justify-end">
                   <button
                     onClick={handleInvoicePreviewTrigger}
-                    disabled={submitting || items.length === 0}
+                    disabled={submitting || (items || []).length === 0}
                     className="px-10 py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl font-bold flex items-center justify-center gap-3 transition-colors shadow-sm focus:ring-4 focus:ring-indigo-500/20"
                   >
                     {submitting ? (

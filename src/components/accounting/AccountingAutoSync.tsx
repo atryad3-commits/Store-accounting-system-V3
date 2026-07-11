@@ -30,17 +30,17 @@ export default function AccountingAutoSync({ showNotification }: any) {
       const loans = await getLoans();
       const installments = await getInstallments();
 
-      const invoiceDocs = docs.filter(d => d.sourceType?.includes('invoice'));
-      const transactionDocs = docs.filter(d => ['receipt', 'payment', 'salary'].includes(d.sourceType || ''));
-      const balanceDocs = docs.filter(d => d.sourceType === 'opening_balance');
-      const checkDocs = docs.filter(d => d.sourceType?.includes('check'));
-      const loanDocs = docs.filter(d => d.sourceType === 'loan');
-      const instDocs = docs.filter(d => d.sourceType === 'installment');
+      const invoiceDocs = (docs || []).filter(d => d.sourceType?.includes('invoice'));
+      const transactionDocs = (docs || []).filter(d => ['receipt', 'payment', 'salary'].includes(d.sourceType || ''));
+      const balanceDocs = (docs || []).filter(d => d.sourceType === 'opening_balance');
+      const checkDocs = (docs || []).filter(d => d.sourceType?.includes('check'));
+      const loanDocs = (docs || []).filter(d => d.sourceType === 'loan');
+      const instDocs = (docs || []).filter(d => d.sourceType === 'installment');
 
-      const mInvoices = invoices.filter(inv => !['proforma', 'warehouse_receipt', 'warehouse_remittance'].includes(inv.type) && !invoiceDocs.some(d => d.sourceId?.toString() === inv.id.toString()));
-      const mTransactions = transactions.filter(t => !transactionDocs.some(d => d.sourceId?.toString() === t.id.toString()));
+      const mInvoices = (invoices || []).filter(inv => !['proforma', 'warehouse_receipt', 'warehouse_remittance'].includes(inv.type) && !invoiceDocs.some(d => d.sourceId?.toString() === inv.id.toString()));
+      const mTransactions = (transactions || []).filter(t => !transactionDocs.some(d => d.sourceId?.toString() === t.id.toString()));
       
-      const mChecks = [...issuedChecks.map(c => ({...c, _isIssued: true})), ...receivedChecks.map(c => ({...c, _isIssued: false}))].filter(c => !checkDocs.some(d => d.sourceId?.toString() === c.id.toString()));
+      const mChecks = [...(issuedChecks || []).map(c => ({...c, _isIssued: true})), ...(receivedChecks || []).map(c => ({...c, _isIssued: false}))].filter(c => !checkDocs.some(d => d.sourceId?.toString() === c.id.toString()));
       const mLoans = loans.filter(l => !loanDocs.some(d => d.sourceId?.toString() === l.id.toString()));
       // Only check paid installments
       const mInsts = installments.filter(i => i.status === 'paid' && !instDocs.some(d => d.sourceId?.toString() === i.id.toString()));
@@ -177,7 +177,7 @@ export default function AccountingAutoSync({ showNotification }: any) {
               items.push({ description: 'بستانکار - شخص', debit: 0, credit: total, ledgerAccountId: getPersonLedgerAcc(inv.customerId), detailedAccountId: inv.customerId });
           }
 
-          if (items.length > 0) {
+          if ((items || []).length > 0) {
               await addAccountingDocument({
                   date: safeDate(inv.date),
                   description: `فاکتور شماره ${inv.invoiceNumber || inv.id}`,

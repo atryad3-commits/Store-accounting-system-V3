@@ -41,7 +41,7 @@ export default function QuickPriceInquiry({ products, settings }: QuickPriceInqu
 
   // If we don't have an exact match but have some search term
   const suggestedProducts = searchTerm.length >= 2 
-    ? products.filter(p => !selectedProduct && (
+    ? (products || []).filter(p => !selectedProduct && (
         p.name.includes(searchTerm) || 
         (p.code && p.code.includes(searchTerm)) || 
         (p.barcode && p.barcode.includes(searchTerm))

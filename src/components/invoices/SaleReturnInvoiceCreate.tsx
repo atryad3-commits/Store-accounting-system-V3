@@ -244,7 +244,7 @@ export default function SaleReturnInvoiceCreate(props: any) {
                   </label>
                   <div className="border border-indigo-100 rounded-xl bg-indigo-50/30 focus-within:ring-2 focus-within:ring-indigo-500 transition-colors">
                     <SearchableSelect
-                      options={activePersonsOnly.map((p) => ({
+                      options={(activePersonsOnly || []).map((p) => ({
                         value: p.id,
                         label: p.alias || p.name,
                         subLabel: p.phone || undefined,
@@ -395,7 +395,7 @@ export default function SaleReturnInvoiceCreate(props: any) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-indigo-50/50">
-                    {items.length === 0 && (
+                    {(items || []).length === 0 && (
                       <tr>
                         <td
                           colSpan={8}
@@ -411,7 +411,7 @@ export default function SaleReturnInvoiceCreate(props: any) {
                         </td>
                       </tr>
                     )}
-                    {items.map((item, index) => (
+                    {(items || []).map((item, index) => (
                       <tr
                         key={item.id}
                         className="hover:bg-indigo-50/20 transition-colors"
@@ -597,7 +597,7 @@ export default function SaleReturnInvoiceCreate(props: any) {
                         </td>
                       </tr>
                     ))}
-                    {items.length === 0 && (
+                    {(items || []).length === 0 && (
                       <tr>
                         <td colSpan={7} className="p-16 text-center">
                           <div className="flex flex-col items-center justify-center gap-4 text-indigo-600/50">
@@ -726,7 +726,7 @@ export default function SaleReturnInvoiceCreate(props: any) {
               <div className="p-6 bg-indigo-50/20 border-t border-indigo-100 flex justify-end gap-3">
                 <button
                   type="button"
-                  disabled={submitting || items.length === 0 || !customerId}
+                  disabled={submitting || (items || []).length === 0 || !customerId}
                   onClick={() => {
                     if (
                       confirm(
@@ -743,7 +743,7 @@ export default function SaleReturnInvoiceCreate(props: any) {
                 </button>
                 <button
                   onClick={handleInvoicePreviewTrigger}
-                  disabled={submitting || items.length === 0 || !customerId}
+                  disabled={submitting || (items || []).length === 0 || !customerId}
                   className="px-10 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-200 text-white rounded-2xl font-black flex items-center justify-center gap-3 transition-colors shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/20 cursor-pointer"
                 >
                   {submitting ? (

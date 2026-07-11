@@ -115,7 +115,7 @@ export default function ProfileModal({ onClose }: ProfileModalProps) {
                 <LinkIcon className="w-4 h-4" /> اتصال به شخص در سیستم
               </label>
               <SearchableSelect
-                options={persons.map(p => ({ value: p.id, label: p.alias || p.name }))}
+                options={(persons || []).map(p => ({ value: p.id, label: p.alias || p.name }))}
                 value={personId}
                 onChange={(val) => setPersonId(val)}
                 placeholder="انتخاب شخص (اختیاری)"

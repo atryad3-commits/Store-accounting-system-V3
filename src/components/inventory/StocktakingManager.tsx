@@ -82,7 +82,7 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
       if (showNotification) showNotification('لطفا انبار را انتخاب کنید', 'error');
       return;
     }
-    const newItems: StocktakingItem[] = products.filter(p => p.type === 'product' || !p.type).map(p => {
+    const newItems: StocktakingItem[] = (products || []).filter(p => p.type === 'product' || !p.type).map(p => {
       const stockEntry = stocks.find(s => s.productId?.toString() === p.id?.toString() && s.warehouseId?.toString() === warehouseId.toString());
       const expected = stockEntry ? stockEntry.availableStock : 0;
       return {
@@ -145,7 +145,7 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
   };
 
   const handleRemoveItem = (productId: string | number) => {
-    setItems(items.filter(it => it.productId !== productId));
+    setItems((items || []).filter(it => it.productId !== productId));
   };
 
   const handleViewOrEdit = (st: Stocktaking) => {
@@ -211,7 +211,7 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
 
   const toPersianDigits = (str: string | number) => str?.toString().replace(/\d/g, x => ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'][parseInt(x)]);
 
-  const filteredItems = items.filter(it => (it.productName || '').includes(searchTerm || '') || (products.find(p => p.id === it.productId)?.code || '').includes(searchTerm || ''));
+  const filteredItems = (items || []).filter(it => (it.productName || '').includes(searchTerm || '') || (products.find(p => p.id === it.productId)?.code || '').includes(searchTerm || ''));
 
   const whMap = warehouses.reduce((acc, w) => ({ ...acc, [w.id]: w.name }), {} as Record<string, string>);
 
@@ -299,11 +299,11 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                    <select 
                      value={warehouseId} 
                      onChange={e => setWarehouseId(e.target.value)}
-                     disabled={items.length > 0}
+                     disabled={(items || []).length > 0}
                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none font-bold"
                    >
                      <option value="">-- یک انبار انتخاب کنید --</option>
-                     {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                     {(warehouses || []).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
                    </select>
                 </div>
                 <div>
@@ -323,7 +323,7 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                 </div>
              </div>
 
-             {items.length === 0 ? (
+             {(items || []).length === 0 ? (
                <div className="mt-8 flex flex-col md:flex-row items-center justify-end gap-4 border-t pt-6">
                  <div className="relative w-full md:w-96" ref={tableRef}>
                     <div className="relative">
@@ -344,8 +344,8 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                     </div>
                     {showProductDropdown && productSearch && warehouseId && (
                       <div className="absolute top-full right-0 left-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-100 max-h-60 overflow-y-auto z-50">
-                        {products.filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).length > 0 ? (
-                          products.filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).map(p => (
+                        {(products || []).filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).length > 0 ? (
+                          (products || []).filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).map(p => (
                             <button 
                               key={p.id}
                               onClick={() => handleAddProductToCounting(p)}
@@ -393,8 +393,8 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                         </div>
                         {showProductDropdown && productSearch && (
                           <div className="absolute top-full right-0 left-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-100 max-h-60 overflow-y-auto z-50">
-                            {products.filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).length > 0 ? (
-                              products.filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).map(p => (
+                            {(products || []).filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).length > 0 ? (
+                              (products || []).filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).map(p => (
                                 <button 
                                   key={p.id}
                                   onClick={() => handleAddProductToCounting(p)}
@@ -484,11 +484,11 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                     <div className="flex gap-6">
                       <div className="text-sm">
                         <span className="text-slate-500 block mb-1">اقلام شمرده شده</span>
-                        <span className="font-bold text-slate-800">{toPersianDigits(items.filter(i => i.countedStock !== null).length)} از {toPersianDigits(items.length)}</span>
+                        <span className="font-bold text-slate-800">{toPersianDigits((items || []).filter(i => i.countedStock !== null).length)} از {toPersianDigits((items || []).length)}</span>
                       </div>
                       <div className="text-sm">
                         <span className="text-slate-500 block mb-1">تعداد دارای مغایرت</span>
-                        <span className="font-bold text-rose-600">{toPersianDigits(items.filter(i => i.countedStock !== null && i.difference !== 0).length)}</span>
+                        <span className="font-bold text-rose-600">{toPersianDigits((items || []).filter(i => i.countedStock !== null && i.difference !== 0).length)}</span>
                       </div>
                     </div>
                     

@@ -13,7 +13,7 @@ export default function ListSalaryPayroll(props: any) {
   , List, toPersianDigits, renderPersonLink, formatDateDisplay, payslips, numToPersianWords, openPayslip, Eye, deleteTransaction, fetchTransactions
   } = props;
 
-  const salaryTxs = transactions.filter((t: any) => t.type === "salary");
+  const salaryTxs = (transactions || []).filter((t: any) => t.type === "salary");
   return (
     <>
           <motion.div

@@ -309,7 +309,7 @@ export default function CRMDashboard({ showNotification, persons }: CRMDashboard
                       required
                     >
                       <option value="">انتخاب کنید...</option>
-                      {persons.map(p => (
+                      {(persons || []).map(p => (
                         <option key={p.id} value={p.id}>{p.name || p.companyName || 'بدون نام'} {p.role === 'customer' ? '(مشتری)' : p.role === 'supplier' ? '(تامین‌کننده)' : ''}</option>
                       ))}
                     </select>

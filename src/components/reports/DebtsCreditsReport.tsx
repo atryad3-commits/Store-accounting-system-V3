@@ -57,23 +57,23 @@ const DebtsCreditsReport: React.FC<DebtsCreditsReportProps> = ({ showNotificatio
        balance += (person.initialBalanceType === 'debtor' ? person.initialBalance : -person.initialBalance);
     }
     
-    invoices.filter(i => i.customerId?.toString() === personId.toString() && i.type !== 'warehouse_receipt' && i.type !== 'warehouse_remittance' && i.type !== 'proforma').forEach(inv => {
+    (invoices || []).filter(i => i.customerId?.toString() === personId.toString() && i.type !== 'warehouse_receipt' && i.type !== 'warehouse_remittance' && i.type !== 'proforma').forEach(inv => {
         const amount = (inv.totalAmount || 0) * getDefaultExchangeRate(inv.currency, settings?.currency);
         if (inv.type === 'sale') balance += amount;
         else if (inv.type === 'purchase') balance -= amount;
     });
 
-    transactions.filter(t => t.personId?.toString() === personId.toString()).forEach(t => {
+    (transactions || []).filter(t => t.personId?.toString() === personId.toString()).forEach(t => {
         if (t.type === 'receive') balance -= (t.amount || 0);
         else if (t.type === 'pay') balance += (t.amount || 0);
         else if (t.type === 'salary') balance -= (t.amount || 0);
     });
 
-    issuedChecks.filter(c => c.payeeId?.toString() === personId.toString() && c.status !== 'cancelled' && c.status !== 'bounced' && c.status !== 'cashed').forEach(c => {
+    (issuedChecks || []).filter(c => c.payeeId?.toString() === personId.toString() && c.status !== 'cancelled' && c.status !== 'bounced' && c.status !== 'cashed').forEach(c => {
         balance += (c.amount || 0);
     });
 
-    receivedChecks.filter(c => c.payerId?.toString() === personId.toString() && c.status !== 'returned' && c.status !== 'bounced' && c.status !== 'cashed').forEach(c => {
+    (receivedChecks || []).filter(c => c.payerId?.toString() === personId.toString() && c.status !== 'returned' && c.status !== 'bounced' && c.status !== 'cashed').forEach(c => {
         balance -= (c.amount || 0);
     });
     
@@ -83,7 +83,7 @@ const DebtsCreditsReport: React.FC<DebtsCreditsReportProps> = ({ showNotificatio
   };
 
   const getReportData = () => {
-    let rows = persons.map(p => {
+    let rows = (persons || []).map(p => {
         const balanceInfo = calculatePersonBalance(p.id);
         const groupObj = groups.find(g => g.id.toString() === p.group?.toString());
         return {

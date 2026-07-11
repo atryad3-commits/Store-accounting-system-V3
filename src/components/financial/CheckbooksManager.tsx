@@ -76,7 +76,7 @@ export default function CheckbooksManager(props: any) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
-        <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg">تعداد دسته چک‌ها: {checkbooks.length}</span>
+        <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg">تعداد دسته چک‌ها: {(checkbooks || []).length}</span>
         <button 
           onClick={() => { 
             setEditingCheckbookId(null); 
@@ -93,7 +93,7 @@ export default function CheckbooksManager(props: any) {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {checkbooks.map((cb: any) => {
+        {(checkbooks || []).map((cb: any) => {
             const bankAccount = accounts.find((a: any) => a.id == cb.accountId);
             const bankName = bankAccount?.bankName || 'حساب بانکی نامشخص';
             const accountNo = bankAccount?.accountNumber ? `حساب: ${bankAccount.accountNumber}` : '';
@@ -138,7 +138,7 @@ export default function CheckbooksManager(props: any) {
               </div>
             );
         })}
-        {checkbooks.length === 0 && (
+        {(checkbooks || []).length === 0 && (
           <div className="col-span-full py-12 flex flex-col items-center justify-center bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-200">
             <Building2 className="w-12 h-12 text-gray-300 mb-3" />
             <p className="text-gray-500 font-bold text-sm">هیچ دسته چکی یافت نشد.</p>
@@ -169,7 +169,7 @@ export default function CheckbooksManager(props: any) {
                       <div className="relative">
                         <select required value={cbAccountId} onChange={e => setCbAccountId(e.target.value)} className="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm appearance-none outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 font-bold shadow-sm">
                           <option value="">انتخاب حساب بانکی ...</option>
-                          {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.bankName} - {a.accountNumber || a.cardNumber}</option>)}
+                          {(accounts || []).map((a: any) => <option key={a.id} value={a.id}>{a.bankName} - {a.accountNumber || a.cardNumber}</option>)}
                         </select>
                         <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                       </div>

@@ -78,7 +78,7 @@ export default function CashboxesManager(props: any) {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-50">
-                            {cashboxes.map((box, index) => (
+                            {(cashboxes || []).map((box, index) => (
                               <tr
                                 key={box.id}
                                 className="hover:bg-gray-50/50 transition-colors text-gray-700"

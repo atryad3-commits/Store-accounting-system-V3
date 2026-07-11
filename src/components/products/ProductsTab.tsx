@@ -313,7 +313,7 @@ export default function ProductsTab(props: any) {
                             </h4>
                           </div>
                         </div>
-                        {products.filter(
+                        {(products || []).filter(
                           (p) => !p.barcode || p.barcode.trim() === "",
                         ).length > 0 && (
                           <button
@@ -463,7 +463,7 @@ export default function ProductsTab(props: any) {
 
                     <div className="p-0 overflow-x-auto mt-6">
                       {(() => {
-                        const filteredProducts = products.filter((p) => {
+                        const filteredProducts = (products || []).filter((p) => {
                           const matchString = (
                             p.name +
                             " " +
@@ -582,7 +582,7 @@ export default function ProductsTab(props: any) {
                                 <tbody className="divide-y divide-gray-50 text-sm">
                                   {paginatedProducts.map((p, index) => (
                                     <tr
-                                      key={p.id || index}
+                                      key={p.id ? `id-${p.id}` : `idx-${index}`}
                                       className="hover:bg-slate-50/80 transition-colors group"
                                     >
                                       <td className="py-4 px-4 text-center">

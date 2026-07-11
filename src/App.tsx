@@ -415,7 +415,7 @@ export default function App() {
         activeTab === "create_sale" ||
         activeTab === "create_purchase" ||
         activeTab === "create_warehouse_doc";
-      if (isInvoiceTab && items && items.length > 0) {
+      if (isInvoiceTab && items && (items || []).length > 0) {
         confirmAction(
           "فاکتور/سند در حال ثبت است. در صورت خروج از این صفحه، اطلاعات وارد شده حذف خواهد شد. آیا مطمئن هستید؟",
           () => {
@@ -630,9 +630,9 @@ export default function App() {
     searchStr: `${p.alias || ""} ${p.name || ""} ${p.title || ""} ${p.firstName || ""} ${p.lastName || ""} ${p.phone || ""} ${p.nationalId || ""} ${p.personCode || ""} ${p.companyName || ""} ${p.fatherName || ""}`,
   });
 
-  const activePersonsOnly = persons.filter((p) => p.isActive !== false);
+  const activePersonsOnly = (persons || []).filter((p) => p.isActive !== false);
 
-  const filteredPersons = persons.filter((p) => {
+  const filteredPersons = (persons || []).filter((p) => {
     // 0. Role Filter
     if (selectedPersonRole !== "all" && p.role !== selectedPersonRole) {
       return false;
@@ -1058,7 +1058,7 @@ export default function App() {
         setReceiptResourceId(parsed.receiptResourceId || "");
         setReceiptDescription(parsed.receiptDescription || "");
         setReceiptNote(parsed.receiptNote || "");
-        setReceiptLinkedInvoices(parsed.receiptLinkedInvoices || []);
+        setReceiptLinkedInvoices(parsed.receiptLinkedInvoices || {});
         
         showNotification("پیشنویس رسید دریافت/پرداخت بازیابی شد.", "info");
       } catch (e) {}
@@ -1109,7 +1109,7 @@ export default function App() {
         activeTab,
         autoSaveInvoiceId,
       };
-      if (items.length > 0 || customerId) {
+      if ((items || []).length > 0 || customerId) {
         localStorage.setItem("invoice_draft", JSON.stringify(draft));
         setHasDraft(true);
       } else {
@@ -1120,7 +1120,7 @@ export default function App() {
       // Auto-save to database as draft if person is selected and at least one item is present
       if (
         customerId &&
-        items.length > 0 &&
+        (items || []).length > 0 &&
         !submitting &&
         invoiceType &&
         !editingInvoiceId
@@ -1130,7 +1130,7 @@ export default function App() {
           if (isAutoSavingDb.current) return;
           isAutoSavingDb.current = true;
           try {
-            const cleanItems = items.filter(
+            const cleanItems = (items || []).filter(
               (item) =>
                 item.productName ||
                 item.productId ||
@@ -1248,7 +1248,7 @@ export default function App() {
         setSellerInvoiceNumber(parsed.sellerInvoiceNumber || "");
         setCustomerId(parsed.customerId || "");
         setSourceInvoiceId(parsed.sourceInvoiceId || "");
-        setItems(parsed.items || []);
+        setItems(parsed.items);
         setOverallDiscountPercent(parsed.overallDiscountPercent || 0);
         setInvoiceCurrency(parsed.invoiceCurrency || "تومان");
         setExchangeRate(parsed.exchangeRate || 1);
@@ -1620,7 +1620,7 @@ export default function App() {
 
   const handleExportProductsData = () => {
     const worksheet = XLSX.utils.json_to_sheet(
-      products.map((p) => {
+      (products || []).map((p) => {
         const mapped = { ...p };
         delete (mapped as any).priceHistory;
         return mapped;
@@ -1934,7 +1934,7 @@ export default function App() {
         if (!catCode) {
           catCode = "GEN";
         }
-        const existingProducts = products.filter(
+        const existingProducts = (products || []).filter(
           (p) => typeof p.code === "string" && p.code.startsWith(catCode),
         );
         const maxCode = existingProducts
@@ -2149,7 +2149,7 @@ export default function App() {
   };
 
   const handleGenerateBarcodes = async () => {
-    const productsToUpdate = products.filter(
+    const productsToUpdate = (products || []).filter(
       (p) => !p.barcode || p.barcode.trim() === "",
     );
     if (productsToUpdate.length === 0) {
@@ -2162,7 +2162,7 @@ export default function App() {
 
     // To ensure unique barcodes with what's already existing:
     const existingBarcodes = new Set(
-      products.map((p) => p.barcode).filter(Boolean),
+      (products || []).map((p) => p.barcode).filter(Boolean),
     );
 
     let updatedCount = 0;
@@ -2464,7 +2464,7 @@ export default function App() {
   const handleGenerateMissingAccountingCodes = async () => {
     setIsGeneratingCodes(true);
     try {
-      const personsWithoutCode = persons.filter(
+      const personsWithoutCode = (persons || []).filter(
         (p) => !p.accountingCode || String(p.accountingCode).trim() === "",
       );
       if (personsWithoutCode.length === 0) {
@@ -2778,7 +2778,7 @@ export default function App() {
         ? storeSettings[`prefix_${typeKey}`]
         : defaultPrefix;
 
-    const existingRelated = transactions.filter(
+    const existingRelated = (transactions || []).filter(
       (t: any) => t.type === type && t.receiptNumber,
     );
 
@@ -3148,7 +3148,7 @@ description: receiptDescription,
 
       let maxNum = startNum - 1;
 
-      const existingRelated = transactions.filter(
+      const existingRelated = (transactions || []).filter(
         (t: any) => t.type === "salary" && t.receiptNumber,
       );
       if (existingRelated.length > 0) {
@@ -3564,7 +3564,7 @@ description: receiptDescription,
           await deletePersonGroup(id);
 
           // Remove group from all persons in this group
-          const affectedPersons = persons.filter((p) => p.group === id);
+          const affectedPersons = (persons || []).filter((p) => p.group === id);
           for (const p of affectedPersons) {
             await updatePerson(p.id as string, { ...p, group: "" });
           }
@@ -3751,7 +3751,7 @@ description: receiptDescription,
           invoiceType === "warehouse_remittance";
 
         // Calculate previously received/remitted amounts
-        const pastDocs = invoices.filter(
+        const pastDocs = (invoices || []).filter(
           (i) =>
             i.sourceInvoiceId?.toString() === invoiceId.toString() &&
             (isRemittance
@@ -3924,7 +3924,7 @@ description: receiptDescription,
   };
 
   const handleRemoveItem = (id: string) => {
-    setItems(items.filter((item) => item.id !== id));
+    setItems((items || []).filter((item) => item.id !== id));
   };
 
   const getLastPriceForProduct = (
@@ -4035,7 +4035,7 @@ description: receiptDescription,
     value: any,
   ) => {
     setItems(
-      items.map((item) => {
+      (items || []).map((item) => {
         if (item.id === id) {
           const updatedItem = { ...item, [field]: value };
 
@@ -4127,7 +4127,7 @@ description: receiptDescription,
                 (i) => i.id.toString() === sourceInvoiceId.toString(),
               );
               if (sourceInv) {
-                const pastDocs = invoices.filter(
+                const pastDocs = (invoices || []).filter(
                   (i) =>
                     i.sourceInvoiceId?.toString() ===
                       sourceInvoiceId.toString() &&
@@ -4393,7 +4393,7 @@ description: receiptDescription,
       (activeTab === "create_warehouse_doc" &&
         invoiceType === "warehouse_remittance") ||
       activeTab === "list_warehouse_docs";
-    const pastDocs = invoices.filter(
+    const pastDocs = (invoices || []).filter(
       (i) =>
         i.sourceInvoiceId?.toString() === invoiceId.toString() &&
         (isRemittance
@@ -4571,7 +4571,7 @@ description: receiptDescription,
       return;
     }
 
-    const cleanItems = items.filter(
+    const cleanItems = (items || []).filter(
       (item) =>
         item.productName ||
         item.productId ||
@@ -4698,7 +4698,7 @@ description: receiptDescription,
           let remainingDeficit = deficit;
           const transfersList: any[] = [];
 
-          const otherActiveWhs = warehouses.filter(
+          const otherActiveWhs = (warehouses || []).filter(
             (w) => w.isActive !== false && w.id.toString() !== targetWhId,
           );
           for (const otherWh of otherActiveWhs) {
@@ -5249,7 +5249,7 @@ description: receiptDescription,
     e.preventDefault();
     if (
       !customerId ||
-      items.length === 0 ||
+      (items || []).length === 0 ||
       items.some((i) => !i.productId && !i.productName)
     ) {
       customAlert("لطفاً همه فیلدهای ضروری را پر کنید.");
@@ -5278,7 +5278,7 @@ description: receiptDescription,
   const handleInvoicePreviewTrigger = () => {
     if (
       !customerId ||
-      items.length === 0 ||
+      (items || []).length === 0 ||
       items.some((i) => !i.productId && !i.productName)
     ) {
       customAlert("لطفاً همه فیلدهای ضروری را پر کنید.");
@@ -5329,7 +5329,7 @@ description: receiptDescription,
       customerId,
       
       sourceInvoiceId, // Pass it correctly
-      items: items.map((item) => {
+      items: (items || []).map((item) => {
         const prod = products.find(
           (p) => p.id.toString() === String(item.productId),
         );
@@ -6060,11 +6060,11 @@ ${errMsg}`);
             handleSubmitReceipt={handleSubmitReceipt}
             receiptPersonId={receiptPersonId}
             setReceiptPersonId={setReceiptPersonId}
-           
+            persons={persons}
             getPersonDisplayName={getPersonDisplayName}
             receiptMethod={receiptMethod}
             setReceiptMethod={setReceiptMethod}
-           
+            accounts={accounts}
             cashboxes={cashboxes}
             receiptAmount={receiptAmount}
             setReceiptAmount={setReceiptAmount}
@@ -6082,7 +6082,7 @@ ${errMsg}`);
             formatNumber={formatNumber}
             submittingReceipt={submittingReceipt}
             lastCreatedReceipt={lastCreatedReceipt}
-           
+            toPersianDigits={toPersianDigits}
             storeSettings={storeSettings}
             setPrintingTransaction={setPrintingTransaction}
             setLastCreatedReceipt={setLastCreatedReceipt}
@@ -7833,7 +7833,7 @@ ${errMsg}`);
                       </h2>
                       <div className="relative">
                         <SearchableSelect
-                          options={products.map((p) => ({
+                          options={(products || []).map((p) => ({
                             value: p.id,
                             label: p.name,
                             subLabel: formatProductStockDetails(p),
@@ -8470,8 +8470,8 @@ ${errMsg}`);
                         </thead>
                         <tbody>
                           {(selectedProductIds.length > 0 
-                              ? products.filter(p => selectedProductIds.includes(p.id) && p.type !== "service")
-                              : products.filter((p) => p.type !== "service")
+                              ? (products || []).filter(p => selectedProductIds.includes(p.id) && p.type !== "service")
+                              : (products || []).filter((p) => p.type !== "service")
                             )
                             .map((prod, idx) => (
                               <tr key={prod.id} className="break-inside-avoid">
@@ -9638,7 +9638,7 @@ ${errMsg}`);
                                   );
                                   if (updated) {
                                     setPersons(
-                                      persons.map((p, index) =>
+                                      (persons || []).map((p, index) =>
                                         p.id === personExtraId ? updated : p,
                                       ),
                                     );
@@ -9893,8 +9893,8 @@ ${errMsg}`);
                                     {!newPersonRole && (
                                       <option value="">انتخاب نقش...</option>
                                     )}
-                                    {personRoles.map((r, index) => (
-                                      <option key={r.id || index} value={r.id}>
+                                    {(personRoles || []).map((r, index) => (
+                                      <option key={r.id ? `id-${r.id}` : `idx-${index}`} value={r.id}>
                                         {r.name} (کد: {r.code})
                                       </option>
                                     ))}
@@ -10294,8 +10294,8 @@ ${errMsg}`);
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-950 font-bold text-sm bg-white"
                                   >
                                     <option value="">بدون گروه</option>
-                                    {personGroups.map((g, index) => (
-                                      <option key={g.id || index} value={g.id}>
+                                    {(personGroups || []).map((g, index) => (
+                                      <option key={g.id ? `id-${g.id}` : `idx-${index}`} value={g.id}>
                                         {g.name}
                                       </option>
                                     ))}

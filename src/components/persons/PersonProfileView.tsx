@@ -97,7 +97,7 @@ export default function PersonProfileView({
   }, [person, accountingDocuments, personId]);
   
   const recentInvoices = useMemo(() => {
-    return invoices.filter(inv => inv.customerId?.toString() === personId.toString() && inv.status !== 'draft' && inv.status !== 'voided')
+    return (invoices || []).filter(inv => inv.customerId?.toString() === personId.toString() && inv.status !== 'draft' && inv.status !== 'voided')
       .sort((a, b) => new Date(convertToGregorian(b.date)).getTime() - new Date(convertToGregorian(a.date)).getTime())
       .slice(0, 5);
   }, [invoices, personId]);
@@ -108,11 +108,11 @@ export default function PersonProfileView({
   const isOwes = balance.status === "بستانکار";
   const isClr = balance.status === "بی‌حساب" || balance.status === "تسویه";
 
-  const totalInvoices = useMemo(() => invoices.filter(i => i.customerId?.toString() === personId.toString() && i.status !== 'draft' && i.status !== 'voided').length, [invoices, personId]);
+  const totalInvoices = useMemo(() => (invoices || []).filter(i => i.customerId?.toString() === personId.toString() && i.status !== 'draft' && i.status !== 'voided').length, [invoices, personId]);
   
   const pendingChecksCount = useMemo(() => {
-    const issued = issuedChecks.filter((c) => c.payeeId?.toString() === personId.toString() && c.status !== "cancelled" && c.status !== "bounced" && c.status !== "cashed").length;
-    const received = receivedChecks.filter((c) => c.payerId?.toString() === personId.toString() && c.status !== "returned" && c.status !== "bounced" && c.status !== "cashed").length;
+    const issued = (issuedChecks || []).filter((c) => c.payeeId?.toString() === personId.toString() && c.status !== "cancelled" && c.status !== "bounced" && c.status !== "cashed").length;
+    const received = (receivedChecks || []).filter((c) => c.payerId?.toString() === personId.toString() && c.status !== "returned" && c.status !== "bounced" && c.status !== "cashed").length;
     return issued + received;
   }, [issuedChecks, receivedChecks, personId]);
 

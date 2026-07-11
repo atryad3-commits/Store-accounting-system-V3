@@ -141,7 +141,7 @@ export default function AccountingDocView({ doc, storeSettings, onBack }: Props)
             </thead>
             <tbody>
               {doc.items.map((item, index) => (
-                <tr key={item.id || index} className="hover:bg-slate-50">
+                <tr key={item.id ? `id-${item.id}` : `idx-${index}`} className="hover:bg-slate-50">
                   <td className="border border-slate-300 p-3 text-center text-slate-500">{index + 1}</td>
                   <td className="border border-slate-300 p-3">
                     <div className="flex flex-col gap-1">
