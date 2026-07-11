@@ -1239,23 +1239,16 @@ async function startServer() {
 
   app.get('/api/db/backup', async (req, res) => {
     try {
-      if (usePg && pgPool) {
-        const fileName = `backup-${Date.now()}.sql`;
-        res.setHeader('Content-Type', 'application/sql');
-        res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
-        await generatePostgresDump(fileName, res);
-      } else {
-        const rows = await getAllDbData();
-        const backupData: any = {};
-        for (const row of rows) {
-          backupData[row.key] = row.value;
-        }
-        
-        const fileName = `backup-${Date.now()}.json`;
-        res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
-        res.send(JSON.stringify(backupData, null, 2));
+      const rows = await getAllDbData();
+      const backupData: any = {};
+      for (const row of rows) {
+        backupData[row.key] = row.value;
       }
+      
+      const fileName = `backup-${Date.now()}.json`;
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+      res.send(JSON.stringify(backupData, null, 2));
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: err.message });

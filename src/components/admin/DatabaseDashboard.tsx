@@ -156,14 +156,25 @@ export default function DatabaseDashboard({ showNotification }: DatabaseDashboar
     return names[key] || key;
   };
 
-  const handleBackup = () => {
-    const a = document.createElement('a');
-    a.href = '/api/db/backup';
-    a.download = `حسابداری-پشتیبان-${new Date().toLocaleDateString('fa-IR').replace(/\//g, '-')}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    showNotification('نسخه پشتیبان با موفقیت دانلود شد', 'success');
+  const handleBackup = async () => {
+    try {
+      const res = await fetch('/api/db/backup');
+      if (!res.ok) throw new Error('Network response was not ok');
+      const blob = await res.blob();
+      const isSql = res.headers.get('Content-Type')?.includes('sql');
+      const extension = isSql ? 'sql' : 'json';
+      const a = document.createElement('a');
+      const url = window.URL.createObjectURL(blob);
+      a.href = url;
+      a.download = `حسابداری-پشتیبان-${new Date().toLocaleDateString('fa-IR').replace(/\//g, '-')}.${extension}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      showNotification('نسخه پشتیبان با موفقیت دانلود شد', 'success');
+    } catch (e) {
+      showNotification('خطا در دانلود نسخه پشتیبان', 'error');
+    }
   };
 
   const handleRestoreFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

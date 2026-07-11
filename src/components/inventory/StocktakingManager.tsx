@@ -268,7 +268,7 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                       <td className="p-4 font-mono font-bold text-slate-800">{st.date}</td>
                       <td className="p-4 font-bold text-indigo-700">{whMap[st.warehouseId] || 'نامشخص'}</td>
                       <td className="p-4 text-sm text-slate-600 truncate max-w-[200px]">{st.description || '-'}</td>
-                      <td className="p-4 font-bold text-slate-700">{toPersianDigits(st.items.length)} ردیف</td>
+                      <td className="p-4 font-bold text-slate-700">{toPersianDigits((st.items || []).length)} ردیف</td>
                       <td className="p-4 font-mono text-rose-600 font-bold">{st.totalDeficitValue ? toPersianDigits(st.totalDeficitValue.toLocaleString()) : '۰'} تومان</td>
                       <td className="p-4">
                         {st.status === 'in_progress' ? <span className="inline-block px-3 py-1 bg-amber-50 text-amber-700 rounded-lg text-xs font-bold border border-amber-200">در حال شمارش</span> : 

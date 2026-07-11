@@ -1,0 +1,34 @@
+  const [personIOAction, setPersonIOAction] = useState<"import" | "export">(
+    "export",
+  );
+  const [personsIOFileType, setPersonsIOFileType] = useState<
+    "excel_pasted" | "json" | "csv"
+  >("excel_pasted");
+  const [pastedPersonsText, setPastedPersonsText] = useState("");
+  const [importSelectedFile, setImportSelectedFile] = useState<File | null>(
+    null,
+  );
+
+  // Custom CSV / Pasted Excel Parsing state
+  const [parsedHeaders, setParsedHeaders] = useState<string[]>([]);
+  const [parsedRows, setParsedRows] = useState<string[][]>([]);
+  const [detectedDelimiter, setDetectedDelimiter] = useState("\t");
+  const [isFirstRowHeader, setIsFirstRowHeader] = useState(true);
+  const [personIOMappings, setPersonIOMappings] = useState<
+    Record<string, number>
+  >({
+    name: -1,
+    personType: -1,
+    nationalId: -1,
+    role: -1,
+    phone: -1,
+    fatherName: -1,
+    companyName: -1,
+    address: -1,
+    bankName: -1,
+    bankAccountNumber: -1,
+    cardNumber: -1,
+    shebaNumber: -1,
+    additionalNotes: -1,
+    personCode: -1,
+  });

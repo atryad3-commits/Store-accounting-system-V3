@@ -84,7 +84,7 @@ const AnalyticalDashboard: React.FC<AnalyticalDashboardProps> = ({ showNotificat
           className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
         >
           <h3 className="text-lg font-bold text-gray-800 mb-6">موجودی کالا بر اساس تعداد</h3>
-          {inventoryByWarehouse.length > 0 ? (
+          {inventoryByWarehouse?.length > 0 ? (
             <div className="h-80 w-full" dir="ltr">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -121,7 +121,7 @@ const AnalyticalDashboard: React.FC<AnalyticalDashboardProps> = ({ showNotificat
           className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100"
         >
           <h3 className="text-lg font-bold text-gray-800 mb-6">موجودی کالا بر اساس ارزش ریالی</h3>
-          {inventoryByWarehouse.length > 0 ? (
+          {inventoryByWarehouse?.length > 0 ? (
             <div className="h-80 w-full" dir="ltr">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>

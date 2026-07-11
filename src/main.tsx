@@ -1,3 +1,4 @@
+window.addEventListener("error", (e) => { fetch("/api/data/system_logs/append", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ action: "FRONTEND_ERROR", entityType: "error", entityId: "1", oldData: e.message, newData: e.error?.stack }) }); });
 import {StrictMode, useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';

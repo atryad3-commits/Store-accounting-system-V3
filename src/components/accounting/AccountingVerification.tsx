@@ -38,11 +38,11 @@ export default function AccountingVerification({ showNotification }: any) {
 
   // --- Auditing Calculations ---
   const auditedDocs = docs.map(doc => {
-    const totalDebit = doc.items.reduce((sum, item) => sum + (Number(item.debit) || 0), 0);
-    const totalCredit = doc.items.reduce((sum, item) => sum + (Number(item.credit) || 0), 0);
+    const totalDebit = (doc.items || []).reduce((sum, item) => sum + (Number(item.debit) || 0), 0);
+    const totalCredit = (doc.items || []).reduce((sum, item) => sum + (Number(item.credit) || 0), 0);
     const isBalanced = totalDebit === totalCredit;
-    const hasMissingLedger = doc.items.some(item => !item.ledgerAccountId);
-    const hasZeroItem = doc.items.some(item => (Number(item.debit) === 0 && Number(item.credit) === 0));
+    const hasMissingLedger = (doc.items || []).some(item => !item.ledgerAccountId);
+    const hasZeroItem = (doc.items || []).some(item => (Number(item.debit) === 0 && Number(item.credit) === 0));
 
     let status: 'ok' | 'unbalanced' | 'error' = 'ok';
     let errorMessage = '';
@@ -56,7 +56,7 @@ export default function AccountingVerification({ showNotification }: any) {
     } else if (hasZeroItem) {
       status = 'error';
       errorMessage = 'آرتیکل با مبلغ صفر وجود دارد';
-    } else if (doc.items.length < 2) {
+    } else if ((doc.items || []).length < 2) {
       status = 'error';
       errorMessage = 'سند باید حداقل دارای دو آرتیکل باشد';
     }

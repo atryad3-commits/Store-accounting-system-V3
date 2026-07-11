@@ -32,7 +32,8 @@ export const getLocalData = async <T>(key: string, defaultValue: T, queryParams:
     });
     if (!res.ok) throw new Error('Network response was not ok');
     const data = await res.json();
-    const finalData = data !== null ? data : defaultValue;
+    const finalData = (data !== null && data !== undefined) ? data : defaultValue;
+    if (Array.isArray(defaultValue) && !Array.isArray(finalData)) { return defaultValue; }
     
     if (CACHEABLE_KEYS.includes(key) && !qs) {
       cache[key] = { data: finalData, timestamp: Date.now() };
@@ -467,7 +468,7 @@ export const deletePersonRole = async (id: string) => {
 // Persons
 export const getPersons = async () => {
   const persons = await getLocalData<any[]>('persons', []);
-  return persons.filter(p => !p.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
+  console.log("persons in getPersons:", persons); return (persons || []).filter(p => !p.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
 };
 
 export const addPerson = async (person: any) => {
@@ -770,7 +771,7 @@ export const deleteCashbox = async (id: string) => {
 // Warehouses
 export const getWarehouses = async () => {
   const warehouses = await getLocalData<any[]>('warehouses', []);
-  return warehouses.filter(w => !w.isDeleted).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  return (warehouses || []).filter(w => !w.isDeleted).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 };
 
 export const addWarehouse = async (warehouse: any) => {
@@ -831,7 +832,7 @@ export const deleteProductCategory = async (id: string) => {
 // Products
 export const getProducts = async () => {
   const products = await getLocalData<any[]>('products', []);
-  return products.filter(p => !p.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
+  return (products || []).filter(p => !p.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
 };
 
 export const addProduct = async (product: any) => {
@@ -989,7 +990,7 @@ export const getTransactions = async () => {
       // ignore table not existing errors
     }
   }
-  return allTx.filter(t => t && !t.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
+  return (allTx || []).filter(t => t && !t.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
 };
 
 export const addTransaction = async (transaction: any) => {
@@ -1480,7 +1481,7 @@ export const getInvoices = async () => {
      if (data) allInvoices = allInvoices.concat(data);
   }
   const invoices = allInvoices;
-  return invoices.filter(inv => !inv.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
+  return (invoices || []).filter(inv => !inv.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
 };
 
 export const addInvoice = async (invoice: any, skipRecalc: boolean = false) => {
@@ -2005,7 +2006,7 @@ export const deleteRefundRequest = async (id: string) => {
 
 export const getWarehouseStocks = async () => {
   const data = await getLocalData<any[]>('warehouse_stocks', []);
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     // Perform initial recalculation if empty
     return await recalculateAllWarehouseStocks();
   }
@@ -2151,7 +2152,7 @@ export const deleteLedgerAccount = async (id: string | number) => {
 
 export const getAccountingDocuments = async () => {
   const docs = await getLocalData<any[]>('accounting_documents', []);
-  return docs.filter(d => !d.isDeleted);
+  return (docs || []).filter(d => !d.isDeleted);
 };
 export const saveAccountingDocuments = async (data: any[]) => saveLocalData('accounting_documents', data);
 export const addAccountingDocument = async (doc: any) => {
