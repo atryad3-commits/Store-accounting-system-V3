@@ -151,7 +151,7 @@ export const allSidebarGroups: SidebarGroup[] = [
       },
       {
         id: "person_opening_balances",
-        label: "ارقام اول دوره اشخاص",
+        label: "مانده اول دوره اشخاص",
         roles: ["admin", "accountant"],
       },
     ],
