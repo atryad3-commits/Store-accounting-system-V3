@@ -105,11 +105,11 @@ export default function SidebarNavigation({
 
         {/* Groups & Items List */}
         <div className="space-y-1.5 py-4 overflow-y-auto flex-1 custom-scrollbar">
-          {searchedGroups.map((group) => {
+          {searchedGroups.map((group, groupIdx) => {
             const isGroupExpanded = expandedGroups[group.id] || menuSearchQuery.length > 0;
 
             return (
-              <div key={group.id} className="mb-1 px-3">
+              <div key={`group-${group.id}-${groupIdx}`} className="mb-1 px-3">
                 <button
                   onClick={() => toggleGroup(group.id)}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-black transition-all ${
@@ -144,11 +144,11 @@ export default function SidebarNavigation({
                           isGmailTheme ? "border-slate-200" : "border-slate-800"
                         }`}
                       >
-                        {group.items.map((item) => {
+                        {group.items.map((item, itemIdx) => {
                           const isItemActive = activeTab === item.id;
                           return (
                             <button
-                              key={item.id}
+                              key={`item-${item.id}-${itemIdx}`}
                               onClick={() => {
                                 setActiveTab(item.id as any);
                                 setIsSidebarOpen(false);
@@ -191,7 +191,7 @@ export default function SidebarNavigation({
         className="flex items-center gap-1.5 px-6 py-2.5 flex-wrap bg-white sticky top-0 z-40 select-none shadow-sm"
         dir="rtl"
       >
-        {filteredSidebarGroups.map((group) => {
+        {filteredSidebarGroups.map((group, groupIdx) => {
           const visibleItems = (group.items).filter(
             (item) => !user || item.roles.includes(user.role),
           );
@@ -199,7 +199,7 @@ export default function SidebarNavigation({
           const isActiveGroup = group.items.some((i) => i.id === activeTab);
 
           return (
-            <div key={group.id} className="relative group shrink-0">
+            <div key={`hz-group-${group.id}-${groupIdx}`} className="relative group shrink-0">
               <button
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold ${
                   isActiveGroup
@@ -220,11 +220,11 @@ export default function SidebarNavigation({
                     {group.label}
                   </div>
                   <div className="space-y-0.5">
-                  {visibleItems.map((item) => {
+                  {visibleItems.map((item, itemIdx) => {
                     const isItemActive = activeTab === item.id;
                     return (
                       <button
-                        key={item.id}
+                        key={`hz-item-${item.id}-${itemIdx}`}
                         onClick={() => setActiveTab(item.id as any)}
                         className={`text-right w-full px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
                           isItemActive

@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from "react";
+import fs from 'fs';
+
+const content = `import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   List,
@@ -53,7 +55,7 @@ const CategoryNode = ({
     <div className="flex flex-col border-b border-gray-100/50 last:border-b-0">
       <div 
         className="flex items-center justify-between p-3 hover:bg-indigo-50/30 transition-colors group"
-        style={{ paddingRight: `${level * 24 + 12}px` }}
+        style={{ paddingRight: \`\${level * 24 + 12}px\` }}
       >
         <div className="flex items-center gap-2 flex-1">
           {hasChildren ? (
@@ -68,8 +70,8 @@ const CategoryNode = ({
           )}
           
           <div className="flex items-center gap-2">
-            <Tag className={`w-4 h-4 ${level === 0 ? 'text-indigo-500' : 'text-gray-400'}`} />
-            <span className={`${level === 0 ? 'font-extrabold text-indigo-950' : 'font-bold text-gray-700'}`}>
+            <Tag className={\`w-4 h-4 \${level === 0 ? 'text-indigo-500' : 'text-gray-400'}\`} />
+            <span className={\`\${level === 0 ? 'font-extrabold text-indigo-950' : 'font-bold text-gray-700'}\`}>
               {node.name}
             </span>
             {node.code && (
@@ -125,9 +127,9 @@ const CategoryNode = ({
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden"
           >
-            {node.children.map((child: any, i: number) => (
+            {node.children.map((child: any) => (
               <CategoryNode
-                key={`child-${child.id}-${i}`}
+                key={child.id}
                 node={child}
                 level={level + 1}
                 expanded={expanded}
@@ -224,7 +226,7 @@ export default function ProductCategoriesView({
 
   const handleDelete = (cat: any) => {
     confirmAction(
-      `آیا از حذف گروه کالایی "${cat.name}" اطمینان دارید؟`,
+      \`آیا از حذف گروه کالایی "\${cat.name}" اطمینان دارید؟\`,
       async () => {
         await deleteProductCategory(cat.id);
         setSuccessMsg("گروه‌بندی حذف شد.");
@@ -320,7 +322,7 @@ export default function ProductCategoriesView({
             className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white rounded-lg flex items-center gap-2 transition-colors text-sm font-medium cursor-pointer"
             title="محاسبه مجدد موجودی انبارها بر اساس اسناد رسید و حواله"
           >
-            <RefreshCw className={`w-4 h-4 ${recalculating ? "animate-spin" : ""}`} />
+            <RefreshCw className={\`w-4 h-4 \${recalculating ? "animate-spin" : ""}\`} />
             محاسبه مجدد موجودی
           </button>
         </div>
@@ -391,7 +393,7 @@ export default function ProductCategoriesView({
             </div>
           </div>
           <div className="text-xs font-bold text-gray-500">
-             {categorySearch ? `${treeData.length} نتیجه یافت شد` : "نمایش درختی گروه‌ها"}
+             {categorySearch ? \`\${treeData.length} نتیجه یافت شد\` : "نمایش درختی گروه‌ها"}
           </div>
         </div>
 
@@ -403,9 +405,9 @@ export default function ProductCategoriesView({
           </div>
           
           <div className="flex flex-col">
-            {treeData.map((node, i) => (
+            {treeData.map((node) => (
               <CategoryNode
-                key={`node-${node.id}-${i}`}
+                key={node.id}
                 node={node}
                 level={0}
                 expanded={expanded}
@@ -427,3 +429,5 @@ export default function ProductCategoriesView({
     </motion.div>
   );
 }
+`
+fs.writeFileSync('src/components/products/ProductCategoriesView.tsx', content);
