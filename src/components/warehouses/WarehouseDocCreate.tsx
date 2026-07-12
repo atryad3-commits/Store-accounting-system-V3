@@ -644,8 +644,7 @@ const isReceipt = [
                       <Package className="w-5 h-5 text-indigo-600" /> اقلام سند
                     </h3>
                     <button
-                      onClick={handleAddItem,
-    handleVoidInvoice}
+                      onClick={handleAddItem}
                       className="px-4 py-2 bg-white border border-gray-200 text-gray-700 shadow-sm rounded-xl font-bold hover:bg-gray-100 flex items-center gap-2 transition-colors whitespace-nowrap"
                     >
                       <Plus className="w-4 h-4" /> افزودن سطر دستی

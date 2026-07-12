@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import * as lucide from 'lucide-react';
 const { Tag, Wallet, Ban, ChevronDown, Search, Plus, Filter, FileText, Download, CheckCircle, Edit2, Trash2, Printer, Check, X, ArrowUpRight, ArrowDownRight, ArrowRight, CornerDownLeft, Package, User, Clock, CheckCircle2, ChevronLeft, ChevronRight, Share2, Eye, Truck, MoreVertical, DollarSign, RefreshCw, XCircle } = lucide as any;
@@ -15,6 +15,12 @@ export default function InvoicesList(props: any) {
     products, setPricingWizardItems, setPricingWizardInvoice, setSuccessMsg, setReceiptPersonId, setViewingInvoice, handleEditInvoiceAction, handleVoidInvoice,
     ...rest
   } = props;
+
+  const [invoiceTabFilter, setInvoiceTabFilter] = useState("all");
+
+  useEffect(() => {
+    setInvoiceTabFilter("all");
+  }, [activeTab]);
       
         const activePurchases = invoices
           .filter((i) => i.type === "purchase")
@@ -50,7 +56,22 @@ export default function InvoicesList(props: any) {
         const filteredInvoicesList = invoices
           .filter((i) => {
             if (activeTab === "list_sale") {
-              return i.type === "sale" || i.type === "proforma";
+              if (i.type !== "sale" && i.type !== "proforma") return false;
+              
+              const isRemitted = invoices.some(
+                (wh) =>
+                  wh.type === "warehouse_remittance" &&
+                  wh.sourceInvoiceId?.toString() === i.id.toString(),
+              );
+              
+              if (invoiceTabFilter === "proforma") return i.type === "proforma";
+              if (invoiceTabFilter === "sale") return i.type === "sale";
+              if (invoiceTabFilter === "remitted") return i.type === "sale" && isRemitted;
+              if (invoiceTabFilter === "pending_remit") return i.type === "sale" && !isRemitted;
+              if (invoiceTabFilter === "paid") return i.type === "sale" && i.paymentStatus === "paid";
+              if (invoiceTabFilter === "unpaid") return i.type === "sale" && (i.paymentStatus === "unpaid" || i.paymentStatus === "partial");
+              
+              return true;
             } else if (activeTab === "list_purchase") {
               if (i.type !== "purchase") return false;
               const isReceived = invoices.some(
@@ -58,8 +79,12 @@ export default function InvoicesList(props: any) {
                   wh.type === "warehouse_receipt" &&
                   wh.sourceInvoiceId?.toString() === i.id.toString(),
               );
-              if (purchaseFilter === "received") return isReceived;
-              if (purchaseFilter === "pending") return !isReceived;
+              
+              if (invoiceTabFilter === "received") return isReceived;
+              if (invoiceTabFilter === "pending_receive") return !isReceived;
+              if (invoiceTabFilter === "paid") return i.paymentStatus === "paid";
+              if (invoiceTabFilter === "unpaid") return i.paymentStatus === "unpaid" || i.paymentStatus === "partial";
+              
               return true;
             } else if (activeTab === "list_warehouse_docs") {
               return typeof listFilter !== "undefined" &&
@@ -271,6 +296,47 @@ export default function InvoicesList(props: any) {
                       className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${listFilter === "remittance" ? "bg-rose-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"}`}
                     >
                       ⬆️ حواله (خروج)
+                    </button>
+                  </div>
+                )}
+                {activeTab === "list_sale" && (
+                  <div className="flex items-center gap-2 bg-white p-1 rounded-lg border border-slate-200 shadow-sm w-full md:w-auto overflow-x-auto">
+                    <button onClick={() => setInvoiceTabFilter("all")} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${invoiceTabFilter === "all" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"}`}>
+                      همه موارد
+                    </button>
+                    <button onClick={() => setInvoiceTabFilter("sale")} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${invoiceTabFilter === "sale" ? "bg-blue-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"}`}>
+                      فقط فاکتورها
+                    </button>
+                    <button onClick={() => setInvoiceTabFilter("proforma")} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${invoiceTabFilter === "proforma" ? "bg-slate-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"}`}>
+                      فقط پیش‌فاکتورها
+                    </button>
+                    <button onClick={() => setInvoiceTabFilter("remitted")} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${invoiceTabFilter === "remitted" ? "bg-emerald-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"}`}>
+                      حواله شده
+                    </button>
+                    <button onClick={() => setInvoiceTabFilter("paid")} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${invoiceTabFilter === "paid" ? "bg-emerald-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"}`}>
+                      تسویه شده
+                    </button>
+                    <button onClick={() => setInvoiceTabFilter("unpaid")} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${invoiceTabFilter === "unpaid" ? "bg-rose-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"}`}>
+                      تسویه نشده
+                    </button>
+                  </div>
+                )}
+                {activeTab === "list_purchase" && (
+                  <div className="flex items-center gap-2 bg-white p-1 rounded-lg border border-slate-200 shadow-sm w-full md:w-auto overflow-x-auto">
+                    <button onClick={() => setInvoiceTabFilter("all")} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${invoiceTabFilter === "all" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"}`}>
+                      همه فاکتورها
+                    </button>
+                    <button onClick={() => setInvoiceTabFilter("received")} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${invoiceTabFilter === "received" ? "bg-emerald-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"}`}>
+                      رسید شده
+                    </button>
+                    <button onClick={() => setInvoiceTabFilter("pending_receive")} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${invoiceTabFilter === "pending_receive" ? "bg-rose-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"}`}>
+                      رسید نشده
+                    </button>
+                    <button onClick={() => setInvoiceTabFilter("paid")} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${invoiceTabFilter === "paid" ? "bg-emerald-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"}`}>
+                      تسویه شده
+                    </button>
+                    <button onClick={() => setInvoiceTabFilter("unpaid")} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 ${invoiceTabFilter === "unpaid" ? "bg-rose-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"}`}>
+                      تسویه نشده
                     </button>
                   </div>
                 )}

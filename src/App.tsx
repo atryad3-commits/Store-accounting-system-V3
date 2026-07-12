@@ -917,6 +917,13 @@ export default function App() {
     purchaseFilter,
   ]);
 
+  useEffect(() => {
+    // Reset filters when changing tabs to prevent them from affecting each other
+    setInvoiceSearchQuery("");
+    setListFilter("all");
+    setPurchaseFilter("all");
+  }, [activeTab]);
+
   const [invoiceMode, setInvoiceMode] = useState<"auto" | "manual">("auto");
   const [invoiceTitle, setInvoiceTitle] = useState("فاکتور فروش کالا");
   const [warehouseWizardStep, setWarehouseWizardStep] = useState(1);

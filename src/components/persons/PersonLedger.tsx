@@ -456,22 +456,22 @@ export default function PersonLedger(props: any) {
                                 <table className="w-full text-right min-w-[0px] text-[11px] print:text-[11px] mb-8 border-collapse">
                                   <thead>
                                     <tr className="bg-indigo-600 text-white font-bold text-[10px] uppercase tracking-wider print:bg-slate-200 print:text-slate-800">
-                                      <th className="py-3 px-2 text-center w-8 border border-indigo-700 print:border-slate-400">
+                                      <th className="py-3 px-2 text-center w-8 border-2 border-slate-800 print:border-slate-800">
                                         ردیف
                                       </th>
-                                      <th className="py-3 px-2 text-right w-24 border border-indigo-700 print:border-slate-400">
+                                      <th className="py-3 px-2 text-right w-24 border-2 border-slate-800 print:border-slate-800">
                                         تاریخ و ارجاع
                                       </th>
-                                      <th className="py-3 px-2 text-right border border-indigo-700 print:border-slate-400">
+                                      <th className="py-3 px-2 text-right border-2 border-slate-800 print:border-slate-800">
                                         عنوان و شرح جزئیات رویداد مالی
                                       </th>
-                                      <th className="py-3 px-2 text-left w-28 border border-indigo-700 print:border-slate-400">
+                                      <th className="py-3 px-2 text-left w-28 border-2 border-slate-800 print:border-slate-800">
                                         مبلغ (افزایش بدهی)
                                       </th>
-                                      <th className="py-3 px-2 text-left w-28 border border-indigo-700 print:border-slate-400">
+                                      <th className="py-3 px-2 text-left w-28 border-2 border-slate-800 print:border-slate-800">
                                         پرداختی (کاهش بدهی)
                                       </th>
-                                      <th className="py-3 px-2 text-left w-32 border border-indigo-700 print:border-slate-400">
+                                      <th className="py-3 px-2 text-left w-32 border-2 border-slate-800 print:border-slate-800">
                                         مانده نهایی
                                       </th>
                                     </tr>
@@ -486,12 +486,12 @@ export default function PersonLedger(props: any) {
                                           key={index}
                                           className="break-inside-avoid border-b border-slate-200 even:bg-slate-50/50 print:even:bg-slate-50/50 hover:bg-indigo-50/50 transition-colors"
                                         >
-                                          <td className="py-3 px-2 text-center align-top border-x border-slate-200 print:border-slate-300">
+                                          <td className="border-2 border-slate-700 py-3 px-2 text-center align-top">
                                             <div className="w-5 h-5 rounded border border-slate-300 bg-white shadow-sm flex items-center justify-center mx-auto text-[9px] font-bold shrink-0 text-slate-600">
                                               {toPersianDigits(index + 1)}
                                             </div>
                                           </td>
-                                          <td className="py-3 px-2 align-top border-x border-slate-200 print:border-slate-300">
+                                          <td className="border-2 border-slate-700 py-3 px-2 align-top">
                                             <div className="flex flex-col gap-1.5 text-right relative">
                                               <span
                                                 className="text-slate-900 font-bold flex items-center justify-start gap-1 text-[11px] pr-0"
@@ -516,7 +516,7 @@ export default function PersonLedger(props: any) {
                                               </span>
                                             </div>
                                           </td>
-                                          <td className="py-3 px-2 align-top max-w-sm border-x border-slate-200 print:border-slate-300">
+                                          <td className="border-2 border-slate-700 py-3 px-2 align-top max-w-sm">
                                             <div className="flex flex-col items-start gap-1">
                                               <span
                                                 className={`font-extrabold text-[10px] px-2 py-0.5 rounded border shadow-sm print:shadow-none ${
@@ -535,7 +535,7 @@ export default function PersonLedger(props: any) {
                                             </div>
                                           </td>
                                           <td
-                                            className={`py-3 px-2 text-left align-top border-x border-slate-200 print:border-slate-300 ${entry.debit > 0 ? "bg-rose-50/30 print:bg-transparent" : ""}`}
+                                            className={`py-3 px-2 text-left align-top border-2 border-slate-700 ${entry.debit > 0 ? "bg-rose-50/30 print:bg-transparent" : ""}`}
                                           >
                                             <span
                                               className={`font-black text-[12px] ${entry.debit > 0 ? "text-rose-700 print:text-slate-900" : "text-slate-400 font-medium"}`}
@@ -548,7 +548,7 @@ export default function PersonLedger(props: any) {
                                             </span>
                                           </td>
                                           <td
-                                            className={`py-3 px-2 text-left align-top border-x border-slate-200 print:border-slate-300 ${entry.credit > 0 ? "bg-emerald-50/30 print:bg-transparent" : ""}`}
+                                            className={`py-3 px-2 text-left align-top border-2 border-slate-700 ${entry.credit > 0 ? "bg-emerald-50/30 print:bg-transparent" : ""}`}
                                           >
                                             <span
                                               className={`font-black text-[12px] ${entry.credit > 0 ? "text-emerald-700 print:text-slate-900" : "text-slate-400 font-medium"}`}
@@ -560,7 +560,7 @@ export default function PersonLedger(props: any) {
                                                 : "---"}
                                             </span>
                                           </td>
-                                          <td className="py-3 px-2 text-left align-top border-x border-slate-200 print:border-slate-300">
+                                          <td className="border-2 border-slate-700 py-3 px-2 text-left align-top">
                                             <div
                                               className={`flex flex-col items-end gap-1 font-extrabold ${isBalZero ? "text-slate-500" : "text-slate-900"}`}
                                             >
@@ -885,30 +885,30 @@ export default function PersonLedger(props: any) {
                                   }
 
                                   return (
-                                    <table className="w-full text-right min-w-[950px] print:min-w-[0px] print:text-[12px] text-sm">
+                                    <table className="w-full text-right min-w-[950px] print:min-w-[0px] print:text-[12px] text-sm border-collapse border-2 border-slate-700">
                                       <thead>
-                                        <tr className="bg-slate-100/60 text-slate-500 border-b border-slate-200 font-bold text-xs uppercase tracking-wider print:text-[10px]">
-                                          <th className="py-5 px-4 text-center w-10 print:w-8 print:px-2">
+                                        <tr className="bg-slate-200 text-slate-800 font-bold text-xs uppercase tracking-wider print:text-[10px] border-b-2 border-slate-700">
+                                          <th className="py-4 px-4 text-center w-10 print:w-8 print:px-2 border-2 border-slate-700">
                                             ردیف
                                           </th>
-                                          <th className="py-5 px-4 text-right w-36 print:w-28 print:px-2">
+                                          <th className="py-4 px-4 text-right w-36 print:w-28 print:px-2 border-2 border-slate-700">
                                             تاریخ و ارجاع
                                           </th>
-                                          <th className="py-5 px-6 text-right print:px-2">
+                                          <th className="py-4 px-6 text-right print:px-2 border-2 border-slate-700">
                                             عنوان و شرح جزئیات رویداد مالی
                                           </th>
-                                          <th className="py-5 px-4 text-left w-36 print:w-28 print:px-2">
+                                          <th className="py-4 px-4 text-left w-36 print:w-28 print:px-2 border-2 border-slate-700 bg-rose-50/50">
                                             مبلغ (افزایش بدهی)
                                           </th>
-                                          <th className="py-5 px-4 text-left w-36 print:w-28 print:px-2">
+                                          <th className="py-4 px-4 text-left w-36 print:w-28 print:px-2 border-2 border-slate-700 bg-emerald-50/50">
                                             پرداختی (کاهش بدهی)
                                           </th>
-                                          <th className="py-5 px-6 text-left w-44 print:w-32 print:px-2">
+                                          <th className="py-4 px-6 text-left w-44 print:w-32 print:px-2 border-2 border-slate-700 bg-slate-100">
                                             مانده نهایی حساب
                                           </th>
                                         </tr>
                                       </thead>
-                                      <tbody className="divide-y divide-gray-100 font-medium">
+                                      <tbody className="font-medium">
                                         {filteredLedgerEntries.map((entry, index) => {
                                           const isDeb =
                                             entry.runningBalance > 0;
@@ -985,12 +985,12 @@ export default function PersonLedger(props: any) {
                                                 }
                                               }}
                                             >
-                                              <td className="py-5 px-4 text-center text-gray-400 font-sans align-top pt-6 print:py-3 print:px-2 print:pt-4">
+                                              <td className="border-2 border-slate-700 py-5 px-4 text-center text-gray-400 font-sans align-top pt-6 print:py-3 print:px-2 print:pt-4">
                                                 <div className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center mx-auto text-[10px] font-bold shadow-sm group-hover:border-indigo-300 group-hover:text-indigo-600 transition-colors shrink-0">
                                                   {toPersianDigits(index + 1)}
                                                 </div>
                                               </td>
-                                              <td className="py-5 px-4 align-top pt-5 print:py-3 print:px-2 print:pt-4">
+                                              <td className="border-2 border-slate-700 py-5 px-4 align-top pt-5 print:py-3 print:px-2 print:pt-4">
                                                 <div className="flex flex-col gap-2.5 text-right relative">
                                                   <span
                                                     className="text-gray-700 font-bold flex items-center justify-start gap-2 text-sm max-w-fit pr-0 print:text-xs"
@@ -1012,7 +1012,7 @@ export default function PersonLedger(props: any) {
                                                   </span>
                                                 </div>
                                               </td>
-                                              <td className="py-5 px-6 align-top pt-5 max-w-sm print:py-3 print:px-2 print:pt-4">
+                                              <td className="border-2 border-slate-700 py-5 px-6 align-top pt-5 max-w-sm print:py-3 print:px-2 print:pt-4">
                                                 <div className="flex flex-col items-start gap-2.5">
                                                   <span
                                                     className={`w-max px-3 py-1 rounded-lg text-xs font-extrabold border shadow-sm ${badgeColor}`}
@@ -1066,7 +1066,7 @@ export default function PersonLedger(props: any) {
                                                     )}
                                                 </div>
                                               </td>
-                                              <td className="py-5 px-4 text-left align-top pt-6 print:py-3 print:px-2 print:pt-4">
+                                              <td className="border-2 border-slate-700 py-5 px-4 text-left align-top pt-6 print:py-3 print:px-2 print:pt-4">
                                                 <span
                                                   className={`font-black text-[15px] print:text-[13px] ${entry.debit > 0 ? "text-indigo-600" : "text-gray-300 font-medium"}`}
                                                 >
@@ -1079,7 +1079,7 @@ export default function PersonLedger(props: any) {
                                                     : "---"}
                                                 </span>
                                               </td>
-                                              <td className="py-5 px-4 text-left align-top pt-6 print:py-3 print:px-2 print:pt-4">
+                                              <td className="border-2 border-slate-700 py-5 px-4 text-left align-top pt-6 print:py-3 print:px-2 print:pt-4">
                                                 <span
                                                   className={`font-black text-[15px] print:text-[13px] ${entry.credit > 0 ? "text-emerald-600" : "text-gray-300 font-medium"}`}
                                                 >
@@ -1092,7 +1092,7 @@ export default function PersonLedger(props: any) {
                                                     : "---"}
                                                 </span>
                                               </td>
-                                              <td className="py-5 px-6 text-left align-top pt-5 print:py-3 print:px-2 print:pt-4">
+                                              <td className="border-2 border-slate-700 py-5 px-6 text-left align-top pt-5 print:py-3 print:px-2 print:pt-4">
                                                 <div
                                                   className={`flex flex-col items-end gap-1.5 font-extrabold ${
                                                     isBalZero
@@ -1132,18 +1132,18 @@ export default function PersonLedger(props: any) {
                                           );
                                         })}
                                     </tbody>
-                                    <tfoot className="bg-slate-50 border-t-2 border-slate-200 font-bold text-[13px]">
+                                    <tfoot className="bg-slate-200 border-2 border-slate-700 font-bold text-[13px] text-slate-800">
                                       <tr>
-                                        <td colSpan={3} className="py-5 px-6 text-left text-slate-700">
+                                        <td colSpan={3} className="border-2 border-slate-700 py-5 px-6 text-left text-slate-700">
                                           جمع کل ({filteredLedgerEntries.length} رکورد):
                                         </td>
-                                        <td className="py-5 px-4 text-left text-indigo-600 text-[15px]">
+                                        <td className="border-2 border-slate-700 py-5 px-4 text-left text-indigo-600 text-[15px]">
                                           {toPersianDigits(formatNumber(totalDebit))}
                                         </td>
-                                        <td className="py-5 px-4 text-left text-emerald-600 text-[15px]">
+                                        <td className="border-2 border-slate-700 py-5 px-4 text-left text-emerald-600 text-[15px]">
                                           {toPersianDigits(formatNumber(totalCredit))}
                                         </td>
-                                        <td className="py-5 px-6 text-left">
+                                        <td className="border-2 border-slate-700 py-5 px-6 text-left">
                                           <div
                                             className={`flex flex-col items-end gap-1.5 font-extrabold ${
                                               totalBalance === 0
