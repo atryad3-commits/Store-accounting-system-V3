@@ -2861,6 +2861,7 @@ description: receiptDescription,
   const confirmReceiptSubmit = async () => {
     if (!previewReceiptData) return;
     setSubmittingReceipt(true);
+    const rollbackActions: (() => Promise<void>)[] = [];
     try {
       const txPayload = {
         ...previewReceiptData,
@@ -2884,6 +2885,10 @@ description: receiptDescription,
             receiptNumber: previewReceiptData.receiptNumber,
           });
           createdReceiptObj.id = savedCheck.id;
+
+          rollbackActions.push(async () => {
+            await deleteReceivedCheck(savedCheck.id.toString());
+          });
         } else {
           const blankCheck = issuedChecks.find((c: any) => c.status === 'blank' && c.checkbookId?.toString() === previewReceiptData.checkbookId?.toString() && c.checkNumber === previewReceiptData.checkNumber);
           
@@ -2903,24 +2908,42 @@ description: receiptDescription,
           };
           
           if (blankCheck) {
+            const originalBlankCheck = { ...blankCheck };
             await updateIssuedCheck(blankCheck.id.toString(), { ...blankCheck, ...issuedCheckPayload, status: "issued" });
             savedCheckId = blankCheck.id;
+
+            rollbackActions.push(async () => {
+              await updateIssuedCheck(blankCheck.id.toString(), originalBlankCheck);
+            });
           } else {
             const savedCheck = await addIssuedCheck(issuedCheckPayload);
             savedCheckId = savedCheck.id;
+
+            rollbackActions.push(async () => {
+              await deleteIssuedCheck(savedCheck.id.toString());
+            });
           }
         }
         const savedTx = await addTransaction(txPayload as any);
         createdReceiptObj = savedTx;
+
+        rollbackActions.push(async () => {
+          await deleteTransaction(savedTx.id.toString());
+        });
       } else {
         const savedTx = await addTransaction(txPayload as any);
         createdReceiptObj = savedTx;
+
+        rollbackActions.push(async () => {
+          await deleteTransaction(savedTx.id.toString());
+        });
       }
 
       // Update actual invoices payment status and paid amount out of linkedInvoices
       for (const [invId, amount] of Object.entries(receiptLinkedInvoices)) {
         const inv = invoices.find((i) => i.id.toString() === invId);
         if (inv && amount > 0) {
+          const originalInv = { ...inv };
           const newPaid = (inv.paidAmount || 0) + amount;
           const newStatus =
             newPaid >= (inv.totalAmount || 0) ? "paid" : "partial";
@@ -2928,6 +2951,10 @@ description: receiptDescription,
             ...inv,
             paidAmount: newPaid,
             paymentStatus: newStatus,
+          });
+
+          rollbackActions.push(async () => {
+            await updateInvoice(inv.id, originalInv, true);
           });
         }
       }
@@ -3002,8 +3029,16 @@ description: receiptDescription,
 
       await checkDebtThreshold(previewReceiptData.personId);
     } catch (err: any) {
-      console.error(err);
-      customAlert(err.message || "خطا در ارتباط با سرور.");
+      console.error("Error submitting receipt, rolling back operations...", err);
+      // Run rollback operations in reverse order
+      for (let i = rollbackActions.length - 1; i >= 0; i--) {
+        try {
+          await rollbackActions[i]();
+        } catch (rErr) {
+          console.error("Error executing rollback action:", rErr);
+        }
+      }
+      customAlert(`خطا در ثبت رسید: ${err.message || "خطای ارتباط با سرور رخ داد"}`);
     } finally {
       setSubmittingReceipt(false);
     }
@@ -11527,8 +11562,29 @@ ${errMsg}`);
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col font-sans"
+                        className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col font-sans relative"
                       >
+                        {submittingReceipt && (
+                          <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-8 text-center cursor-wait select-none">
+                            <div className="w-16 h-16 relative flex items-center justify-center mb-6">
+                              {/* Spinner Outer Ring */}
+                              <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
+                              {/* Spinner Inner Ring */}
+                              <div className="absolute inset-0 rounded-full border-4 border-t-indigo-500 animate-spin"></div>
+                              <RefreshCw className="w-6 h-6 text-indigo-400 animate-pulse" />
+                            </div>
+                            
+                            <h3 className="text-lg font-black text-white mb-2">در حال ثبت اطلاعات و صدور سند...</h3>
+                            <p className="text-slate-400 text-xs max-w-xs leading-relaxed mb-6 font-bold">
+                              لطفاً منتظر بمانید. تمامی عملیات‌های بانکی، ثبت اسناد حسابداری و تخصیص فاکتورها به صورت یکپارچه و امن در حال انجام است.
+                            </p>
+
+                            {/* Elegant Progress/Activity Indicator */}
+                            <div className="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden relative">
+                              <div className="absolute h-full w-1/2 bg-indigo-500 rounded-full animate-loading-bar"></div>
+                            </div>
+                          </div>
+                        )}
                         <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                           <div>
                             <h3 className="font-black text-gray-900 text-lg flex items-center gap-2">
