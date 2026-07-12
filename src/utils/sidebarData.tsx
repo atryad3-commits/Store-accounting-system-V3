@@ -60,7 +60,12 @@ export const allSidebarGroups: SidebarGroup[] = [
       },
       {
         id: "inventory_report",
-        label: "کاردکس و موجودی کالا",
+        label: "گزارش موجودی کالا",
+        roles: ["admin", "accountant", "viewer"],
+      },
+      {
+        id: "kardex",
+        label: "کاردکس کالا (تاریخچه)",
         roles: ["admin", "accountant", "viewer"],
       },
       {

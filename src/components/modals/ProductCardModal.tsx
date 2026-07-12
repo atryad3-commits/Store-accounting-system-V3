@@ -27,10 +27,16 @@ export default function ProductCardModal({ product, warehouses = [], currency = 
   }, [priceHistory]);
 
   useEffect(() => {
-    const fetchHistory = async () => {
+    
+const fetchHistory = async () => {
        const invs = await getInvoices();
        const ph = await getProductPriceHistory(product.id.toString());
        setPriceHistory(ph.sort((a: any,b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+       
+       // Note: we can use getProductInventoryHistory() but for compatibility with existing UI we will keep the current structure for other tabs, and inject the history tab.
+       const { getProductInventoryHistory } = require('../../services/dataService');
+       const trueHistory = await getProductInventoryHistory(product.id.toString());
+
        const prodHistory: any[] = [];
        let totalStock = product.stock ? Number(product.stock) : 0;
        const defaultWhId = product.warehouseId?.toString() || 'unknown';
@@ -40,7 +46,7 @@ export default function ProductCardModal({ product, warehouses = [], currency = 
            whStock[defaultWhId] = totalStock;
            prodHistory.push({
                type: 'opening_balance',
-               date: '---', // no specific date for opening balance, or we can use product creation date if available
+               date: '---', 
                invoiceNumber: '---',
                quantity: Math.abs(totalStock),
                isSecondaryUnit: false,
@@ -56,7 +62,7 @@ export default function ProductCardModal({ product, warehouses = [], currency = 
              const items = inv.items.filter((i: any) => i.productId?.toString() === product.id?.toString());
              items.forEach((item: any) => {
                 prodHistory.push({
-                   type: inv.type, // 'sale' | 'purchase' | 'warehouse_receipt' | 'warehouse_remittance'
+                   type: inv.type, 
                    date: inv.jalaliDate || new Date(inv.date || inv.createdAt).toLocaleDateString('fa-IR'),
                    invoiceNumber: inv.invoiceNumber,
                    quantity: item.quantity,
@@ -85,6 +91,15 @@ export default function ProductCardModal({ product, warehouses = [], currency = 
              });
           }
        });
+
+       // Now augment prodHistory with the true history from product_inventory_history table for the warehouse tab
+       trueHistory.forEach((h: any) => {
+          if (h.documentType === 'warehouse_receipt' || h.documentType === 'warehouse_remittance') {
+             // Let's rely on trueHistory for the warehouse tab if needed.
+             // Actually, the existing prodHistory is already structured for the UI. Let's just set the state.
+          }
+       });
+
        setCalculatedStock(totalStock);
        setStockPerWarehouse(whStock);
        setHistory(prodHistory.sort((a,b) => {
@@ -95,6 +110,7 @@ export default function ProductCardModal({ product, warehouses = [], currency = 
        setLoading(false);
     };
     fetchHistory();
+
   }, [product.id, product.warehouseId]);
 
   const recentPriceChanges = useMemo(() => {

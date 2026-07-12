@@ -349,3 +349,19 @@ export type ProductPriceHistory = {
   type: 'purchase' | 'sale';
   price: number;
 };
+
+export type ProductInventoryHistory = {
+  id: string | number;
+  productId: string | number;
+  warehouseId: string | number;
+  date: string;
+  type: 'in' | 'out';
+  quantity: number;
+  documentType: string;
+  documentId: string | number;
+  documentNumber?: string | number;
+  description?: string;
+  balanceBefore: number;
+  balanceAfter: number;
+  timestamp: number;
+};

@@ -672,7 +672,7 @@ export default function InvoicesList(props: any) {
                                   <Tag className="w-4 h-4" />
                                 </button>
                               )}
-                              {inv.status !== "voided" && (
+                              {inv.status !== "voided" && !activeTab.includes("warehouse") && (
                                 <button
                                   onClick={() => {
                                     if (
@@ -705,7 +705,7 @@ export default function InvoicesList(props: any) {
                                   setViewingInvoice(inv);
                                 }}
                                 className="p-1.5 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg cursor-pointer bg-transparent border-none"
-                                title="مشاهده نهایی"
+                                title={activeTab.includes("warehouse") ? "مشاهده نهایی سند" : "مشاهده نهایی فاکتور"}
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
@@ -713,7 +713,7 @@ export default function InvoicesList(props: any) {
                                 <button
                                   onClick={() => handleEditInvoiceAction(inv)}
                                   className="p-1.5 text-gray-400 hover:bg-amber-50 hover:text-amber-600 rounded-lg cursor-pointer bg-transparent border-none"
-                                  title="ویرایش (بازگشت به پیش‌نویس)"
+                                  title={activeTab.includes("warehouse") ? "ویرایش سند (بازگشت به پیش‌نویس)" : "ویرایش فاکتور (بازگشت به پیش‌نویس)"}
                                 >
                                   <Edit2 className="w-4 h-4" />
                                 </button>
@@ -722,7 +722,7 @@ export default function InvoicesList(props: any) {
                                 <button
                                   onClick={() => handleVoidInvoice(inv.id)}
                                   className="p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-lg cursor-pointer bg-transparent border-none"
-                                  title="ابطال فاکتور"
+                                  title={activeTab.includes("warehouse") ? "ابطال سند انبار" : "ابطال فاکتور"}
                                 >
                                   <Ban className="w-4 h-4" />
                                 </button>

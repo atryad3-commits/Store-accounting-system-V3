@@ -37,7 +37,7 @@ const KNOWN_TABLES = [
   'wastes', 'waste_items',
   'receipt_transactions', 'payment_transactions',
   'issued_checks', 'received_checks', 'payslips'
-];
+, 'product_inventory_history'];
 
 
 const tableSchemas = new Map<string, Set<string>>();
@@ -1119,7 +1119,12 @@ async function startServer() {
       const invoices = (await getDbData('invoices')) || [];
       const warehouses = (await getDbData('warehouses')) || [];
 
+      // Sort invoices by createdAt to process chronologically
+      const sortedInvoices = [...invoices].sort((a: any, b: any) => (a.createdAt || 0) - (b.createdAt || 0));
+
       const stocksMap: Record<string, any> = {};
+      const historyList: any[] = [];
+      const generateId = () => Math.random().toString(36).substring(2, 15);
 
       products.forEach((p: any) => {
         if (p.type === 'service') return;
@@ -1130,13 +1135,32 @@ async function startServer() {
         if (!stocksMap[key]) {
           stocksMap[key] = { productId: p.id, warehouseId: defaultWhId, physicalStock: 0, reservedStock: 0, availableStock: 0 };
         }
-        stocksMap[key].physicalStock += baseStock;
+        
+        if (baseStock > 0) {
+           const before = stocksMap[key].physicalStock;
+           stocksMap[key].physicalStock += baseStock;
+           historyList.push({
+             id: generateId(),
+             productId: p.id,
+             warehouseId: defaultWhId,
+             date: new Date().toISOString().split('T')[0],
+             type: 'in',
+             quantity: baseStock,
+             documentType: 'initial_stock',
+             documentId: p.id,
+             documentNumber: p.code || '',
+             description: 'موجودی اولیه',
+             balanceBefore: before,
+             balanceAfter: stocksMap[key].physicalStock,
+             timestamp: 0,
+           });
+        }
       });
 
       const saleQtysMap: Record<string, number> = {};
       const remittedSaleQtysMap: Record<string, number> = {};
 
-      invoices.forEach((inv: any) => {
+      sortedInvoices.forEach((inv: any) => {
         if (inv.isDraft || inv.status === 'draft' || inv.status === 'voided' || inv.isDeleted) return;
         if (!inv.items || !Array.isArray(inv.items)) return;
         inv.items.forEach((i: any) => {
@@ -1155,9 +1179,42 @@ async function startServer() {
           if (!stocksMap[key]) stocksMap[key] = { productId: prodId, warehouseId: whId, physicalStock: 0, reservedStock: 0, availableStock: 0 };
 
           if (inv.type === 'warehouse_receipt') {
+            const before = stocksMap[key].physicalStock;
             stocksMap[key].physicalStock += q;
+            historyList.push({
+               id: generateId(),
+               productId: prodId,
+               warehouseId: whId,
+               date: inv.date || new Date(inv.createdAt || Date.now()).toISOString().split('T')[0],
+               type: 'in',
+               quantity: q,
+               documentType: 'warehouse_receipt',
+               documentId: inv.id,
+               documentNumber: inv.invoiceNumber || inv.documentNumber || '',
+               description: `رسید انبار ${inv.invoiceNumber || inv.documentNumber || ''}`,
+               balanceBefore: before,
+               balanceAfter: stocksMap[key].physicalStock,
+               timestamp: inv.createdAt || Date.now(),
+            });
           } else if (inv.type === 'warehouse_remittance') {
+            const before = stocksMap[key].physicalStock;
             stocksMap[key].physicalStock -= q;
+            historyList.push({
+               id: generateId(),
+               productId: prodId,
+               warehouseId: whId,
+               date: inv.date || new Date(inv.createdAt || Date.now()).toISOString().split('T')[0],
+               type: 'out',
+               quantity: q,
+               documentType: 'warehouse_remittance',
+               documentId: inv.id,
+               documentNumber: inv.invoiceNumber || inv.documentNumber || '',
+               description: `حواله انبار ${inv.invoiceNumber || inv.documentNumber || ''}`,
+               balanceBefore: before,
+               balanceAfter: stocksMap[key].physicalStock,
+               timestamp: inv.createdAt || Date.now(),
+            });
+
             if (inv.sourceInvoiceId) {
               const sourceInv = invoices.find((sinv: any) => sinv.id?.toString() === inv.sourceInvoiceId?.toString());
               if (sourceInv && sourceInv.type === 'sale') remittedSaleQtysMap[key] = (remittedSaleQtysMap[key] || 0) + q;
@@ -1206,6 +1263,7 @@ async function startServer() {
         };
       });
 
+      await setDbData('product_inventory_history', historyList);
       await setDbData('warehouse_stocks', finalStocksList);
       res.json({ success: true, data: finalStocksList });
     } catch (err: any) {

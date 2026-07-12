@@ -133,6 +133,11 @@ export default function InvoicePrintTemplate({
           <h2 className="text-base font-bold bg-slate-200 print:bg-slate-200 px-4 py-1 rounded-full whitespace-nowrap">
             {title}
           </h2>
+          {data.status === "voided" && (
+             <div className="mt-2 text-sm font-black text-rose-600 border-2 border-rose-600 px-3 py-0.5 rounded-md transform -rotate-12 absolute z-10 opacity-70 print:border-rose-500 print:text-rose-500 text-center" style={{ top: "30%" }}>
+                ابطال شده
+             </div>
+          )}
         </div>
         
         <div className="flex flex-col gap-2 justify-center text-left items-end text-xs font-bold">

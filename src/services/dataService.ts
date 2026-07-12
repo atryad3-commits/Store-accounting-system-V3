@@ -2705,3 +2705,15 @@ export const deletePayslip = async (id: string | number) => {
   const data = await getLocalData<any[]>('payslips', []);
   await saveLocalData('payslips', data.filter(p => String(p.id) !== String(id)));
 };
+
+export const getProductInventoryHistory = async (productId?: string | number, warehouseId?: string | number) => {
+  const history = await getLocalData<any[]>('product_inventory_history', []);
+  let filtered = history;
+  if (productId) {
+    filtered = filtered.filter(h => h.productId?.toString() === productId?.toString());
+  }
+  if (warehouseId) {
+    filtered = filtered.filter(h => h.warehouseId?.toString() === warehouseId?.toString());
+  }
+  return filtered.sort((a, b) => b.timestamp - a.timestamp);
+};
