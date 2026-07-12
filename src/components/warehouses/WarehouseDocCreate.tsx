@@ -296,7 +296,7 @@ const isReceipt = [
           const relevantInvoices = expectedType
             ? (invoices || []).filter(
                 (i) =>
-                  i.type === expectedType && hasRemainingWarehouseItems(i.id),
+                  i.type === expectedType && i.status !== "voided" && i.status !== "draft" && !i.isDraft,
               )
             : [];
 

@@ -4374,6 +4374,7 @@ description: receiptDescription,
       try {
         await deleteInvoice(id.toString());
         await fetchInvoices();
+        await fetchWarehouses();
       } catch (err: any) {
         customAlert(err.message);
       }
@@ -4408,6 +4409,7 @@ description: receiptDescription,
       try {
         await voidInvoice(id.toString());
         await fetchInvoices();
+        await fetchWarehouses();
       } catch (err: any) {
         customAlert(err.message);
       }
@@ -5036,6 +5038,7 @@ description: receiptDescription,
 
       // Single recalculate at the end to save network overhead
       await recalculateAllWarehouseStocks();
+      await fetchWarehouses();
 
       const successTypeName =
         payload.type === "warehouse_receipt"
@@ -5300,6 +5303,7 @@ description: receiptDescription,
 
       // Recalculate stock
       await recalculateAllWarehouseStocks();
+      await fetchWarehouses();
       setTransferProposal(null);
 
       // Submit original invoice with bypass of shortage checks (since stock is now in target warehouse!)
