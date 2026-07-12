@@ -6,7 +6,7 @@ const { Search, Plus, Filter, FileText, Download, CheckCircle, Edit2, Trash2, Pr
 export default function ReceiptsList(props: any) {
   const {
     transactions, activeTab, persons, getPersonDisplayName, formatCurrency, formatDateDisplay, setViewingTransaction,
-    renderPersonLink, storeSettings, List, setActiveTab, invoiceSearchQuery, setInvoiceSearchQuery, toPersianDigits, accounts, cashboxes, formatNumber, numToPersianWords, openPayslip, setPrintingTransaction, setEditingReceipt, setIsEditReceiptModalOpen, confirmAction, deleteTransaction, fetchTransactions,
+    renderPersonLink, storeSettings, List, setActiveTab, invoiceSearchQuery, setInvoiceSearchQuery, toPersianDigits, accounts, cashboxes, formatNumber, numToPersianWords, openPayslip, setPrintingTransaction, setEditingReceipt, setIsEditReceiptModalOpen, confirmAction, deleteTransaction, fetchTransactions, setPreviewReceiptData,
     ...rest
   } = props;
 
@@ -114,10 +114,16 @@ export default function ReceiptsList(props: any) {
                             className={`${themeRowHover} transition-colors`}
                           >
                             <td
-                              className={`p-4 font-sans font-bold text-sm ${themeHighlightTxt}`}
+                              className={`p-4 font-sans font-bold text-sm ${themeHighlightTxt} whitespace-nowrap`}
                             >
-                              {toPersianDigits(tx.receiptNumber) ||
-                                `#${toPersianDigits(tx.id)}`}
+                              <span
+                                onClick={() => setPreviewReceiptData && setPreviewReceiptData({ ...tx, _isReadOnly: true })}
+                                className="cursor-pointer hover:text-indigo-600 hover:underline transition-colors decoration-dashed underline-offset-4"
+                                title="مشاهده پیش‌نمایش رسید"
+                              >
+                                {toPersianDigits(tx.receiptNumber) ||
+                                  `#${toPersianDigits(tx.id)}`}
+                              </span>
                             </td>
                             <td className="p-4 font-bold text-slate-800">
                               {renderPersonLink(person?.id, person?.name)}

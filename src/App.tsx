@@ -6271,7 +6271,7 @@ ${errMsg}`);
       case "list_pay_receipt": {
         return (
           <ReceiptsList
-             transactions={transactions} activeTab={activeTab} persons={persons} getPersonDisplayName={getPersonDisplayName} formatCurrency={formatCurrency} formatDateDisplay={formatDateDisplay}  renderPersonLink={renderPersonLink} storeSettings={storeSettings} List={List} setActiveTab={setActiveTab} invoiceSearchQuery={invoiceSearchQuery} setInvoiceSearchQuery={setInvoiceSearchQuery} toPersianDigits={toPersianDigits} accounts={accounts} cashboxes={cashboxes} formatNumber={formatNumber} numToPersianWords={numToPersianWords} openPayslip={openPayslip} setPrintingTransaction={setPrintingTransaction} setEditingReceipt={setEditingReceipt} setIsEditReceiptModalOpen={setIsEditReceiptModalOpen} confirmAction={confirmAction} deleteTransaction={deleteTransaction} fetchTransactions={fetchTransactions}
+             transactions={transactions} activeTab={activeTab} persons={persons} getPersonDisplayName={getPersonDisplayName} formatCurrency={formatCurrency} formatDateDisplay={formatDateDisplay}  renderPersonLink={renderPersonLink} storeSettings={storeSettings} List={List} setActiveTab={setActiveTab} invoiceSearchQuery={invoiceSearchQuery} setInvoiceSearchQuery={setInvoiceSearchQuery} toPersianDigits={toPersianDigits} accounts={accounts} cashboxes={cashboxes} formatNumber={formatNumber} numToPersianWords={numToPersianWords} openPayslip={openPayslip} setPrintingTransaction={setPrintingTransaction} setEditingReceipt={setEditingReceipt} setIsEditReceiptModalOpen={setIsEditReceiptModalOpen} confirmAction={confirmAction} deleteTransaction={deleteTransaction} fetchTransactions={fetchTransactions} setPreviewReceiptData={setPreviewReceiptData}
           />
         );
       }
@@ -7306,6 +7306,7 @@ ${errMsg}`);
                       currentUser={user?.name || "کاربر سیستم"}
                       sendNotification={sendNotification}
                       storeSettings={storeSettings}
+                      setViewingCheck={setViewingCheck}
                     />
                   </motion.div>
                 ) : activeTab === "loans" ? (
@@ -8005,6 +8006,8 @@ ${errMsg}`);
                       warehouses={warehouses}
                       currency={storeSettings?.currency || "تومان"}
                       isModal={false}
+                      persons={persons}
+                      storeSettings={storeSettings}
                       onClose={() => {
                         setViewingProduct(null);
                       }}
@@ -11071,8 +11074,7 @@ ${errMsg}`);
                             data={viewingInvoice}
                             storeSettings={storeSettings}
                             warehouses={warehouses}
-                           
-                           
+                            products={products}
                           />
                         </div>
                       ) : (
@@ -12281,8 +12283,7 @@ ${errMsg}`);
                               data={previewInvoiceData}
                               storeSettings={storeSettings}
                               warehouses={warehouses}
-                             
-                             
+                              products={products}
                             />
                           </div>
                         ) : (

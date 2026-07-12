@@ -20,7 +20,7 @@ import {
 import { Checkbook, IssuedCheck, ReceivedCheck, Account, Person } from '../../types';
 import { formatDateDisplay } from '../../utils/format';
 
-export default function CheckManagement({ showNotification, activeTab = 'checkbooks', onDataChange, currentUser = 'کاربر سیستم', sendNotification, storeSettings }: { showNotification?: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void, activeTab?: 'checkbooks' | 'issued_checks' | 'received_checks' | 'check_calendar' | 'check_charts' | 'check_panel', onDataChange?: () => void, currentUser?: string, sendNotification?: any, storeSettings?: any }) {
+export default function CheckManagement({ showNotification, activeTab = 'checkbooks', onDataChange, currentUser = 'کاربر سیستم', sendNotification, storeSettings, setViewingCheck }: { showNotification?: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void, activeTab?: 'checkbooks' | 'issued_checks' | 'received_checks' | 'check_calendar' | 'check_charts' | 'check_panel', onDataChange?: () => void, currentUser?: string, sendNotification?: any, storeSettings?: any, setViewingCheck?: any }) {
 
   const notify = (msg: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     if (showNotification) {
@@ -719,7 +719,13 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                         <React.Fragment key={c.id}>
 <tr className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-4 py-3.5">
-                            <div className="font-mono font-black text-gray-900">{toPersianDigits(c.checkNumber)}</div>
+                            <div 
+                              className="font-mono font-black text-gray-900 cursor-pointer hover:text-indigo-600 hover:underline transition-colors decoration-dashed underline-offset-4"
+                              onClick={() => setViewingCheck && setViewingCheck({ ...c, _type: 'issued' })}
+                              title="مشاهده جزئیات چک"
+                            >
+                              {toPersianDigits(c.checkNumber)}
+                            </div>
                             <div className="text-[10px] text-gray-550 font-bold mt-1 max-w-[120px] truncate">{c.receiptNumber ? `رسید: ${toPersianDigits(c.receiptNumber)}` : `بدون شناسه رسید`}</div>
                           </td>
                           <td className="px-4 py-3.5 text-xs text-indigo-950 font-bold max-w-[150px] truncate">{bankName}</td>
@@ -949,7 +955,13 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                         <React.Fragment key={c.id}>
 <tr className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-4 py-3.5">
-                            <div className="font-mono font-black text-gray-900">{toPersianDigits(c.checkNumber)}</div>
+                            <div 
+                              className="font-mono font-black text-gray-900 cursor-pointer hover:text-indigo-600 hover:underline transition-colors decoration-dashed underline-offset-4"
+                              onClick={() => setViewingCheck && setViewingCheck({ ...c, _type: 'received' })}
+                              title="مشاهده جزئیات چک"
+                            >
+                              {toPersianDigits(c.checkNumber)}
+                            </div>
                             <div className="text-[10px] text-gray-550 font-bold mt-1 max-w-[120px] truncate">{c.receiptNumber ? `رسید: ${toPersianDigits(c.receiptNumber)}` : `بدون شناسه رسید`}</div>
                           </td>
                           <td className="px-4 py-3.5 text-xs text-indigo-950 font-bold max-w-[150px] truncate">
@@ -1157,7 +1169,13 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                     }).map(c => (
                       <div key={c.id} className="border border-gray-100 rounded-xl p-3 shadow-xs hover:border-emerald-200 transition-colors">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="font-mono text-sm font-black text-gray-900">{c.checkNumber}</span>
+                          <span 
+                            className="font-mono text-sm font-black text-gray-900 cursor-pointer hover:text-indigo-600 hover:underline transition-colors decoration-dashed underline-offset-4"
+                            onClick={() => setViewingCheck && setViewingCheck({ ...c, _type: 'received' })}
+                            title="مشاهده جزئیات چک"
+                          >
+                            {c.checkNumber}
+                          </span>
                           <span className={`text-[10px] px-2 py-1 rounded-md font-bold ${
                             c.status === 'cashed' ? 'bg-emerald-100 text-emerald-700' : 
                             c.status === 'bounced' ? 'bg-rose-100 text-rose-700' : 'bg-gray-100 text-gray-700' 
@@ -1204,7 +1222,13 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                     }).map(c => (
                       <div key={c.id} className="border border-gray-100 rounded-xl p-3 shadow-xs hover:border-rose-200 transition-colors">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="font-mono text-sm font-black text-gray-900">{c.checkNumber}</span>
+                          <span 
+                            className="font-mono text-sm font-black text-gray-900 cursor-pointer hover:text-indigo-600 hover:underline transition-colors decoration-dashed underline-offset-4"
+                            onClick={() => setViewingCheck && setViewingCheck({ ...c, _type: 'issued' })}
+                            title="مشاهده جزئیات چک"
+                          >
+                            {c.checkNumber}
+                          </span>
                           <span className={`text-[10px] px-2 py-1 rounded-md font-bold ${
                             c.status === 'cashed' ? 'bg-emerald-100 text-emerald-700' : 
                             c.status === 'bounced' ? 'bg-rose-100 text-rose-700' : 'bg-gray-100 text-gray-700' 

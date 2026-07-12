@@ -4,9 +4,9 @@ import { X, Package, TrendingUp, TrendingDown, History, BarChart2 } from 'lucide
 import { Product, InvoiceItem, Warehouse } from '../../types';
 import { getInvoices, getProductPriceHistory } from '../../services/dataService';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { addCommas, toPersianDigits } from '../../utils/format';
+import { addCommas, toPersianDigits, formatDateDisplay } from '../../utils/format';
 
-export default function ProductCardModal({ product, warehouses = [], currency = 'تومان', onClose, isModal = true }: { product: Product, warehouses?: Warehouse[], currency?: string, onClose: () => void, isModal?: boolean }) {
+export default function ProductCardModal({ product, warehouses = [], currency = 'تومان', onClose, isModal = true, persons = [], storeSettings }: { product: Product, warehouses?: Warehouse[], currency?: string, onClose: () => void, isModal?: boolean, persons?: any[], storeSettings?: any }) {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [calculatedStock, setCalculatedStock] = useState<number>(0);
@@ -56,12 +56,12 @@ export default function ProductCardModal({ product, warehouses = [], currency = 
              items.forEach((item: any) => {
                 prodHistory.push({
                    type: inv.type, // 'sale' | 'purchase' | 'warehouse_receipt' | 'warehouse_remittance'
-                   date: inv.jalaliDate || (new Date(inv.createdAt).toLocaleDateString('fa-IR')),
+                   date: formatDateDisplay(inv.jalaliDate || inv.date || inv.createdAt, storeSettings?.calendarType),
                    invoiceNumber: inv.invoiceNumber,
                    quantity: item.quantity,
                    isSecondaryUnit: item.isSecondaryUnit,
                    unitPrice: (item.isSecondaryUnit && product.unitRatio && product.unitRatio > 0) ? Number((Number(item.unitPrice) / product.unitRatio).toFixed(4)) : item.unitPrice,
-                   personName: inv.personName,
+                   personName: persons?.find((p: any) => p.id?.toString() === (inv.customerId || inv.personId)?.toString())?.name || inv.personName || '---',
                    warehouseId: item.warehouseId || inv.warehouseId
                 });
 
@@ -86,7 +86,11 @@ export default function ProductCardModal({ product, warehouses = [], currency = 
        });
        setCalculatedStock(totalStock);
        setStockPerWarehouse(whStock);
-       setHistory(prodHistory.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+       setHistory(prodHistory.sort((a,b) => {
+          const dateA = a.date !== '---' ? new Date(a.date).getTime() : 0;
+          const dateB = b.date !== '---' ? new Date(b.date).getTime() : 0;
+          return dateB - dateA;
+       }));
        setLoading(false);
     };
     fetchHistory();

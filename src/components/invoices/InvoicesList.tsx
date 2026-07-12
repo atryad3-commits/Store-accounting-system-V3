@@ -369,7 +369,11 @@ export default function InvoicesList(props: any) {
                           >
                             <td className="p-4 font-sans text-right font-black text-slate-705 text-sm whitespace-nowrap">
                               <div className="flex items-center gap-1.5">
-                                <span>
+                                <span 
+                                  onClick={() => setViewingInvoice && setViewingInvoice(inv)}
+                                  className="cursor-pointer hover:text-indigo-600 hover:underline transition-colors decoration-dashed underline-offset-4"
+                                  title="مشاهده پیش‌نمایش فاکتور"
+                                >
                                   #{toPersianDigits(inv.invoiceNumber)}
                                 </span>
                                 {(inv.isDraft || inv.status === "draft") && (
