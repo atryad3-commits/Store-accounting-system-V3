@@ -2266,6 +2266,7 @@ export default function App() {
     if (newPersonType === "legal" && !newPersonCompanyName) return;
 
     setSubmittingPerson(true);
+    const rollbackActions: (() => Promise<void>)[] = [];
     try {
       const isEdit = editingPersonId !== null;
       let name = "";
@@ -2391,10 +2392,26 @@ export default function App() {
             : new Date(newPersonRegistrationDate).toISOString(),
       };
 
+      let addedPerson;
       if (isEdit) {
+        const originalPerson = persons.find((p) => p.id === editingPersonId);
+        const originalPersonCopy = originalPerson ? JSON.parse(JSON.stringify(originalPerson)) : null;
+
         await updatePerson(editingPersonId.toString(), payload as any);
+
+        rollbackActions.push(async () => {
+          if (originalPersonCopy) {
+            await updatePerson(editingPersonId.toString(), originalPersonCopy);
+          }
+        });
       } else {
-        await addPerson(payload as any);
+        addedPerson = await addPerson(payload as any);
+
+        rollbackActions.push(async () => {
+          if (addedPerson?.id) {
+            await deletePerson(addedPerson.id.toString());
+          }
+        });
       }
 
       await fetchDataSilent();
@@ -2425,8 +2442,16 @@ export default function App() {
       setSuccessMsg(
         isEdit ? "شخص با موفقیت ویرایش شد" : "شخص با موفقیت اضافه شد",
       );
-    } catch (error) {
-      console.error("Error saving person", error);
+    } catch (error: any) {
+      console.error("Error saving person, rolling back operations...", error);
+      for (let i = rollbackActions.length - 1; i >= 0; i--) {
+        try {
+          await rollbackActions[i]();
+        } catch (rErr) {
+          console.error("Error executing rollback action:", rErr);
+        }
+      }
+      customAlert(`خطا در ثبت شخص: ${error.message || "خطای ارتباط با سرور رخ داد"}`);
     } finally {
       setSubmittingPerson(false);
     }
@@ -4844,22 +4869,48 @@ description: receiptDescription,
       }
     }
 
+    const rollbackActions: (() => Promise<void>)[] = [];
     try {
       let addedInvoice;
       if (editingInvoiceId) {
+        const originalInvoice = invoices.find((i) => i.id?.toString() === editingInvoiceId.toString());
+        const originalInvoiceCopy = originalInvoice ? JSON.parse(JSON.stringify(originalInvoice)) : null;
+
         addedInvoice = await updateInvoice(editingInvoiceId, payload as any, true);
         if (!isDraftOverride) {
           setEditingInvoiceId(null);
         }
+
+        rollbackActions.push(async () => {
+          if (originalInvoiceCopy) {
+            await updateInvoice(editingInvoiceId, originalInvoiceCopy, true);
+          }
+        });
       } else {
+        let originalDraftObj = null;
         if (autoSaveInvoiceId) {
+          const originalDraft = invoices.find((i) => i.id?.toString() === autoSaveInvoiceId.toString());
+          originalDraftObj = originalDraft ? JSON.parse(JSON.stringify(originalDraft)) : null;
+
           await deleteInvoice(autoSaveInvoiceId, true, true);
           setAutoSaveInvoiceId(null);
+
+          rollbackActions.push(async () => {
+            if (originalDraftObj) {
+              await addInvoice(originalDraftObj, true);
+            }
+          });
         }
         addedInvoice = await addInvoice(payload as any, true);
         if (isDraftOverride) {
           setEditingInvoiceId(addedInvoice.id);
         }
+
+        rollbackActions.push(async () => {
+          if (addedInvoice?.id) {
+            await deleteInvoice(addedInvoice.id.toString(), true, true);
+          }
+        });
       }
 
       // Auto-create warehouse remittance for purchase return
@@ -4906,7 +4957,13 @@ description: receiptDescription,
           overallDiscountPercent: 0,
           totalAmount: 0,
         };
-        await addInvoice(autoDocPayload as any, true);
+        const autoRem = await addInvoice(autoDocPayload as any, true);
+
+        rollbackActions.push(async () => {
+          if (autoRem?.id) {
+            await deleteInvoice(autoRem.id.toString(), true, true);
+          }
+        });
       }
 
       // Auto-create warehouse remittance for sales
@@ -4950,7 +5007,13 @@ description: receiptDescription,
           overallDiscountPercent: 0,
           totalAmount: 0,
         };
-        await addInvoice(remittancePayload as any, true);
+        const autoRem = await addInvoice(remittancePayload as any, true);
+
+        rollbackActions.push(async () => {
+          if (autoRem?.id) {
+            await deleteInvoice(autoRem.id.toString(), true, true);
+          }
+        });
       }
 
       // Single recalculate at the end to save network overhead
@@ -5076,8 +5139,15 @@ description: receiptDescription,
       }, 1500);
       return true;
     } catch (error: any) {
-      console.error("Error submitting invoice:", error);
-      customAlert(error.message || "خطا در ارتباط با سرور.");
+      console.error("Error submitting invoice, rolling back operations...", error);
+      for (let i = rollbackActions.length - 1; i >= 0; i--) {
+        try {
+          await rollbackActions[i]();
+        } catch (rErr) {
+          console.error("Error executing rollback action:", rErr);
+        }
+      }
+      customAlert(`خطا در ثبت فاکتور: ${error.message || "خطای ارتباط با سرور رخ داد"}`);
     } finally {
       setSubmitting(false);
     }
@@ -5087,6 +5157,7 @@ description: receiptDescription,
   const handleExecuteTransferAndSubmit = async () => {
     if (!transferProposal) return;
     setSubmitting(true);
+    const rollbackActions: (() => Promise<void>)[] = [];
 
     try {
       const { items: proposalItems, payload: originalPayload } =
@@ -5197,8 +5268,15 @@ description: receiptDescription,
             totalAmount: 0,
           };
 
-          await addInvoice(remittancePayload as any);
-          await addInvoice(receiptPayload as any);
+          const addedRem = await addInvoice(remittancePayload as any);
+          rollbackActions.push(async () => {
+            if (addedRem?.id) await deleteInvoice(addedRem.id.toString(), true, true);
+          });
+
+          const addedRec = await addInvoice(receiptPayload as any);
+          rollbackActions.push(async () => {
+            if (addedRec?.id) await deleteInvoice(addedRec.id.toString(), true, true);
+          });
         }
       }
 
@@ -5208,6 +5286,9 @@ description: receiptDescription,
 
       // Submit original invoice with bypass of shortage checks (since stock is now in target warehouse!)
       const addedInvoice = await addInvoice(originalPayload);
+      rollbackActions.push(async () => {
+        if (addedInvoice?.id) await deleteInvoice(addedInvoice.id.toString(), true, true);
+      });
 
       // Code to automatically construct warehouse remittance for the sale:
       const startNum = parseInt(storeSettings.invoiceStartNumber || "1000", 10);
@@ -5250,7 +5331,10 @@ description: receiptDescription,
         overallDiscountPercent: 0,
         totalAmount: 0,
       };
-      await addInvoice(remittancePayload as any);
+      const autoRem = await addInvoice(remittancePayload as any);
+      rollbackActions.push(async () => {
+        if (autoRem?.id) await deleteInvoice(autoRem.id.toString(), true, true);
+      });
 
       setSuccessMsg(
         `سند انتقال موجودی و فاکتور فروش شماره ${originalPayload.invoiceNumber} با موفقیت ثبت شدند!`,
@@ -5303,7 +5387,14 @@ description: receiptDescription,
 
       setActiveTab("list_sale", true);
     } catch (err: any) {
-      console.error(err);
+      console.error("Error executing transfer and submit, rolling back...", err);
+      for (let i = rollbackActions.length - 1; i >= 0; i--) {
+        try {
+          await rollbackActions[i]();
+        } catch (rErr) {
+          console.error("Error executing rollback action:", rErr);
+        }
+      }
       customAlert(err.message || "خطایی در اجرای انتقال و ثبت فاکتور پیش آمد.");
     } finally {
       setSubmitting(false);
@@ -6491,6 +6582,12 @@ ${errMsg}`);
       {systemModule === "selector" ? (
         <ModuleSelector
           storeSettings={storeSettings}
+          invoices={invoices}
+          persons={persons}
+          products={products}
+          transactions={transactions}
+          issuedChecks={issuedChecks}
+          receivedChecks={receivedChecks}
           onSelectModule={(sel) => {
             setSystemModule(sel);
             if (sel === "commerce") setActiveTab("analytical_dashboard");
@@ -9769,8 +9866,26 @@ ${errMsg}`);
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-full max-w-3xl max-h-[90vh] flex flex-col"
+                    className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-full max-w-3xl max-h-[90vh] flex flex-col relative"
                   >
+                    {submittingPerson && (
+                      <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-8 text-center cursor-wait select-none">
+                        <div className="w-16 h-16 relative flex items-center justify-center mb-6">
+                          <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
+                          <div className="absolute inset-0 rounded-full border-4 border-t-indigo-500 animate-spin"></div>
+                          <RefreshCw className="w-6 h-6 text-indigo-400 animate-pulse" />
+                        </div>
+                        
+                        <h3 className="text-lg font-black text-white mb-2">در حال ثبت اطلاعات شخص...</h3>
+                        <p className="text-slate-400 text-xs max-w-xs leading-relaxed mb-6 font-bold">
+                          لطفاً منتظر بمانید. اطلاعات شخص و کدهای حسابداری مرتبط با آن به صورت یکپارچه و امن در حال ثبت است.
+                        </p>
+
+                        <div className="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden relative">
+                          <div className="absolute h-full w-1/2 bg-indigo-500 rounded-full animate-loading-bar"></div>
+                        </div>
+                      </div>
+                    )}
                     <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                       <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <User className="w-5 h-5 text-indigo-500" />
@@ -12094,8 +12209,26 @@ ${errMsg}`);
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden w-full max-w-4xl max-h-[95vh] flex flex-col print-section print:max-h-none print:h-auto print:overflow-visible print:border-none print:shadow-none print:rounded-none"
+                    className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden w-full max-w-4xl max-h-[95vh] flex flex-col print-section print:max-h-none print:h-auto print:overflow-visible print:border-none print:shadow-none print:rounded-none relative"
                   >
+                    {submitting && (
+                      <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-8 text-center cursor-wait select-none no-print">
+                        <div className="w-16 h-16 relative flex items-center justify-center mb-6">
+                          <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
+                          <div className="absolute inset-0 rounded-full border-4 border-t-indigo-500 animate-spin"></div>
+                          <RefreshCw className="w-6 h-6 text-indigo-400 animate-pulse" />
+                        </div>
+                        
+                        <h3 className="text-lg font-black text-white mb-2">در حال ثبت سند و بروزرسانی انبارها...</h3>
+                        <p className="text-slate-400 text-xs max-w-xs leading-relaxed mb-6 font-bold">
+                          لطفاً منتظر بمانید. فاکتور، اسناد انبارداری مرتبط و تراکنش‌های مالی به صورت یکپارچه و امن در حال محاسبه و ذخیره‌سازی است.
+                        </p>
+
+                        <div className="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden relative">
+                          <div className="absolute h-full w-1/2 bg-indigo-500 rounded-full animate-loading-bar"></div>
+                        </div>
+                      </div>
+                    )}
                     {/* Header (No print) */}
                     <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 no-print">
                       <div className="text-right">
@@ -12639,6 +12772,24 @@ ${errMsg}`);
       />
       {isProfileModalOpen && (
         <ProfileModal onClose={() => setIsProfileModalOpen(false)} />
+      )}
+      {submitting && !previewInvoiceData && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[99999] flex flex-col items-center justify-center p-8 text-center cursor-wait select-none" dir="rtl">
+          <div className="w-16 h-16 relative flex items-center justify-center mb-6">
+            <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-t-indigo-500 animate-spin"></div>
+            <RefreshCw className="w-6 h-6 text-indigo-400 animate-pulse" />
+          </div>
+          
+          <h3 className="text-lg font-black text-white mb-2">در حال ثبت اطلاعات فاکتور و بروزرسانی انبارها...</h3>
+          <p className="text-slate-400 text-xs max-w-xs leading-relaxed mb-6 font-bold">
+            لطفاً منتظر بمانید. تمامی اسناد فاکتور، حواله‌ها و رسیدهای انبار و تراکنش‌های مالی مرتبط به صورت یکپارچه و ایمن در حال محاسبه و ذخیره‌سازی است.
+          </p>
+
+          <div className="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden relative">
+            <div className="absolute h-full w-1/2 bg-indigo-500 rounded-full animate-loading-bar"></div>
+          </div>
+        </div>
       )}
     </>
   );
