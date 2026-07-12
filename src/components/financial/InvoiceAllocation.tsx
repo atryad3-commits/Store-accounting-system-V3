@@ -75,7 +75,7 @@ export default function InvoiceAllocation({
     if (!selectedPersonId) return [];
     return (invoices || []).filter(inv => 
       inv.customerId?.toString() === selectedPersonId.toString() && 
-      (inv.type === 'sale' || inv.type === 'purchase' || inv.type === 'sale_return' || inv.type === 'purchase_return') && 
+      (inv.type === 'sale' || inv.type === 'purchase' || inv.type === 'sale_return' || inv.type === 'purchase_return') && inv.status !== 'voided' && !inv.isDeleted && inv.status !== 'draft' && !inv.isDraft && 
       (inv.paymentStatus !== 'paid' || 
         transactions.some(t => t.personId?.toString() === selectedPersonId.toString() && t.linkedInvoices?.[inv.id] > 0)
       )

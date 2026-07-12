@@ -79,6 +79,7 @@ const InventoryReport: React.FC<InventoryReportProps> = ({ showNotification, cat
 
       invoices.forEach(inv => {
         if (inv.type !== 'warehouse_receipt' && inv.type !== 'warehouse_remittance') return;
+        if (inv.status === 'voided' || inv.isDeleted || inv.status === 'draft' || inv.isDraft) return;
         
         let invDate = new Date(inv.date).getTime();
         

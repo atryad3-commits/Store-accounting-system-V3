@@ -1137,7 +1137,7 @@ async function startServer() {
       const remittedSaleQtysMap: Record<string, number> = {};
 
       invoices.forEach((inv: any) => {
-        if (inv.isDraft || inv.status === 'draft' || inv.status === 'voided') return;
+        if (inv.isDraft || inv.status === 'draft' || inv.status === 'voided' || inv.isDeleted) return;
         if (!inv.items || !Array.isArray(inv.items)) return;
         inv.items.forEach((i: any) => {
           const prodId = i.productId;
@@ -1529,7 +1529,7 @@ async function startServer() {
       }).filter(item => item.totalItems > 0);
 
       // Top Selling Products
-      const saleInvoices = invoices.filter(inv => inv.type === 'sale' && inv.status !== 'voided');
+      const saleInvoices = invoices.filter(inv => inv.type === 'sale' && inv.status !== 'voided' && !inv.isDeleted && inv.status !== 'draft' && !inv.isDraft);
       const productSales: Record<string, {qty: number, rev: number}> = {};
       saleInvoices.forEach(inv => {
         if (Array.isArray(inv.items)) {

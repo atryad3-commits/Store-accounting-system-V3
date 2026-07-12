@@ -168,7 +168,8 @@ export default function WarehouseDocCreate(props: any) {
     setInvoices,
     fetchInvoices,
     generateId,
-    handleAddItem
+    handleAddItem,
+    handleVoidInvoice
   
   } = props;
 
@@ -334,21 +335,35 @@ const isReceipt = [
                         placeholder="-- فاکتور مورد نظر را جستجو و انتخاب کنید --"
                         searchPlaceholder="جستجو در فاکتورها..."
                       />
-                      <div className="mt-4 bg-amber-50 p-4 rounded-xl border border-amber-100 text-sm font-bold text-amber-800 flex items-start gap-2">
-                        <input
-                          type="checkbox"
-                          id="deletePrev"
-                          checked={deletePreviousDocs}
-                          onChange={(e) =>
-                            setDeletePreviousDocs(e.target.checked)
-                          }
-                          className="mt-1 w-4 h-4 cursor-pointer"
-                        />
-                        <label htmlFor="deletePrev" className="cursor-pointer">
-                          حذف حواله‌های انبار قبلی برای این فاکتور (تنظیم مجدد
-                          رسید/حواله)
-                        </label>
-                      </div>
+                      {sourceInvoiceId && (() => {
+                        const pastDocs = (invoices || []).filter(
+                          (i) => i.sourceInvoiceId?.toString() === sourceInvoiceId?.toString() && i.status !== "voided" && i.status !== "draft" && !i.isDraft &&
+                          (isReceipt ? i.type === "warehouse_receipt" : i.type === "warehouse_remittance")
+                        );
+                        if (pastDocs.length > 0) {
+                          return (
+                            <div className="mt-4 bg-amber-50 rounded-xl p-4 border border-amber-100">
+                              <h3 className="font-bold text-amber-800 mb-3 text-sm flex items-center gap-2">
+                                <FileText className="w-4 h-4" />
+                                اسناد انبار قبلی برای این فاکتور:
+                              </h3>
+                              <div className="space-y-2">
+                                {pastDocs.map((doc: any) => (
+                                  <div key={doc.id} className="flex items-center justify-between bg-white p-3 rounded-lg border border-amber-200 shadow-sm">
+                                    <span className="text-sm text-gray-700 font-medium">شماره سند: {doc.invoiceNumber} - تاریخ: {doc.date}</span>
+                                    <button onClick={() => {
+                                      if (handleVoidInvoice) {
+                                        handleVoidInvoice(doc.id);
+                                      }
+                                    }} className="text-red-600 hover:text-red-700 text-xs font-bold px-3 py-1.5 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-100">ابطال سند</button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                   ) : (
                     <div className="bg-indigo-50 p-6 rounded-xl text-indigo-800 text-center font-bold">
@@ -403,34 +418,29 @@ const isReceipt = [
                               );
                             }
 
-                            let processedAmounts = {};
-                            if (deletePreviousDocs) {
-                              // We defer deletion until the user clicks Save.
-                              // So processedAmounts remains empty, meaning all items are fully available!
-                            } else {
-                              const pastDocs = (invoices || []).filter(
-                                (i) =>
-                                  i.sourceInvoiceId?.toString() ===
-                                    sourceInvoiceId?.toString() &&
-                                  (isReceipt
-                                    ? i.type === "warehouse_receipt"
-                                    : i.type === "warehouse_remittance"),
-                              );
-                              pastDocs.forEach((doc) => {
-                                if (doc.items) {
-                                  doc.items.forEach((rt) => {
-                                    const key = String(
-                                      rt.productId || rt.productName || "",
-                                    );
-                                    if (!key) return;
-                                    if (!processedAmounts[key])
-                                      processedAmounts[key] = 0;
-                                    processedAmounts[key] +=
-                                      Number(rt.quantity) || 0;
-                                  });
-                                }
-                              });
-                            }
+                            let processedAmounts: Record<string, number> = {};
+                            const pastDocs = (invoices || []).filter(
+                              (i) =>
+                                i.sourceInvoiceId?.toString() ===
+                                  sourceInvoiceId?.toString() &&
+                                (isReceipt
+                                  ? i.type === "warehouse_receipt"
+                                  : i.type === "warehouse_remittance") && i.status !== "voided",
+                            );
+                            pastDocs.forEach((doc) => {
+                              if (doc.items) {
+                                doc.items.forEach((rt: any) => {
+                                  const key = String(
+                                    rt.productId || rt.productName || "",
+                                  );
+                                  if (!key) return;
+                                  if (!processedAmounts[key])
+                                    processedAmounts[key] = 0;
+                                  processedAmounts[key] +=
+                                    Number(rt.quantity) || 0;
+                                });
+                              }
+                            });
 
                             const remainingItems = sourceInv.items
                               .filter((it) => {
@@ -634,7 +644,8 @@ const isReceipt = [
                       <Package className="w-5 h-5 text-indigo-600" /> اقلام سند
                     </h3>
                     <button
-                      onClick={handleAddItem}
+                      onClick={handleAddItem,
+    handleVoidInvoice}
                       className="px-4 py-2 bg-white border border-gray-200 text-gray-700 shadow-sm rounded-xl font-bold hover:bg-gray-100 flex items-center gap-2 transition-colors whitespace-nowrap"
                     >
                       <Plus className="w-4 h-4" /> افزودن سطر دستی

@@ -2672,7 +2672,7 @@ export default function App() {
             i.type !== "warehouse_receipt" &&
             i.type !== "warehouse_remittance" &&
             i.type !== "proforma" &&
-            i.status !== "draft" && i.status !== "voided",
+            i.status !== "draft" && i.status !== "voided" && !i.isDeleted,
         )
         .forEach((inv: any) => {
           const amount =
@@ -3846,7 +3846,7 @@ description: receiptDescription,
             i.sourceInvoiceId?.toString() === invoiceId.toString() &&
             (isRemittance
               ? i.type === "warehouse_remittance"
-              : i.type === "warehouse_receipt"),
+              : i.type === "warehouse_receipt") && i.status !== "voided" && !i.isDeleted,
         );
         const processedAmounts: Record<string, number> = {};
         pastDocs.forEach((doc) => {
@@ -4028,7 +4028,7 @@ description: receiptDescription,
       : ["sale", "warehouse_remittance"];
 
     invoices.forEach((inv) => {
-      if (targetTypes.includes(inv.type) && inv.items) {
+      if (targetTypes.includes(inv.type) && inv.items && inv.status !== 'voided' && !inv.isDeleted && inv.status !== 'draft' && !inv.isDraft) {
         inv.items.forEach((item: any) => {
           if (item.productId?.toString() === productId.toString()) {
             const invDate = new Date(inv.date || inv.createdAt || 0).getTime();
@@ -4223,7 +4223,7 @@ description: receiptDescription,
                       sourceInvoiceId.toString() &&
                     (invoiceType === "warehouse_remittance"
                       ? i.type === "warehouse_remittance"
-                      : i.type === "warehouse_receipt"),
+                      : i.type === "warehouse_receipt") && i.status !== "voided" && !i.isDeleted,
                 );
                 const processedAmounts: Record<string, number> = {};
                 pastDocs.forEach((doc) => {
@@ -4490,7 +4490,7 @@ description: receiptDescription,
         i.sourceInvoiceId?.toString() === invoiceId.toString() &&
         (isRemittance
           ? i.type === "warehouse_remittance"
-          : i.type === "warehouse_receipt"),
+          : i.type === "warehouse_receipt") && i.status !== "voided" && !i.isDeleted,
     );
     const processedAmounts: Record<string, number> = {};
     pastDocs.forEach((doc) => {
@@ -4641,7 +4641,7 @@ description: receiptDescription,
       for (const pd of pastDocs) {
          try {
            if (typeof deleteInvoice !== "undefined") {
-             await deleteInvoice(pd.id.toString());
+             await deleteInvoice(pd.id.toString(), true);
            }
          } catch (e) {
            console.error("Error deleting previous doc", e);
@@ -5568,7 +5568,7 @@ description: receiptDescription,
         !inv.items ||
         inv.isDraft ||
         inv.status === "draft" ||
-        inv.type === "proforma"
+        inv.type === "proforma" || inv.status === "voided" || inv.isDeleted
       )
         return;
       inv.items.forEach((i: any) => {
@@ -6194,7 +6194,7 @@ ${errMsg}`);
     switch (activeTab) {
       case "create_warehouse_doc":
         return (
-          <WarehouseDocCreate invoiceNumber={invoiceNumber} persons={persons} date={date} setDate={setDate} persian={persian} persian_fa={persian_fa} items={items} setItems={setItems} handleItemChange={handleItemChange} products={products} handleRemoveItem={handleRemoveItem} storeSettings={storeSettings} Package={Package} invoiceWarehouseId={invoiceWarehouseId} setInvoiceWarehouseId={setInvoiceWarehouseId} warehouses={warehouses} FastBarcodeScanner={FastBarcodeScanner} handleFastBarcodeScan={handleFastBarcodeScan} SearchableSelect={SearchableSelect} handleFastAddProduct={handleFastAddProduct} invoiceTitle={invoiceTitle} invoiceMode={invoiceMode} setInvoiceMode={setInvoiceMode} setInvoiceNumber={setInvoiceNumber} setInvoiceTitle={setInvoiceTitle} User={User} activePersonsOnly={activePersonsOnly} getRoleName={getRoleName} customerId={customerId} setCustomerId={setCustomerId} renderPersonInfoBox={renderPersonInfoBox} formatCurrency={formatCurrency} submitting={submitting} handleInvoicePreviewTrigger={handleInvoicePreviewTrigger} Plus={Plus} Trash2={Trash2} Save={Save} RefreshCw={RefreshCw} FileText={FileText} Tag={Tag} setInvoiceType={setInvoiceType} DatePicker={DatePicker} invoiceDescription={invoiceDescription} setInvoiceDescription={setInvoiceDescription} invoiceNote={invoiceNote} setInvoiceNote={setInvoiceNote} formatProductStockDetails={formatProductStockDetails} warehouseOperationType={warehouseOperationType} setWarehouseOperationType={setWarehouseOperationType} warehouseWizardStep={warehouseWizardStep} setWarehouseWizardStep={setWarehouseWizardStep} setSourceInvoiceId={setSourceInvoiceId} customAlert={customAlert} invoices={invoices} hasRemainingWarehouseItems={hasRemainingWarehouseItems} sourceInvoiceId={sourceInvoiceId} deletePreviousDocs={deletePreviousDocs} setDeletePreviousDocs={setDeletePreviousDocs} setInvoiceCurrency={setInvoiceCurrency} setExchangeRate={setExchangeRate} setExchangeRateInput={setExchangeRateInput} deleteInvoice={deleteInvoice} setInvoices={setInvoices} fetchInvoices={fetchInvoices} generateId={generateId} handleAddItem={handleAddItem} />
+          <WarehouseDocCreate invoiceNumber={invoiceNumber} persons={persons} date={date} setDate={setDate} persian={persian} persian_fa={persian_fa} items={items} setItems={setItems} handleItemChange={handleItemChange} products={products} handleRemoveItem={handleRemoveItem} storeSettings={storeSettings} Package={Package} invoiceWarehouseId={invoiceWarehouseId} setInvoiceWarehouseId={setInvoiceWarehouseId} warehouses={warehouses} FastBarcodeScanner={FastBarcodeScanner} handleFastBarcodeScan={handleFastBarcodeScan} SearchableSelect={SearchableSelect} handleFastAddProduct={handleFastAddProduct} invoiceTitle={invoiceTitle} invoiceMode={invoiceMode} setInvoiceMode={setInvoiceMode} setInvoiceNumber={setInvoiceNumber} setInvoiceTitle={setInvoiceTitle} User={User} activePersonsOnly={activePersonsOnly} getRoleName={getRoleName} customerId={customerId} setCustomerId={setCustomerId} renderPersonInfoBox={renderPersonInfoBox} formatCurrency={formatCurrency} submitting={submitting} handleInvoicePreviewTrigger={handleInvoicePreviewTrigger} Plus={Plus} Trash2={Trash2} Save={Save} RefreshCw={RefreshCw} FileText={FileText} Tag={Tag} setInvoiceType={setInvoiceType} DatePicker={DatePicker} invoiceDescription={invoiceDescription} setInvoiceDescription={setInvoiceDescription} invoiceNote={invoiceNote} setInvoiceNote={setInvoiceNote} formatProductStockDetails={formatProductStockDetails} warehouseOperationType={warehouseOperationType} setWarehouseOperationType={setWarehouseOperationType} warehouseWizardStep={warehouseWizardStep} setWarehouseWizardStep={setWarehouseWizardStep} setSourceInvoiceId={setSourceInvoiceId} customAlert={customAlert} invoices={invoices} hasRemainingWarehouseItems={hasRemainingWarehouseItems} sourceInvoiceId={sourceInvoiceId} deletePreviousDocs={deletePreviousDocs} setDeletePreviousDocs={setDeletePreviousDocs} setInvoiceCurrency={setInvoiceCurrency} setExchangeRate={setExchangeRate} setExchangeRateInput={setExchangeRateInput} deleteInvoice={deleteInvoice} handleVoidInvoice={handleVoidInvoice} setInvoices={setInvoices} fetchInvoices={fetchInvoices} generateId={generateId} handleAddItem={handleAddItem} />
         );
 
       case "create_purchase_return":

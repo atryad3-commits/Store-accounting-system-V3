@@ -51,6 +51,7 @@ export default function ProductCardModal({ product, warehouses = [], currency = 
        }
 
        invs.forEach(inv => {
+          if (inv.status === 'voided' || inv.isDeleted || inv.status === 'draft' || inv.isDraft) return;
           if (inv.items) {
              const items = inv.items.filter((i: any) => i.productId?.toString() === product.id?.toString());
              items.forEach((item: any) => {

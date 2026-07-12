@@ -57,7 +57,7 @@ const DebtsCreditsReport: React.FC<DebtsCreditsReportProps> = ({ showNotificatio
        balance += (person.initialBalanceType === 'debtor' ? person.initialBalance : -person.initialBalance);
     }
     
-    (invoices || []).filter(i => i.customerId?.toString() === personId.toString() && i.type !== 'warehouse_receipt' && i.type !== 'warehouse_remittance' && i.type !== 'proforma').forEach(inv => {
+    (invoices || []).filter(i => i.customerId?.toString() === personId.toString() && i.type !== 'warehouse_receipt' && i.type !== 'warehouse_remittance' && i.type !== 'proforma' && i.status !== 'voided' && !i.isDeleted && i.status !== 'draft' && !i.isDraft).forEach(inv => {
         const amount = (inv.totalAmount || 0) * getDefaultExchangeRate(inv.currency, settings?.currency);
         if (inv.type === 'sale') balance += amount;
         else if (inv.type === 'purchase') balance -= amount;

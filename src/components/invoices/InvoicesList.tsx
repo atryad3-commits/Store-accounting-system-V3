@@ -565,7 +565,7 @@ export default function InvoicesList(props: any) {
                                 </td>
                               </>
                             )}
-                            <td className="p-4 text-center flex items-center justify-center gap-2">
+                            <td className="p-4 align-middle"><div className="flex items-center justify-center gap-1 flex-nowrap w-max mx-auto bg-slate-50/80 p-1 rounded-xl border border-slate-100">
                               {activeTab === "list_purchase" && (
                                 <button
                                   onClick={() => {
@@ -600,7 +600,7 @@ export default function InvoicesList(props: any) {
                                       );
                                     }
                                   }}
-                                  className="p-2 text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg cursor-pointer bg-transparent border-none"
+                                  className="p-1.5 text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg cursor-pointer bg-transparent border-none"
                                   title="ثبت و چاپ قیمت فروش"
                                 >
                                   <Tag className="w-4 h-4" />
@@ -623,7 +623,7 @@ export default function InvoicesList(props: any) {
                                       setActiveTab("create_pay_receipt");
                                     }
                                   }}
-                                  className="p-2 text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg cursor-pointer bg-transparent border-none"
+                                  className="p-1.5 text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg cursor-pointer bg-transparent border-none"
                                   title={
                                     inv.type === "sale" ||
                                     inv.type === "purchase_return"
@@ -638,7 +638,7 @@ export default function InvoicesList(props: any) {
                                 onClick={() => {
                                   setViewingInvoice(inv);
                                 }}
-                                className="p-2 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg cursor-pointer bg-transparent border-none"
+                                className="p-1.5 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg cursor-pointer bg-transparent border-none"
                                 title="مشاهده نهایی"
                               >
                                 <Eye className="w-4 h-4" />
@@ -646,7 +646,7 @@ export default function InvoicesList(props: any) {
                               {inv.status !== "voided" && (
                                 <button
                                   onClick={() => handleEditInvoiceAction(inv)}
-                                  className="p-2 text-gray-400 hover:bg-amber-50 hover:text-amber-600 rounded-lg cursor-pointer bg-transparent border-none"
+                                  className="p-1.5 text-gray-400 hover:bg-amber-50 hover:text-amber-600 rounded-lg cursor-pointer bg-transparent border-none"
                                   title="ویرایش (بازگشت به پیش‌نویس)"
                                 >
                                   <Edit2 className="w-4 h-4" />
@@ -655,7 +655,7 @@ export default function InvoicesList(props: any) {
                               {inv.status !== "voided" && (
                                 <button
                                   onClick={() => handleVoidInvoice(inv.id)}
-                                  className="p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-lg cursor-pointer bg-transparent border-none"
+                                  className="p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 rounded-lg cursor-pointer bg-transparent border-none"
                                   title="ابطال فاکتور"
                                 >
                                   <Ban className="w-4 h-4" />
@@ -664,13 +664,13 @@ export default function InvoicesList(props: any) {
                               {inv.status !== "voided" && (
                                 <button
                                   onClick={() => handleDeleteInvoice(inv.id)}
-                                  className="p-2 text-gray-400 hover:bg-rose-50 hover:text-rose-600 rounded-lg cursor-pointer bg-transparent border-none"
+                                  className="p-1.5 text-gray-400 hover:bg-rose-50 hover:text-rose-600 rounded-lg cursor-pointer bg-transparent border-none"
                                   title="حذف دائمی"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
                               )}
-                            </td>
+                            </div></td>
                           </tr>
                         ))}
                       </React.Fragment>
