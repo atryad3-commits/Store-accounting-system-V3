@@ -4630,6 +4630,24 @@ description: receiptDescription,
       return;
     }
 
+    if (activeTab === "create_warehouse_doc" && deletePreviousDocs && sourceInvoiceId && !isDraft) {
+      const isReceipt = ["purchase_invoice", "sales_return", "transfer_in"].includes(warehouseOperationType);
+      const pastDocs = invoices.filter(
+         i => i.sourceInvoiceId?.toString() === sourceInvoiceId?.toString() && 
+         (isReceipt ? i.type === "warehouse_receipt" : i.type === "warehouse_remittance")
+      );
+      for (const pd of pastDocs) {
+         try {
+           if (typeof deleteInvoice !== "undefined") {
+             await deleteInvoice(pd.id.toString());
+           }
+         } catch (e) {
+           console.error("Error deleting previous doc", e);
+         }
+      }
+      setDeletePreviousDocs(false);
+    }
+
     // Always enforce sales warehouse for sales
     if (
       (activeTab === "create_sale" || invoiceType === "sale") &&

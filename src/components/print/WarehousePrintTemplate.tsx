@@ -145,7 +145,7 @@ export default function WarehousePrintTemplate({
               )
               .map((item: any, idx: number) => {
                 const product = products.find((p) => p.id?.toString() === item.productId?.toString());
-                const productCode = product?.code || item.productId;
+                const productCode = product?.code || "-";
                 return (
                   <tr
                     key={idx}

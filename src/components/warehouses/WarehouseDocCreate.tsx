@@ -405,29 +405,8 @@ const isReceipt = [
 
                             let processedAmounts = {};
                             if (deletePreviousDocs) {
-                              // Delete past docs
-                              const pastDocs = (invoices || []).filter(
-                                (i) =>
-                                  i.sourceInvoiceId?.toString() ===
-                                    sourceInvoiceId?.toString() &&
-                                  (isReceipt
-                                    ? i.type === "warehouse_receipt"
-                                    : i.type === "warehouse_remittance"),
-                              );
-                              if (pastDocs.length > 0) {
-                                pastDocs.forEach((d) => {
-                                  if (typeof deleteInvoice !== "undefined")
-                                    deleteInvoice(d.id.toString());
-                                });
-                                setInvoices((prev) =>
-                                  prev.filter(
-                                    (p) =>
-                                      !pastDocs.find((pd) => pd.id === p.id),
-                                  ),
-                                );
-                                if (typeof fetchInvoices !== "undefined")
-                                  fetchInvoices();
-                              }
+                              // We defer deletion until the user clicks Save.
+                              // So processedAmounts remains empty, meaning all items are fully available!
                             } else {
                               const pastDocs = (invoices || []).filter(
                                 (i) =>
@@ -777,13 +756,15 @@ const isReceipt = [
                                 min="0"
                                 step="any"
                                 value={item.quantity}
-                                onChange={(e) =>
-                                  handleItemChange(
-                                    item.id,
-                                    "quantity",
-                                    e.target.value,
-                                  )
-                                }
+                                onChange={(e) => {
+                                  const val = Number(e.target.value) || 0;
+                                  if (typeof item.maxQuantity !== "undefined" && item.maxQuantity > 0 && val > item.maxQuantity) {
+                                    customAlert(`حداکثر مقدار مجاز: ${item.maxQuantity}`);
+                                    handleItemChange(item.id, "quantity", item.maxQuantity);
+                                  } else {
+                                    handleItemChange(item.id, "quantity", e.target.value);
+                                  }
+                                }}
                                 className="w-full p-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-sans text-center font-bold text-indigo-900 outline-none"
                                 dir="ltr"
                               />

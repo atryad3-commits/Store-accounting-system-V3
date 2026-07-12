@@ -56,12 +56,12 @@ export default function ProductCardModal({ product, warehouses = [], currency = 
              items.forEach((item: any) => {
                 prodHistory.push({
                    type: inv.type, // 'sale' | 'purchase' | 'warehouse_receipt' | 'warehouse_remittance'
-                   date: formatDateDisplay(inv.jalaliDate || inv.date || inv.createdAt, storeSettings?.calendarType),
+                   date: inv.jalaliDate || new Date(inv.date || inv.createdAt).toLocaleDateString('fa-IR'),
                    invoiceNumber: inv.invoiceNumber,
                    quantity: item.quantity,
                    isSecondaryUnit: item.isSecondaryUnit,
                    unitPrice: (item.isSecondaryUnit && product.unitRatio && product.unitRatio > 0) ? Number((Number(item.unitPrice) / product.unitRatio).toFixed(4)) : item.unitPrice,
-                   personName: persons?.find((p: any) => p.id?.toString() === (inv.customerId || inv.personId)?.toString())?.name || inv.personName || '---',
+                   personName: persons?.find((p: any) => p.id?.toString() === (inv.customerId || inv.personId)?.toString())?.name || inv.customerName || inv.personName || '---',
                    warehouseId: item.warehouseId || inv.warehouseId
                 });
 
