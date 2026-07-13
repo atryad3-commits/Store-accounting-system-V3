@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import BeautifulLoading from '../BeautifulLoading';
 import { Users, Search, Filter, Printer, RefreshCw, HandCoins, UserX, UserCheck, Calculator } from 'lucide-react';
 import { motion } from 'motion/react';
-import { getPersons, getInvoices, getTransactions, getIssuedChecks, getReceivedChecks, getStoreSettings, getPersonGroups } from '../../services/dataService';
+import { getPersons, getInvoices, getTransactions, getIssuedChecks, getReceivedChecks, getStoreSettings, getPersonGroups, getAccountingDocuments } from '../../services/dataService';
 import { Person, PersonGroup } from '../../types';
 import { getDefaultExchangeRate, formatDateDisplay } from '../../utils/format';
 
@@ -18,6 +18,7 @@ const DebtsCreditsReport: React.FC<DebtsCreditsReportProps> = ({ showNotificatio
   const [transactions, setTransactions] = useState<any[]>([]);
   const [issuedChecks, setIssuedChecks] = useState<any[]>([]);
   const [receivedChecks, setReceivedChecks] = useState<any[]>([]);
+  const [accountingDocuments, setAccountingDocuments] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>(null);
   const [groups, setGroups] = useState<PersonGroup[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,32 +52,20 @@ const DebtsCreditsReport: React.FC<DebtsCreditsReportProps> = ({ showNotificatio
   const calculatePersonBalance = (personId: string | number) => {
     const person = persons.find(p => p.id.toString() === personId.toString());
     if (!person) return { amount: 0, status: 'بی‌حساب', value: 0 };
-    
+
     let balance = 0;
-    if (person.initialBalance && person.initialBalanceType !== 'settled') {
-       balance += (person.initialBalanceType === 'debtor' ? person.initialBalance : -person.initialBalance);
-    }
     
-    (invoices || []).filter(i => i.customerId?.toString() === personId.toString() && i.type !== 'warehouse_receipt' && i.type !== 'warehouse_remittance' && i.type !== 'proforma' && i.status !== 'voided' && !i.isDeleted && i.status !== 'draft' && !i.isDraft).forEach(inv => {
-        const amount = (inv.totalAmount || 0) * getDefaultExchangeRate(inv.currency, settings?.currency);
-        if (inv.type === 'sale') balance += amount;
-        else if (inv.type === 'purchase') balance -= amount;
+    (accountingDocuments || []).forEach(doc => {
+      if (doc.status === 'draft' || doc.isDeleted) return;
+      if (doc.items && Array.isArray(doc.items)) {
+        doc.items.forEach(item => {
+          if (item.detailedAccountId?.toString() === personId.toString()) {
+            balance += (Number(item.debit) || 0) - (Number(item.credit) || 0);
+          }
+        });
+      }
     });
 
-    (transactions || []).filter(t => t.personId?.toString() === personId.toString()).forEach(t => {
-        if (t.type === 'receive') balance -= (t.amount || 0);
-        else if (t.type === 'pay') balance += (t.amount || 0);
-        else if (t.type === 'salary') balance -= (t.amount || 0);
-    });
-
-    (issuedChecks || []).filter(c => c.payeeId?.toString() === personId.toString() && c.status !== 'cancelled' && c.status !== 'bounced' && c.status !== 'cashed').forEach(c => {
-        balance += (c.amount || 0);
-    });
-
-    (receivedChecks || []).filter(c => c.payerId?.toString() === personId.toString() && c.status !== 'returned' && c.status !== 'bounced' && c.status !== 'cashed').forEach(c => {
-        balance -= (c.amount || 0);
-    });
-    
     if (balance > 0) return { amount: balance, status: 'بدهکار', value: balance, color: 'text-rose-600', bg: 'bg-rose-50' };
     if (balance < 0) return { amount: Math.abs(balance), status: 'بستانکار', value: balance, color: 'text-emerald-600', bg: 'bg-emerald-50' };
     return { amount: 0, status: 'بی‌حساب', value: 0, color: 'text-gray-500', bg: 'bg-gray-100' };

@@ -6,7 +6,7 @@ const { Search, Plus, Filter, FileText, Download, CheckCircle, Edit2, Trash2, Pr
 export default function ReceiptsList(props: any) {
   const {
     transactions, activeTab, persons, getPersonDisplayName, formatCurrency, formatDateDisplay, setViewingTransaction,
-    renderPersonLink, storeSettings, List, setActiveTab, invoiceSearchQuery, setInvoiceSearchQuery, toPersianDigits, accounts, cashboxes, formatNumber, numToPersianWords, openPayslip, setPrintingTransaction, setEditingReceipt, setIsEditReceiptModalOpen, confirmAction, deleteTransaction, fetchTransactions, setPreviewReceiptData,
+    renderPersonLink, storeSettings, List, setActiveTab, setIsReceiveModalOpen, setIsPayModalOpen, invoiceSearchQuery, setInvoiceSearchQuery, toPersianDigits, accounts, cashboxes, formatNumber, numToPersianWords, openPayslip, setPrintingTransaction, setEditingReceipt, setIsEditReceiptModalOpen, confirmAction, deleteTransaction, fetchTransactions, setPreviewReceiptData,
     ...rest
   } = props;
 
@@ -47,7 +47,7 @@ export default function ReceiptsList(props: any) {
                       : "لیست رسیدهای پرداخت وجه رسمی"}
                   </h2>
                   <button
-                     onClick={() => setActiveTab(isReceive ? "receive_receipt" : "pay_receipt")}
+                     onClick={() => { if (isReceive) { setIsReceiveModalOpen?.(true); } else { setIsPayModalOpen?.(true); } }}
                      className={`px-4 py-2 ${isReceive ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"} text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-sm`}
                   >
                      <Plus className="w-4 h-4" /> 

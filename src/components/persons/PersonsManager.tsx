@@ -902,9 +902,7 @@ export default function PersonsManager(props: any) {
                                                           setOpenPersonActionsId(
                                                             null,
                                                           );
-                                                          setActiveTab(
-                                                            "create_receive_receipt",
-                                                          );
+                                                          setIsReceiveModalOpen?.(true);
                                                           setReceiptPersonId(
                                                             p.id,
                                                           );
@@ -921,9 +919,7 @@ export default function PersonsManager(props: any) {
                                                           setOpenPersonActionsId(
                                                             null,
                                                           );
-                                                          setActiveTab(
-                                                            "create_pay_receipt",
-                                                          );
+                                                          setIsPayModalOpen?.(true);
                                                           setReceiptPersonId(
                                                             p.id,
                                                           );

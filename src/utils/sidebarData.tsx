@@ -64,6 +64,8 @@ export const allSidebarGroups: SidebarGroup[] = [
         roles: ["admin", "accountant", "viewer"],
       },
       {
+        id: "product_last_prices", label: "آخرین قیمت‌های کالا", roles: ["admin", "accountant", "viewer"] },
+      {
         id: "kardex",
         label: "کاردکس کالا (تاریخچه)",
         roles: ["admin", "accountant", "viewer"],

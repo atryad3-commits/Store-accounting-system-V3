@@ -252,6 +252,7 @@ import GroupPriceUpdateWizard from "./components/modals/GroupPriceUpdateWizard";
 import ProductPriceChangeModal from "./components/modals/ProductPriceChangeModal";
 import PrintBarcodeModal from "./components/modals/PrintBarcodeModal";
 import ProductCardModal from "./components/modals/ProductCardModal";
+import ProductLastPricesView from "./components/reports/ProductLastPricesView";
 import QuickPriceInquiry from "./components/inventory/QuickPriceInquiry";
 import CheckManagement from "./components/financial/CheckManagement";
 import PersonNotesAndAttachments from "./components/financial/PersonNotesAndAttachments";
@@ -410,6 +411,7 @@ export default function App() {
     | "accounting_verification"
     | "accounting_opening_balances"
     | "kardex"
+    | "product_last_prices"
   >("financial_report");
 
   const setActiveTab = (tab: any, force: boolean = false) => {
@@ -995,10 +997,10 @@ export default function App() {
 
   // Auto-save effect for receipt
   useEffect(() => {
-    if (["create_receive_receipt", "create_pay_receipt"].includes(activeTab)) {
+    if (isReceiveModalOpen || isPayModalOpen) {
       if (receiptPersonId || receiptAmount) {
          if (!receiptNumber) {
-             const docType = activeTab === "create_receive_receipt" ? "receive_receipt" : "pay_receipt";
+             const docType = isReceiveModalOpen ? "receive_receipt" : "pay_receipt";
              generateDocNumber(docType).then(num => {
                  setReceiptNumber(num);
                  updateDocCounter(docType, num);
@@ -6322,6 +6324,8 @@ ${errMsg}`);
       case "list_pay_receipt": {
         return (
           <ReceiptsList
+             setIsReceiveModalOpen={setIsReceiveModalOpen}
+             setIsPayModalOpen={setIsPayModalOpen}
              transactions={transactions} activeTab={activeTab} persons={persons} getPersonDisplayName={getPersonDisplayName} formatCurrency={formatCurrency} formatDateDisplay={formatDateDisplay}  renderPersonLink={renderPersonLink} storeSettings={storeSettings} List={List} setActiveTab={setActiveTab} invoiceSearchQuery={invoiceSearchQuery} setInvoiceSearchQuery={setInvoiceSearchQuery} toPersianDigits={toPersianDigits} accounts={accounts} cashboxes={cashboxes} formatNumber={formatNumber} numToPersianWords={numToPersianWords} openPayslip={openPayslip} setPrintingTransaction={setPrintingTransaction} setEditingReceipt={setEditingReceipt} setIsEditReceiptModalOpen={setIsEditReceiptModalOpen} confirmAction={confirmAction} deleteTransaction={deleteTransaction} fetchTransactions={fetchTransactions} setPreviewReceiptData={setPreviewReceiptData}
           />
         );
