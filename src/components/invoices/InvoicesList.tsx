@@ -6,6 +6,8 @@ const { Tag, Wallet, Ban, ChevronDown, Search, Plus, Filter, FileText, Download,
 export default function InvoicesList(props: any) {
   const {
     invoices, invoiceSearchQuery, setInvoiceSearchQuery, persons, activeTab, setActiveTab,
+    setIsReceiveModalOpen,
+    setIsPayModalOpen,
     purchaseFilter, setPurchaseFilter, formatCurrency, getPersonDisplayName, formatDateDisplay,
     calculateInvoiceTotal, numToPersianWords, setInvoiceWarehouseId, warehouses, setCustomerId,
     handlePrintInvoice, getRoleName, setEditingInvoiceId, handleDeleteInvoice, handleConvertProformaToSale,
@@ -680,13 +682,13 @@ export default function InvoicesList(props: any) {
                                       inv.type === "purchase_return"
                                     ) {
                                       setReceiptPersonId(inv.personId);
-                                      setActiveTab("create_receive_receipt");
+                                      setIsReceiveModalOpen?.(true);
                                     } else if (
                                       inv.type === "purchase" ||
                                       inv.type === "sale_return"
                                     ) {
                                       setReceiptPersonId(inv.personId);
-                                      setActiveTab("create_pay_receipt");
+                                      setIsPayModalOpen?.(true);
                                     }
                                   }}
                                   className="p-1.5 text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg cursor-pointer bg-transparent border-none"

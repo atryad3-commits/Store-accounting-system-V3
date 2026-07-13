@@ -72,6 +72,8 @@ export default function PersonsManager(props: any) {
     confirmAction,
     setPersonPageSize,
     setActiveTab,
+    setIsReceiveModalOpen,
+    setIsPayModalOpen,
   } = props;
 
                     const totalPages = Math.ceil(
@@ -559,14 +561,14 @@ export default function PersonsManager(props: any) {
               </button>
               <div className="h-px bg-slate-100 my-1 mx-2"></div>
               <button
-                onClick={() => { setOpenPersonActionsId(null); setActiveTab("create_receive_receipt"); setReceiptPersonId(p.id); }}
+                onClick={() => { setOpenPersonActionsId(null); setIsReceiveModalOpen?.(true); setReceiptPersonId(p.id); }}
                 className="w-full text-right px-3 py-2 text-xs font-bold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-xl transition-colors flex items-center gap-2"
               >
                 <ArrowDownToLine className="w-4 h-4 text-emerald-500" />
                 دریافت وجه
               </button>
               <button
-                onClick={() => { setOpenPersonActionsId(null); setActiveTab("create_pay_receipt"); setReceiptPersonId(p.id); }}
+                onClick={() => { setOpenPersonActionsId(null); setIsPayModalOpen?.(true); setReceiptPersonId(p.id); }}
                 className="w-full text-right px-3 py-2 text-xs font-bold text-gray-700 hover:bg-rose-50 hover:text-rose-700 rounded-xl transition-colors flex items-center gap-2"
               >
                 <ArrowUpFromLine className="w-4 h-4 text-rose-500" />

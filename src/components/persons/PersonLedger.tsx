@@ -471,23 +471,26 @@ export default function PersonLedger(props: any) {
                                       <th className="py-3 px-2 text-left w-28 border-2 border-slate-800 print:border-slate-800">
                                         پرداختی (کاهش بدهی)
                                       </th>
-                                      <th className="py-3 px-2 text-center w-12 border-2 border-slate-800 print:border-slate-800">
-                                        تشخیص
-                                      </th>
                                       <th className="py-3 px-2 text-left w-32 border-2 border-slate-800 print:border-slate-800">
                                         مانده نهایی
+                                      </th>
+                                      <th className="py-3 px-2 text-center w-12 border-2 border-slate-800 print:border-slate-800">
+                                        تشخیص
                                       </th>
                                     </tr>
                                   </thead>
                                   <tbody className="font-medium font-sans bg-white">
                                     {ledgerEntries.map((entry, index) => {
                                       const isDeb = entry.runningBalance > 0;
+                                      const isCred = entry.runningBalance < 0;
                                       const isBalZero =
                                         entry.runningBalance === 0;
                                       return (
                                         <tr
                                           key={index}
-                                          className="break-inside-avoid border-b border-slate-200 even:bg-slate-50/50 print:even:bg-slate-50/50 hover:bg-indigo-50/50 transition-colors"
+                                          className={`break-inside-avoid border-b border-slate-200 transition-colors ${
+                                            isDeb ? "bg-rose-50/40 print:bg-rose-50/50" : isCred ? "bg-emerald-50/40 print:bg-emerald-50/50" : "bg-white print:bg-white"
+                                          } hover:bg-indigo-50/50`}
                                         >
                                           <td className="border-2 border-slate-700 py-3 px-2 text-center align-top">
                                             <div className="w-5 h-5 rounded border border-slate-300 bg-white shadow-sm flex items-center justify-center mx-auto text-[9px] font-bold shrink-0 text-slate-600">
@@ -563,11 +566,6 @@ export default function PersonLedger(props: any) {
                                                 : "---"}
                                             </span>
                                           </td>
-                                          <td className="border-2 border-slate-700 py-3 px-2 text-center align-top font-bold text-[11px] text-slate-800">
-                                            {!isBalZero && (
-                                              <span>{isDeb ? "بد" : "بس"}</span>
-                                            )}
-                                          </td>
                                           <td className="border-2 border-slate-700 py-3 px-2 text-left align-top">
                                             <div
                                               className={`flex items-center justify-end gap-1 font-extrabold ${isBalZero ? "text-slate-500" : "text-slate-900"}`}
@@ -588,6 +586,11 @@ export default function PersonLedger(props: any) {
                                                 </span>
                                               )}
                                             </div>
+                                          </td>
+                                          <td className="border-2 border-slate-700 py-3 px-2 text-center align-top font-bold text-[11px] text-slate-800">
+                                            {!isBalZero && (
+                                              <span className={`${isDeb ? "text-rose-600" : "text-emerald-600"}`}>{isDeb ? "بد" : "بس"}</span>
+                                            )}
                                           </td>
                                         </tr>
                                       );
@@ -904,11 +907,11 @@ export default function PersonLedger(props: any) {
                                           <th className="py-4 px-4 text-left w-36 print:w-28 print:px-2 border-2 border-slate-700 bg-emerald-50/50">
                                             پرداختی (کاهش بدهی)
                                           </th>
-                                          <th className="py-4 px-4 text-center w-16 print:w-12 print:px-2 border-2 border-slate-700 bg-slate-50">
-                                            تشخیص
-                                          </th>
                                           <th className="py-4 px-6 text-left w-44 print:w-32 print:px-2 border-2 border-slate-700 bg-slate-100">
                                             مانده نهایی حساب
+                                          </th>
+                                          <th className="py-4 px-4 text-center w-16 print:w-12 print:px-2 border-2 border-slate-700 bg-slate-50">
+                                            تشخیص
                                           </th>
                                         </tr>
                                       </thead>
@@ -950,7 +953,9 @@ export default function PersonLedger(props: any) {
                                           return (
                                             <tr
                                               key={entry.id}
-                                              className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                                              className={`transition-colors group cursor-pointer ${
+                                                isDeb ? "bg-rose-50/40 print:bg-rose-50/50" : isCred ? "bg-emerald-50/40 print:bg-emerald-50/50" : "bg-white print:bg-white"
+                                              } hover:bg-slate-50/80`}
                                               onClick={() => {
                                                 if (entry.entryType === "invoice" && entry.rawItem) {
                                                   const actualInvoice = invoices.find(i => String(i.id) === String(entry.rawItem.sourceId));
@@ -1095,19 +1100,12 @@ export default function PersonLedger(props: any) {
                                                     : "---"}
                                                 </span>
                                               </td>
-                                              <td className="border-2 border-slate-700 py-3 px-4 text-center align-top font-bold text-[13px] text-slate-800 print:py-3 print:px-2">
-                                                <span className={`${!isBalZero ? (isDeb ? "text-rose-600" : "text-emerald-600") : "text-slate-400"}`}>
-                                                  {!isBalZero ? (isDeb ? "بد" : "بس") : "-"}
-                                                </span>
-                                              </td>
                                               <td className="border-2 border-slate-700 py-3 px-6 text-left align-top print:py-3 print:px-2">
                                                 <div
                                                   className={`flex items-center justify-end gap-1.5 font-extrabold ${
                                                     isBalZero
                                                       ? "text-slate-600"
-                                                      : isDeb
-                                                        ? "text-rose-600"
-                                                        : "text-emerald-600"
+                                                      : "text-slate-900"
                                                   }`}
                                                 >
                                                   {isBalZero ? (
@@ -1127,6 +1125,11 @@ export default function PersonLedger(props: any) {
                                                   )}
                                                 </div>
                                               </td>
+                                              <td className="border-2 border-slate-700 py-3 px-4 text-center align-top font-bold text-[13px] text-slate-800 print:py-3 print:px-2">
+                                                <span className={`${!isBalZero ? (isDeb ? "text-rose-600" : "text-emerald-600") : "text-slate-400"}`}>
+                                                  {!isBalZero ? (isDeb ? "بد" : "بس") : "-"}
+                                                </span>
+                                              </td>
                                             </tr>
                                           );
                                         })}
@@ -1142,40 +1145,31 @@ export default function PersonLedger(props: any) {
                                         <td className="border-2 border-slate-700 py-3 px-4 text-left text-emerald-600 text-[15px]">
                                           {toPersianDigits(formatNumber(totalCredit))}
                                         </td>
-                                        <td className="border-2 border-slate-700 py-3 px-4 text-center">
-                                          
-                                        </td>
                                         <td className="border-2 border-slate-700 py-3 px-6 text-left">
                                           <div
-                                            className={`flex flex-col items-end gap-1.5 font-extrabold ${
+                                            className={`flex items-center justify-end gap-1.5 font-extrabold ${
                                               totalBalance === 0
                                                 ? "text-slate-600"
-                                                : totalBalance > 0
-                                                  ? "text-rose-600"
-                                                  : "text-emerald-600"
+                                                : "text-slate-900"
                                             }`}
                                           >
                                             {totalBalance === 0 ? (
-                                              <span className="bg-slate-100 px-3 py-1.5 rounded-xl text-xs text-slate-700">
-                                                صفر (تسویه)
+                                              <span className="bg-slate-100 px-2 py-1 rounded text-xs text-slate-700">
+                                                صفر
                                               </span>
                                             ) : (
-                                              <>
-                                                <span className="text-[17px] tracking-tight">
-                                                  {toPersianDigits(formatNumber(Math.abs(totalBalance)))}
-                                                </span>
-                                                <span
-                                                  className={`text-[10px] font-bold px-2 py-1 rounded-lg ${
-                                                    totalBalance > 0
-                                                      ? "bg-rose-100 text-rose-700"
-                                                      : "bg-emerald-100 text-emerald-700"
-                                                  }`}
-                                                >
-                                                  {totalBalance > 0 ? "بدهی شخص" : "طلب شخص"}
-                                                </span>
-                                              </>
+                                              <span className="text-[15px] tracking-tight">
+                                                {toPersianDigits(formatNumber(Math.abs(totalBalance)))}
+                                              </span>
                                             )}
                                           </div>
+                                        </td>
+                                        <td className="border-2 border-slate-700 py-3 px-4 text-center font-bold text-[13px] text-slate-800">
+                                          {totalBalance !== 0 ? (
+                                            <span className={`${totalBalance > 0 ? "text-rose-600" : "text-emerald-600"}`}>
+                                              {totalBalance > 0 ? "بد" : "بس"}
+                                            </span>
+                                          ) : "-"}
                                         </td>
                                       </tr>
                                     </tfoot>

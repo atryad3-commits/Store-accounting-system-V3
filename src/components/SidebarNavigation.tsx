@@ -27,6 +27,8 @@ interface SidebarNavigationProps {
   setIsComposeOpen: (open: boolean) => void;
   expandedGroups: { [key: string]: boolean };
   setExpandedGroups: React.Dispatch<React.SetStateAction<{ [key: string]: boolean }>>;
+  setIsReceiveModalOpen?: (v: boolean) => void;
+  setIsPayModalOpen?: (v: boolean) => void;
 }
 
 export default function SidebarNavigation({
@@ -46,6 +48,8 @@ export default function SidebarNavigation({
   setIsComposeOpen,
   expandedGroups,
   setExpandedGroups,
+  setIsReceiveModalOpen,
+  setIsPayModalOpen,
 }: SidebarNavigationProps) {
   const [menuSearchQuery, setMenuSearchQuery] = useState("");
 
@@ -150,7 +154,13 @@ export default function SidebarNavigation({
                             <button
                               key={`item-${item.id}-${itemIdx}`}
                               onClick={() => {
-                                setActiveTab(item.id as any);
+                                if (item.id === "create_receive_receipt") {
+                                  setIsReceiveModalOpen?.(true);
+                                } else if (item.id === "create_pay_receipt") {
+                                  setIsPayModalOpen?.(true);
+                                } else {
+                                  setActiveTab(item.id as any);
+                                }
                                 setIsSidebarOpen(false);
                               }}
                               className={`w-full text-right block py-2.5 px-3.5 rounded-xl text-xs font-bold transition-all hover:pr-4 ${
@@ -225,7 +235,15 @@ export default function SidebarNavigation({
                     return (
                       <button
                         key={`hz-item-${item.id}-${itemIdx}`}
-                        onClick={() => setActiveTab(item.id as any)}
+                        onClick={() => {
+                        if (item.id === "create_receive_receipt") {
+                          setIsReceiveModalOpen?.(true);
+                        } else if (item.id === "create_pay_receipt") {
+                          setIsPayModalOpen?.(true);
+                        } else {
+                          setActiveTab(item.id as any);
+                        }
+                      }}
                         className={`text-right w-full px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
                           isItemActive
                             ? "bg-indigo-50 text-indigo-700"

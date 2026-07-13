@@ -6,9 +6,11 @@ import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 
-export default function ReceiptPaymentForm(props: any) {
+export default function PayReceiptModal(props: any) {
+  const { isOpen, onClose, ...rest } = props;
+  if (!isOpen) return null;
   const {
-    activeTab,
+    
     receiptHasDraft,
     restoreReceiptDraft,
     discardReceiptDraft,
@@ -64,7 +66,7 @@ export default function ReceiptPaymentForm(props: any) {
     issuedChecks
   } = props;
 
-  const isReceive = activeTab === "create_receive_receipt";
+  const isReceive = false;
 
         const themeRing = isReceive
           ? "focus:ring-emerald-500"
@@ -86,11 +88,34 @@ export default function ReceiptPaymentForm(props: any) {
           : "bg-rose-100 text-rose-800";
 
         return (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6 text-right"
-          >
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto font-sans" dir="rtl">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl my-auto flex flex-col max-h-[90vh] overflow-hidden relative"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-rose-50/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                    <ArrowUpRight className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-slate-800">ثبت رسید پرداخت وجه</h2>
+                    <p className="text-xs font-bold text-slate-500 mt-0.5">ثبت پرداختی‌های نقدی و چکی</p>
+                  </div>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto space-y-6">
+
             {receiptHasDraft && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-center text-amber-800 shadow-sm col-span-full w-full">
                 <span className="font-bold flex items-center gap-2.5 mb-3 md:mb-0">
@@ -785,7 +810,9 @@ export default function ReceiptPaymentForm(props: any) {
                 </div>
               </form>
             </div>
-          </motion.div>
+          </div>
+            </motion.div>
+          </div>
         );
 
 }
