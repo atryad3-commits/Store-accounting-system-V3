@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { X, Package, TrendingUp, TrendingDown, History, BarChart2 } from 'lucide-react';
 import { Product, InvoiceItem, Warehouse } from '../../types';
-import { getInvoices, getProductPriceHistory } from '../../services/dataService';
+import { getInvoices, getProductPriceHistory, getInventoryTransactions } from '../../services/dataService';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { addCommas, toPersianDigits, formatDateDisplay } from '../../utils/format';
 
@@ -33,9 +33,8 @@ const fetchHistory = async () => {
        const ph = await getProductPriceHistory(product.id.toString());
        setPriceHistory(ph.sort((a: any,b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()));
        
-       // Note: we can use getProductInventoryHistory() but for compatibility with existing UI we will keep the current structure for other tabs, and inject the history tab.
-       const { getProductInventoryHistory } = require('../../services/dataService');
-       const trueHistory = await getProductInventoryHistory(product.id.toString());
+       // Note: we can use getInventoryTransactions() but for compatibility with existing UI we will keep the current structure for other tabs, and inject the history tab.
+       const trueHistory = await getInventoryTransactions(product.id.toString());
 
        const prodHistory: any[] = [];
        let totalStock = product.stock ? Number(product.stock) : 0;

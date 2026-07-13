@@ -80,7 +80,7 @@ export default function KardexReport() {
           کاردکس کالا (تاریخچه ورود و خروج)
         </h1>
         <button onClick={fetchKardex} disabled={!selectedProductId || isLoading} className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-bold shadow-sm text-sm">
-          <RefreshCw className={\`w-4 h-4 \${isLoading ? 'animate-spin' : ''}\`} />
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           بروزرسانی
         </button>
       </div>

@@ -24,7 +24,7 @@ const KNOWN_TABLES = [
   'accounts', 'cashboxes', 'warehouses', 'product_categories', 'products',
   'transactions', 'invoices', 'accounting_documents', 'checkbooks', 'invoice_items', 'accounting_document_items', 'stocktaking_items',
   'warehouse_stocks', 'stocktakings', 'person_follow_ups', 'loans',
-  'ledger_accounts', 'installments', 'sms_messages', 'person_opening_balances', 'product_price_history',
+  'ledger_accounts', 'installments', 'sms_messages', 'person_opening_balances', 'product_price_history', 'sales_invoice_payments', 'purchase_invoice_payments',
   'issued_checks', 'received_checks', 'check_history',
   'persons', 'system_logs', 'database_logs', 'backupConfig',
   'purchase_invoices', 'purchase_invoice_items',
@@ -37,7 +37,7 @@ const KNOWN_TABLES = [
   'wastes', 'waste_items',
   'receipt_transactions', 'payment_transactions',
   'issued_checks', 'received_checks', 'payslips'
-, 'product_inventory_history'];
+, 'InventoryTransactions'];
 
 
 const tableSchemas = new Map<string, Set<string>>();
@@ -1263,7 +1263,7 @@ async function startServer() {
         };
       });
 
-      await setDbData('product_inventory_history', historyList);
+      await setDbData('InventoryTransactions', historyList);
       await setDbData('warehouse_stocks', finalStocksList);
       res.json({ success: true, data: finalStocksList });
     } catch (err: any) {

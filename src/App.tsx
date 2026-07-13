@@ -217,6 +217,7 @@ import {
   updateWarehouse,
   deleteWarehouse,
   getInvoices,
+  getInventoryTransactions,
   addInvoice,
   generateDocNumber,
   updateDocCounter,
@@ -263,6 +264,7 @@ import QuickRefund from "./components/financial/QuickRefund";
 import UserManager from "./components/admin/UserManager";
 import ProfileModal from "./components/auth/ProfileModal";
 import InventoryReport from "./components/reports/InventoryReport";
+import KardexReport from "./components/reports/KardexReport";
 import CRMDashboard from "./components/crm/CRMDashboard";
 import SystemDiagnostics from "./components/admin/SystemDiagnostics";
 import StocktakingManager from "./components/inventory/StocktakingManager";
@@ -406,6 +408,7 @@ export default function App() {
     | "accounting_auto_sync"
     | "accounting_verification"
     | "accounting_opening_balances"
+    | "kardex"
   >("financial_report");
 
   const setActiveTab = (tab: any, force: boolean = false) => {
@@ -553,6 +556,7 @@ export default function App() {
   const [personRoles, setPersonRoles] = useState<any[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
+  const [inventoryTransactions, setInventoryTransactions] = useState<any[]>([]);
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [cashboxes, setCashboxes] = useState<Cashbox[]>([]);
@@ -1606,10 +1610,20 @@ export default function App() {
   );
 
   // Fetch API data on mount
+  const fetchInventoryTransactions = async () => {
+    try {
+      const data = await getInventoryTransactions();
+      setInventoryTransactions(data as any);
+    } catch (error) {
+      console.error("Error fetching inventory transactions", error);
+    }
+  };
+
   const fetchInvoices = async () => {
     try {
       const data = await getInvoices();
       setInvoices(data as any);
+      await fetchInventoryTransactions();
     } catch (error) {
       console.error("Error fetching invoices", error);
     }
@@ -5568,21 +5582,76 @@ description: receiptDescription,
     const defaultWhId = product?.warehouseId?.toString() || "unknown";
 
     const info = {
-      totalPhysical: baseStock,
+      totalPhysical: 0,
       totalReserved: 0,
-      totalAvailable: baseStock,
+      totalAvailable: 0,
       warehouses: {} as Record<
         string,
         { physical: number; reserved: number; available: number }
       >,
     };
 
-    if (baseStock !== 0) {
-      info.warehouses[defaultWhId] = {
-        physical: baseStock,
-        reserved: 0,
-        available: baseStock,
-      };
+    if (!inventoryTransactions || inventoryTransactions.length === 0) {
+      // Fallback to original calculation based on product.stock if transactions aren't loaded yet
+      info.totalPhysical = baseStock;
+      info.totalAvailable = baseStock;
+      if (baseStock !== 0) {
+        info.warehouses[defaultWhId] = {
+          physical: baseStock,
+          reserved: 0,
+          available: baseStock,
+        };
+      }
+      invoices.forEach((inv) => {
+        if (
+          !inv.items ||
+          inv.isDraft ||
+          inv.status === "draft" ||
+          inv.type === "proforma" || inv.status === "voided" || inv.isDeleted
+        )
+          return;
+        inv.items.forEach((i: any) => {
+          if (i.productId?.toString() === productId.toString()) {
+            let q = Number(i.quantity) || 0;
+            if (i.isSecondaryUnit && product?.unitRatio) {
+              q = q * product.unitRatio;
+            }
+
+            const whId = (
+              i.warehouseId ||
+              inv.warehouseId ||
+              defaultWhId
+            ).toString();
+            if (!info.warehouses[whId]) {
+              info.warehouses[whId] = { physical: 0, reserved: 0, available: 0 };
+            }
+
+            if (inv.type === "warehouse_receipt") {
+              info.totalPhysical += q;
+              info.warehouses[whId].physical += q;
+            } else if (inv.type === "warehouse_remittance") {
+              info.totalPhysical -= q;
+              info.warehouses[whId].physical -= q;
+            }
+          }
+        });
+      });
+    } else {
+      // Direct sum from InventoryTransactions
+      const prodTx = inventoryTransactions.filter(
+        (t) => t.productId?.toString() === productId.toString()
+      );
+      prodTx.forEach((t) => {
+        const whId = (t.warehouseId || defaultWhId).toString();
+        const qty = t.type === "in" ? (Number(t.quantity) || 0) : -(Number(t.quantity) || 0);
+
+        info.totalPhysical += qty;
+
+        if (!info.warehouses[whId]) {
+          info.warehouses[whId] = { physical: 0, reserved: 0, available: 0 };
+        }
+        info.warehouses[whId].physical += qty;
+      });
     }
 
     const saleQtys: Record<string, number> = {};
@@ -5609,17 +5678,8 @@ description: receiptDescription,
             inv.warehouseId ||
             defaultWhId
           ).toString();
-          if (!info.warehouses[whId]) {
-            info.warehouses[whId] = { physical: 0, reserved: 0, available: 0 };
-          }
 
-          if (inv.type === "warehouse_receipt") {
-            info.totalPhysical += q;
-            info.warehouses[whId].physical += q;
-          } else if (inv.type === "warehouse_remittance") {
-            info.totalPhysical -= q;
-            info.warehouses[whId].physical -= q;
-
+          if (inv.type === "warehouse_remittance") {
             if (inv.sourceInvoiceId) {
               const sourceInv = invoices.find(
                 (sinv) =>
@@ -7410,6 +7470,8 @@ ${errMsg}`);
                   />
                 ) : activeTab === "inventory_report" ? (
                   <InventoryReport showNotification={showNotification} categories={productCategories} />
+                ) : activeTab === "kardex" ? (
+                  <KardexReport />
                 ) : activeTab === "crm_dashboard" ? (
                   <CRMDashboard persons={persons} showNotification={showNotification} />
                 ) : activeTab === "analytical_dashboard" ? (
@@ -8156,27 +8218,38 @@ ${errMsg}`);
                 ) : null}
                 {![
                   "products",
-                  "product_view",
+                  "person_opening_balances",
                   "persons",
+                  "person_groups",
+                  "person_roles",
                   "accounts",
                   "cashboxes",
-                  "settings",
+                  "warehouses",
                   "financial_report",
-                  "analytical_dashboard",
+                  "person_profile",
                   "person_ledger",
+                  "debts_credits",
+                  "transfer",
+                  "invoice_allocation",
+                  "quick_refund",
+                  "check_panel",
+                  "loans",
+                  "system_diagnostics",
+                  "users_manager",
+                  "settings",
                   "inventory_report",
+                  "kardex",
+                  "crm_dashboard",
+                  "analytical_dashboard",
+                  "sms_panel",
+                  "system_logs",
+                  "database_logs",
+                  "data_reconciliation",
                   "database",
                   "update",
+                  "quick_price_inquiry",
+                  "product_view",
                   "checklist",
-                  "check_panel",
-                  "check_panel",
-                  "checkbooks",
-                  "issued_checks",
-                  "received_checks",
-                  "check_calendar",
-                  "check_charts",
-                  "transfer",
-                  "quick_refund",
                   "stocktaking",
                   "financial_years",
                   "chart_of_accounts",

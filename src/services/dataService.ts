@@ -105,10 +105,11 @@ export const addDatabaseLog = async (action: string, entityType: string, entityI
 };
 
 export const appendLocalData = async <T>(key: string, data: T): Promise<T> => {
+  const processedData = await ensureFiscalYearId(key, data);
   const res = await fetch(`/api/data/${key}/append`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
+    body: JSON.stringify(processedData)
   });
   if (!res.ok) throw new Error('Network response was not ok');
   invalidateCache(key);
@@ -116,11 +117,75 @@ export const appendLocalData = async <T>(key: string, data: T): Promise<T> => {
   return result.data;
 };
 
+const FINANCIAL_KEYS = new Set([
+  'receipt_transactions',
+  'payment_transactions',
+  'transactions',
+  'sales_invoices',
+  'purchase_invoices',
+  'warehouse_receipts',
+  'warehouse_remittances',
+  'proforma_invoices',
+  'sale_returns',
+  'purchase_returns',
+  'wastes',
+  'invoices',
+  'accounting_documents',
+  'issued_checks',
+  'received_checks',
+  'checkbooks',
+  'check_history',
+  'refundRequests',
+  'stocktakings',
+  'person_opening_balances',
+  'loans',
+  'installments',
+  'payslips',
+  'sales_invoice_payments',
+  'purchase_invoice_payments',
+  'debtors_trackings',
+  'InventoryTransactions'
+]);
+
+const ensureFiscalYearId = async (key: string, data: any): Promise<any> => {
+  if (!data) return data;
+  if (!FINANCIAL_KEYS.has(key)) return data;
+  try {
+    const activeYear = await getActiveFinancialYear();
+    if (!activeYear || !activeYear.id) return data;
+    
+    const yearId = activeYear.id;
+    
+    if (Array.isArray(data)) {
+      return data.map(item => {
+        if (item && typeof item === 'object') {
+          return { fiscalYearId: item.fiscalYearId || yearId, ...item };
+        }
+        return item;
+      });
+    } else if (typeof data === 'object') {
+      return { fiscalYearId: data.fiscalYearId || yearId, ...data };
+    }
+  } catch (e) {
+    // ignore
+  }
+  return data;
+};
+
 export const batchLocalData = async (operations: any[]): Promise<any> => {
+  const processedOps = [];
+  for (const op of operations) {
+    if (op.type !== 'delete') {
+      const processedData = await ensureFiscalYearId(op.key, op.data);
+      processedOps.push({ ...op, data: processedData });
+    } else {
+      processedOps.push(op);
+    }
+  }
   const res = await fetch(`/api/data/batch`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ operations })
+    body: JSON.stringify({ operations: processedOps })
   });
   if (!res.ok) throw new Error('Network response was not ok');
   operations.forEach(op => invalidateCache(op.key));
@@ -128,10 +193,11 @@ export const batchLocalData = async (operations: any[]): Promise<any> => {
 };
 
 export const updateLocalData = async <T>(key: string, id: string | number, data: T): Promise<T> => {
+  const processedData = await ensureFiscalYearId(key, data);
   const res = await fetch(`/api/data/${key}/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
+    body: JSON.stringify(processedData)
   });
   if (!res.ok) throw new Error('Network response was not ok');
   invalidateCache(key);
@@ -141,10 +207,11 @@ export const updateLocalData = async <T>(key: string, id: string | number, data:
 
 export const saveLocalData = async <T>(key: string, data: T, retries = 3): Promise<void> => {
   try {
+    const processedData = await ensureFiscalYearId(key, data);
     const res = await fetch(`/api/data/${key}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(processedData)
     });
     if (!res.ok) throw new Error('Network response was not ok');
     invalidateCache(key);
@@ -360,7 +427,7 @@ export const closeFinancialYear = async (id: string | number) => {
 };
 
 export const checkFinancialYear = async (dateStr: string | number) => {
-  if (!dateStr) return;
+  if (!dateStr) return null;
   const activeYear = await getActiveFinancialYear();
   if (!activeYear) {
     throw new Error("هیچ سال مالی فعال و بازی در سیستم وجود ندارد. ابتدا یک سال مالی باز ایجاد کنید.");
@@ -370,7 +437,7 @@ export const checkFinancialYear = async (dateStr: string | number) => {
   const calendarType = settings?.calendarType || 'jalali';
   
   const checkDate = parseToGregorianDate(dateStr, calendarType);
-  if (!checkDate) return;
+  if (!checkDate) return activeYear;
   
   checkDate.setHours(0,0,0,0);
   
@@ -390,6 +457,8 @@ export const checkFinancialYear = async (dateStr: string | number) => {
       throw new Error(`تاریخ وارد شده (${dateStr}) بعد از پایان سال مالی فعال (${activeYear.endDate}) است.`);
     }
   }
+  
+  return activeYear;
 };
 
 // Users
@@ -977,6 +1046,66 @@ const mapTransactionTypeToTable = (type: string) => {
   return 'payment_transactions';
 };
 
+
+export const syncInvoiceAllocations = async (tx: any) => {
+    if (!tx || !tx.id || !tx.linkedInvoices) return;
+    try {
+        const now = new Date().toISOString();
+        const salesPayments = await getLocalData('sales_invoice_payments', []);
+        const purchasePayments = await getLocalData('purchase_invoice_payments', []);
+        const invoices = await getInvoices();
+        
+        let salesChanged = false;
+        let purchaseChanged = false;
+
+        const newSales = salesPayments.filter(p => String(p.receiptId) !== String(tx.id));
+        const newPurchases = purchasePayments.filter(p => String(p.receiptId) !== String(tx.id));
+
+        for (const invId of Object.keys(tx.linkedInvoices)) {
+            const amount = Number(tx.linkedInvoices[invId]) || 0;
+            if (amount <= 0) continue;
+            
+            const inv = invoices.find(i => String(i.id) === String(invId));
+            if (!inv) continue;
+
+            const record = {
+                id: `${tx.id}_${invId}`,
+                invoiceId: invId,
+                receiptId: tx.id,
+                amount: amount,
+                date: tx.date || now.split('T')[0],
+                timestamp: now
+            };
+
+            if (inv.type === 'purchase' || inv.type === 'purchase_return') {
+                newPurchases.push(record);
+                purchaseChanged = true;
+            } else {
+                newSales.push(record);
+                salesChanged = true;
+            }
+        }
+        
+        // Always save to ensure deleted allocations are actually removed
+        if (salesChanged || salesPayments.length !== newSales.length) {
+            await saveLocalData('sales_invoice_payments', newSales);
+        }
+        if (purchaseChanged || purchasePayments.length !== newPurchases.length) {
+            await saveLocalData('purchase_invoice_payments', newPurchases);
+        }
+
+    } catch (e) {
+        console.error('Error syncing invoice allocations:', e);
+    }
+};
+
+export const getSalesInvoicePayments = async () => {
+  return await getLocalData('sales_invoice_payments', []);
+};
+
+export const getPurchaseInvoicePayments = async () => {
+  return await getLocalData('purchase_invoice_payments', []);
+};
 export const getTransactions = async () => {
   let allTx: any[] = [];
   const tables = ['receipt_transactions', 'payment_transactions', 'transactions'];
@@ -994,7 +1123,7 @@ export const getTransactions = async () => {
 };
 
 export const addTransaction = async (transaction: any) => {
-  if (transaction.date) await checkFinancialYear(transaction.date);
+  let activeYear = null; if (transaction.date) activeYear = await checkFinancialYear(transaction.date);
   const now = Date.now();
   
   let finalTx = { ...transaction };
@@ -1005,7 +1134,7 @@ export const addTransaction = async (transaction: any) => {
      }
   }
 
-  const newTransaction = { ...finalTx, id: generateId(), createdAt: now, updatedAt: now };
+  const newTransaction = { ...finalTx, id: generateId(), createdAt: now, updatedAt: now, fiscalYearId: activeYear ? activeYear.id : undefined };
   const operations: any[] = [];
 
   if (transaction.type === 'receive' || transaction.type === 'pay' || transaction.type === 'salary') {
@@ -1222,12 +1351,15 @@ export const addTransaction = async (transaction: any) => {
         items});
   } catch(e) {}
 
+    await syncInvoiceAllocations(newTransaction);
   return newTransaction;
 };
 
 export const updateTransaction = async (id: string | number, updated: any) => {
-  if (updated.date) await checkFinancialYear(updated.date);
+  let activeYear = null;
+  if (updated.date) activeYear = await checkFinancialYear(updated.date);
   const updatedData = { ...updated, updatedAt: Date.now() };
+  if (activeYear) updatedData.fiscalYearId = activeYear.id;
   try {
      const table = mapTransactionTypeToTable(updatedData.type);
      const newTx = await updateLocalData(table, id, updatedData);
@@ -1340,7 +1472,8 @@ export const updateTransaction = async (id: string | number, updated: any) => {
          }
          const items = [];
          if (updated.method === 'check') {
-             return newTx; // Check accounting is fully handled by syncCheckAccountingDocument
+             await syncInvoiceAllocations(newTx);
+     return newTx; // Check accounting is fully handled by syncCheckAccountingDocument
          } else {
              if (updated.type === 'receive') {
                 items.push({
@@ -1391,6 +1524,7 @@ export const updateTransaction = async (id: string | number, updated: any) => {
        console.error("Failed to update auto accounting doc for transaction:", e);
      }
 
+     await syncInvoiceAllocations(newTx);
      return newTx;
   } catch (e) {
      throw new Error('Transaction not found');
@@ -1440,6 +1574,9 @@ export const deleteTransaction = async (id: string) => {
     if (operations.length > 0) {
       await batchLocalData(operations);
     }
+    
+    // Clear allocations
+    await syncInvoiceAllocations({ id, linkedInvoices: {} });
 
     // Delete corresponding accounting document
     try {
@@ -1485,7 +1622,8 @@ export const getInvoices = async () => {
 };
 
 export const addInvoice = async (invoice: any, skipRecalc: boolean = false) => {
-  if (invoice.date) await checkFinancialYear(invoice.date);
+  let activeYear = null;
+  if (invoice.date) activeYear = await checkFinancialYear(invoice.date);
   const now = Date.now();
   
   // Apply auto-generated invoice number if missing
@@ -1494,7 +1632,7 @@ export const addInvoice = async (invoice: any, skipRecalc: boolean = false) => {
      finalInvoiceObj.invoiceNumber = await generateDocNumber(finalInvoiceObj.type);
   }
 
-  const newInvoice = { ...finalInvoiceObj, id: generateId(), createdAt: now, updatedAt: now };
+  const newInvoice = { ...finalInvoiceObj, id: generateId(), createdAt: now, updatedAt: now, fiscalYearId: activeYear ? activeYear.id : undefined };
   await appendLocalData(mapInvoiceTypeToTable(newInvoice.type), newInvoice);
   
   if (newInvoice.invoiceNumber) {
@@ -1503,6 +1641,26 @@ export const addInvoice = async (invoice: any, skipRecalc: boolean = false) => {
   
   if (typeof addSystemLog !== 'undefined') {
     await addSystemLog('ADD_' + 'Invoice'.toUpperCase(), 'ثبت رکورد جدید در invoices', 'Invoice', newInvoice.id);
+  }
+
+  // Generate price history for invoice items
+  if (newInvoice.type === 'purchase' || newInvoice.type === 'sale') {
+     if (newInvoice.items && Array.isArray(newInvoice.items)) {
+         for (const item of newInvoice.items) {
+             if (item.productId && Number(item.unitPrice) > 0) {
+                 await appendLocalData('product_price_history', {
+                     id: generateId(),
+                     productId: item.productId,
+                     date: newInvoice.date || new Date().toISOString().split('T')[0],
+                     type: newInvoice.type,
+                     price: Number(item.unitPrice),
+                     invoiceId: newInvoice.id,
+                     quantity: Number(item.quantity) || 0,
+                     invoiceItemId: item.id || generateId()
+                 });
+             }
+         }
+     }
   }
 
   // Recalculate warehouse stocks automatically
@@ -1571,9 +1729,11 @@ export const addInvoice = async (invoice: any, skipRecalc: boolean = false) => {
 };
 
 export const updateInvoice = async (id: string | number, updated: any, skipRecalc: boolean = false) => {
-  if (updated.date) await checkFinancialYear(updated.date);
+  let activeYear = null;
+  if (updated.date) activeYear = await checkFinancialYear(updated.date);
   
   const updatedData = { ...updated, updatedAt: Date.now() };
+  if (activeYear) updatedData.fiscalYearId = activeYear.id;
   const table = updatedData.type ? mapInvoiceTypeToTable(updatedData.type) : 'invoices';
   const newInvoice = await updateLocalData(table, id, updatedData);
   
@@ -1583,6 +1743,34 @@ export const updateInvoice = async (id: string | number, updated: any, skipRecal
   
   if (typeof addSystemLog !== 'undefined') {
     await addSystemLog('UPDATE_' + 'Invoice'.toUpperCase(), 'ویرایش رکورد در invoices', 'Invoice', newInvoice.id);
+  }
+
+  // Generate/Update price history for invoice items
+  if (newInvoice.type === 'purchase' || newInvoice.type === 'sale') {
+      try {
+          const oldHistories = await getLocalData('product_price_history', []);
+          const filteredHistories = oldHistories.filter(h => h.invoiceId?.toString() !== newInvoice.id?.toString());
+          
+          if (newInvoice.items && Array.isArray(newInvoice.items)) {
+              for (const item of newInvoice.items) {
+                  if (item.productId && Number(item.unitPrice) > 0) {
+                      filteredHistories.push({
+                          id: generateId(),
+                          productId: item.productId,
+                          date: newInvoice.date || new Date().toISOString().split('T')[0],
+                          type: newInvoice.type,
+                          price: Number(item.unitPrice),
+                          invoiceId: newInvoice.id,
+                          quantity: Number(item.quantity) || 0,
+                          invoiceItemId: item.id || generateId()
+                      });
+                  }
+              }
+          }
+          await saveLocalData('product_price_history', filteredHistories);
+      } catch (e) {
+          console.error(e);
+      }
   }
 
   // Auto-update corresponding accounting document
@@ -1750,6 +1938,35 @@ export const deleteInvoice = async (id: string, forceDelete: boolean = false, sk
     if (operations.length > 0) {
       await batchLocalData(operations);
     }
+    
+    // Clear allocations for the deleted invoice(s)
+    try {
+        const sales = await getLocalData('sales_invoice_payments', []);
+        const newSales = sales.filter(h => !toDeleteIds.has(h.invoiceId) && !toDeleteIds.has(String(h.invoiceId)) && !toDeleteIds.has(Number(h.invoiceId)));
+        await saveLocalData('sales_invoice_payments', newSales);
+
+        const purchases = await getLocalData('purchase_invoice_payments', []);
+        const newPurchases = purchases.filter(h => !toDeleteIds.has(h.invoiceId) && !toDeleteIds.has(String(h.invoiceId)) && !toDeleteIds.has(Number(h.invoiceId)));
+        await saveLocalData('purchase_invoice_payments', newPurchases);
+        
+        // Also remove linkedInvoices from transactions
+        const transactions = await getTransactions();
+        let txChanged = false;
+        for (const tx of transactions) {
+             if (tx.linkedInvoices) {
+                  let hasDel = false;
+                  for (const invId of Object.keys(tx.linkedInvoices)) {
+                       if (toDeleteIds.has(invId) || toDeleteIds.has(String(invId)) || toDeleteIds.has(Number(invId))) {
+                            delete tx.linkedInvoices[invId];
+                            hasDel = true;
+                       }
+                  }
+                  if (hasDel) {
+                       await updateLocalData(mapTransactionTypeToTable(tx.type), tx.id, tx);
+                  }
+             }
+        }
+    } catch(e) {}
 
     if (typeof addSystemLog !== 'undefined') {
        // addSystemLog is no-op, backend handles log for batch
@@ -1771,7 +1988,8 @@ export const getCheckbooks = async () => {
 export const addCheckbook = async (record: any) => {
   const data = await getLocalData<any[]>('checkbooks', []);
   const now = Date.now();
-  const newItem = { ...record, id: generateId(), createdAt: now, updatedAt: now };
+  const activeYear = await getActiveFinancialYear();
+  const newItem = { ...record, id: generateId(), createdAt: now, updatedAt: now, fiscalYearId: activeYear ? activeYear.id : undefined };
   data.push(newItem);
   await saveLocalData('checkbooks', data);
   
@@ -1792,7 +2010,8 @@ export const addCheckbook = async (record: any) => {
                  payeeId: "",
                  status: 'blank',
                  createdAt: now,
-                 updatedAt: now
+                 updatedAt: now,
+                 fiscalYearId: activeYear ? activeYear.id : undefined
              });
          }
          await saveLocalData('issued_checks', issuedChecks);
@@ -1809,7 +2028,11 @@ export const updateCheckbook = async (id: string, record: any) => {
   const data = await getLocalData<any[]>('checkbooks', []);
   const index = data.findIndex((p: any) => String(p.id) === String(id));
   if (index !== -1) {
+    const activeYear = await getActiveFinancialYear();
     data[index] = { ...data[index], ...record, updatedAt: Date.now() };
+    if (activeYear) {
+      data[index].fiscalYearId = activeYear.id;
+    }
     await saveLocalData('checkbooks', data);
   
   if (typeof addSystemLog !== 'undefined') {
@@ -1849,9 +2072,10 @@ export const addCheckHistory = async (record: { checkId: string | number, checkT
 };
 
 export const addIssuedCheck = async (record: any) => {
-  if (record.issueDate) await checkFinancialYear(record.issueDate);
+  let activeYear = null;
+  if (record.issueDate) activeYear = await checkFinancialYear(record.issueDate);
   const now = Date.now();
-  const newItem = { ...record, id: generateId(), createdAt: now, updatedAt: now };
+  const newItem = { ...record, id: generateId(), createdAt: now, updatedAt: now, fiscalYearId: activeYear ? activeYear.id : undefined };
   await appendLocalData('issued_checks', newItem);
   await addCheckHistory({ checkId: newItem.id, checkType: 'issued', status: newItem.status || 'issued', date: new Date().toISOString(), desc: 'ثبت اولیه چک صادره' });
   
@@ -1867,7 +2091,8 @@ export const addIssuedCheck = async (record: any) => {
 };
 
 export const updateIssuedCheck = async (id: string, record: any) => {
-  if (record.issueDate) await checkFinancialYear(record.issueDate);
+  let activeYear = null;
+  if (record.issueDate) activeYear = await checkFinancialYear(record.issueDate);
   const updatedData = { ...record, updatedAt: Date.now() };
   try {
      const oldChecks = await getIssuedChecks();
@@ -1911,9 +2136,10 @@ export const getReceivedChecks = async () => {
 
 export const addReceivedCheck = async (record: any) => {
   const checkDate = record.receiveDate || record.issueDate;
-  if (checkDate) await checkFinancialYear(checkDate);
+  let activeYear = null;
+  if (checkDate) activeYear = await checkFinancialYear(checkDate);
   const now = Date.now();
-  const newItem = { ...record, id: generateId(), createdAt: now, updatedAt: now };
+  const newItem = { ...record, id: generateId(), createdAt: now, updatedAt: now, fiscalYearId: activeYear ? activeYear.id : undefined };
   await appendLocalData('received_checks', newItem);
   await addCheckHistory({ checkId: newItem.id, checkType: 'received', status: newItem.status || 'received', date: new Date().toISOString(), desc: 'ثبت اولیه چک دریافتی' });
   
@@ -1930,7 +2156,8 @@ export const addReceivedCheck = async (record: any) => {
 
 export const updateReceivedCheck = async (id: string, record: any) => {
   const checkDate = record.receiveDate || record.issueDate;
-  if (checkDate) await checkFinancialYear(checkDate);
+  let activeYear = null;
+  if (checkDate) activeYear = await checkFinancialYear(checkDate);
   const updatedData = { ...record, updatedAt: Date.now() };
   try {
      const oldChecks = await getReceivedChecks();
@@ -1973,7 +2200,13 @@ export const getRefundRequests = async () => {
 
 export const addRefundRequest = async (request: any) => {
   const now = Date.now();
-  const newRequest = { ...request, id: generateId(), createdAt: now, updatedAt: now };
+  let activeYear = null;
+  if (request.date) {
+    activeYear = await checkFinancialYear(request.date);
+  } else {
+    activeYear = await getActiveFinancialYear();
+  }
+  const newRequest = { ...request, id: generateId(), createdAt: now, updatedAt: now, fiscalYearId: activeYear ? activeYear.id : undefined };
   await appendLocalData('refundRequests', newRequest);
   
   if (typeof addSystemLog !== 'undefined') {
@@ -1984,7 +2217,14 @@ export const addRefundRequest = async (request: any) => {
 };
 
 export const updateRefundRequest = async (id: string, updated: any) => {
+  let activeYear = null;
+  if (updated.date) {
+    activeYear = await checkFinancialYear(updated.date);
+  } else {
+    activeYear = await getActiveFinancialYear();
+  }
   const updatedData = { ...updated, updatedAt: Date.now() };
+  if (activeYear) updatedData.fiscalYearId = activeYear.id;
   try {
      const saved = await updateLocalData('refundRequests', id, updatedData);
      if (typeof addSystemLog !== 'undefined') {
@@ -2034,18 +2274,21 @@ export const recalculateAllWarehouseStocks = async () => {
 export const getStocktakings = async () => getLocalData<any[]>('stocktakings', []);
 export const saveStocktakings = async (data: any[]) => saveLocalData('stocktakings', data);
 export const addStocktaking = async (st: any) => {
-  if (st.date) await checkFinancialYear(st.date);
+  let activeYear = null;
+  if (st.date) activeYear = await checkFinancialYear(st.date);
   const stocktakings = await getStocktakings();
-  const added = { ...st, id: generateId() };
+  const added = { ...st, id: generateId(), fiscalYearId: activeYear ? activeYear.id : undefined };
   stocktakings.push(added);
   await saveStocktakings(stocktakings);
   return added;
 };
 export const updateStocktaking = async (id: string | number, updatedSt: any) => {
-  if (updatedSt.date) await checkFinancialYear(updatedSt.date);
+  let activeYear = null;
+  if (updatedSt.date) activeYear = await checkFinancialYear(updatedSt.date);
   const stocktakings = await getStocktakings();
   const idx = stocktakings.findIndex(s => s.id?.toString() === id?.toString());
   if (idx > -1) {
+    if (activeYear) updatedSt.fiscalYearId = activeYear.id;
     stocktakings[idx] = updatedSt;
     await saveStocktakings(stocktakings);
     return updatedSt;
@@ -2087,7 +2330,27 @@ export const deletePersonFollowUp = async (id: string | number) => {
 };
 
 export const getLoans = async () => getLocalData<any[]>('loans', []);
-export const saveLoans = async (roles: any[]) => saveLocalData('loans', roles);
+export const saveLoans = async (loans: any[]) => {
+  const activeYear = await getActiveFinancialYear();
+  const processedLoans = [];
+  for (const loan of loans) {
+    let fiscalYearId = loan.fiscalYearId;
+    if (!fiscalYearId) {
+      if (loan.startDate) {
+        try {
+          const yr = await checkFinancialYear(loan.startDate);
+          if (yr) fiscalYearId = yr.id;
+        } catch (e) {
+          if (activeYear) fiscalYearId = activeYear.id;
+        }
+      } else if (activeYear) {
+        fiscalYearId = activeYear.id;
+      }
+    }
+    processedLoans.push({ ...loan, fiscalYearId });
+  }
+  await saveLocalData('loans', processedLoans);
+};
 
 export const getLedgerAccounts = async () => {
   let accs = await getLocalData<any[]>('ledger_accounts', []);
@@ -2159,7 +2422,8 @@ export const addAccountingDocument = async (doc: any) => {
   if (doc.date) {
     doc.date = convertToGregorian(doc.date);
   }
-  if (doc.date) await checkFinancialYear(doc.date);
+  let activeYear = null;
+  if (doc.date) activeYear = await checkFinancialYear(doc.date);
   
   // Generate a document number if not provided
   let docNum = doc.documentNumber;
@@ -2180,7 +2444,7 @@ export const addAccountingDocument = async (doc: any) => {
   if (doc.items && Array.isArray(doc.items)) {
      doc.items = doc.items.map((i) => ({ ...i, currency: i.currency || sysCurrency2 }));
   }
-  const added = { ...doc, id: generateId(), documentNumber: docNum, createdAt: Date.now() };
+  const added = { ...doc, id: generateId(), documentNumber: docNum, createdAt: Date.now(), fiscalYearId: activeYear ? activeYear.id : undefined };
   await appendLocalData('accounting_documents', added);
   if (added.documentNumber) {
       await updateDocCounter('accounting_document', added.documentNumber);
@@ -2188,7 +2452,8 @@ export const addAccountingDocument = async (doc: any) => {
   return added;
 };
 export const updateAccountingDocument = async (id: string | number, updated: any) => {
-  if (updated.date) await checkFinancialYear(updated.date);
+  let activeYear = null;
+  if (updated.date) activeYear = await checkFinancialYear(updated.date);
   if (updated.documentNumber) {
       await updateDocCounter('accounting_document', updated.documentNumber);
   }
@@ -2199,6 +2464,9 @@ export const updateAccountingDocument = async (id: string | number, updated: any
      updated.items = updated.items.map((i) => ({ ...i, currency: i.currency || sysCurrency3 }));
   }
   const updatedDoc = { ...updated, updatedAt: Date.now() };
+  if (activeYear) {
+      updatedDoc.fiscalYearId = activeYear.id;
+  }
   try {
      const saved = await updateLocalData('accounting_documents', id, updatedDoc);
      return saved;
@@ -2483,7 +2751,27 @@ export const syncCheckAccountingDocument = async (checkType: 'issued' | 'receive
 };
 
 export const getInstallments = async () => getLocalData<any[]>('installments', []);
-export const saveInstallments = async (groups: any[]) => saveLocalData('installments', groups);
+export const saveInstallments = async (installments: any[]) => {
+  const activeYear = await getActiveFinancialYear();
+  const processed = [];
+  for (const inst of installments) {
+    let fiscalYearId = inst.fiscalYearId;
+    if (!fiscalYearId) {
+      if (inst.dueDate) {
+        try {
+          const yr = await checkFinancialYear(inst.dueDate);
+          if (yr) fiscalYearId = yr.id;
+        } catch (e) {
+          if (activeYear) fiscalYearId = activeYear.id;
+        }
+      } else if (activeYear) {
+        fiscalYearId = activeYear.id;
+      }
+    }
+    processed.push({ ...inst, fiscalYearId });
+  }
+  await saveLocalData('installments', processed);
+};
 
 export const getSystemLogs = async () => {
   const logs = await getLocalData('system_logs', [], { limit: 50 });
@@ -2521,7 +2809,9 @@ export const getPersonOpeningBalances = async () => {
 export const addPersonOpeningBalance = async (balanceDoc: any) => {
   const balances = await getLocalData<any[]>('person_opening_balances', []);
   const now = Date.now();
-  const newBalance = { ...balanceDoc, id: generateId(), createdAt: now, updatedAt: now };
+  let activeYear = null;
+  if (balanceDoc.date) activeYear = await checkFinancialYear(balanceDoc.date);
+  const newBalance = { ...balanceDoc, id: generateId(), createdAt: now, updatedAt: now, fiscalYearId: activeYear ? activeYear.id : undefined };
   balances.push(newBalance);
   await saveLocalData('person_opening_balances', balances);
   
@@ -2581,7 +2871,10 @@ export const updatePersonOpeningBalance = async (id: string, balanceDoc: any) =>
   if (index !== -1) {
     const oldBalance = balances[index];
     const now = Date.now();
+    let activeYear = null;
+    if (balanceDoc.date) activeYear = await checkFinancialYear(balanceDoc.date);
     const updatedBalance = { ...oldBalance, ...balanceDoc, updatedAt: now };
+    if (activeYear) updatedBalance.fiscalYearId = activeYear.id;
     balances[index] = updatedBalance;
     await saveLocalData('person_opening_balances', balances);
 
@@ -2699,15 +2992,42 @@ export const saveDebtorsTrackings = async (data: any[]) => {
 };
 
 export const getPayslips = () => getLocalData<any[]>('payslips', []);
-export const addPayslip = (payslip: any) => appendLocalData('payslips', payslip);
-export const updatePayslip = (id: string | number, updated: any) => updateLocalData('payslips', id, updated);
+export const addPayslip = async (payslip: any) => {
+  let activeYear = null;
+  if (payslip.date) {
+    try {
+      activeYear = await checkFinancialYear(payslip.date);
+    } catch (e) {
+      activeYear = await getActiveFinancialYear();
+    }
+  } else {
+    activeYear = await getActiveFinancialYear();
+  }
+  const newItem = { ...payslip, fiscalYearId: activeYear ? activeYear.id : undefined };
+  return appendLocalData('payslips', newItem);
+};
+export const updatePayslip = async (id: string | number, updated: any) => {
+  let activeYear = null;
+  if (updated.date) {
+    try {
+      activeYear = await checkFinancialYear(updated.date);
+    } catch (e) {
+      activeYear = await getActiveFinancialYear();
+    }
+  } else {
+    activeYear = await getActiveFinancialYear();
+  }
+  const updatedData = { ...updated, updatedAt: Date.now() };
+  if (activeYear) updatedData.fiscalYearId = activeYear.id;
+  return updateLocalData('payslips', id, updatedData);
+};
 export const deletePayslip = async (id: string | number) => {
   const data = await getLocalData<any[]>('payslips', []);
   await saveLocalData('payslips', data.filter(p => String(p.id) !== String(id)));
 };
 
-export const getProductInventoryHistory = async (productId?: string | number, warehouseId?: string | number) => {
-  const history = await getLocalData<any[]>('product_inventory_history', []);
+export const getInventoryTransactions = async (productId?: string | number, warehouseId?: string | number) => {
+  const history = await getLocalData<any[]>('InventoryTransactions', []);
   let filtered = history;
   if (productId) {
     filtered = filtered.filter(h => h.productId?.toString() === productId?.toString());
@@ -2717,3 +3037,5 @@ export const getProductInventoryHistory = async (productId?: string | number, wa
   }
   return filtered.sort((a, b) => b.timestamp - a.timestamp);
 };
+
+export const getProductInventoryHistory = getInventoryTransactions;

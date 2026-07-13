@@ -281,6 +281,7 @@ export type StocktakingItem = {
 };
 
 export type Stocktaking = {
+  fiscalYearId?: string | number;
   id: string | number;
   date: string; // Jalali or ISO
   warehouseId: string | number;
@@ -324,6 +325,7 @@ export type AccountingDocument = {
   createdAt?: number;
   updatedAt?: number;
   currency?: string;
+  fiscalYearId?: string | number;
 };
 
 export type Loan = { id: string | number; personId: string | number; amount: number; interestRate?: number; frequency?: 'monthly' | 'quarterly' | 'yearly'; startDate: string; totalInstallments: number; installmentAmount: number; description?: string; status: 'active' | 'completed' | 'overdue'; type: 'given' | 'received'; };
@@ -348,6 +350,9 @@ export type ProductPriceHistory = {
   date: string;
   type: 'purchase' | 'sale';
   price: number;
+  invoiceId?: string | number;
+  quantity?: number;
+  invoiceItemId?: string | number;
 };
 
 export type ProductInventoryHistory = {

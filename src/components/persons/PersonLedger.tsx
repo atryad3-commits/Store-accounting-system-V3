@@ -471,6 +471,9 @@ export default function PersonLedger(props: any) {
                                       <th className="py-3 px-2 text-left w-28 border-2 border-slate-800 print:border-slate-800">
                                         پرداختی (کاهش بدهی)
                                       </th>
+                                      <th className="py-3 px-2 text-center w-12 border-2 border-slate-800 print:border-slate-800">
+                                        تشخیص
+                                      </th>
                                       <th className="py-3 px-2 text-left w-32 border-2 border-slate-800 print:border-slate-800">
                                         مانده نهایی
                                       </th>
@@ -517,9 +520,9 @@ export default function PersonLedger(props: any) {
                                             </div>
                                           </td>
                                           <td className="border-2 border-slate-700 py-3 px-2 align-top max-w-sm">
-                                            <div className="flex flex-col items-start gap-1">
+                                            <div className="flex flex-wrap items-center gap-1.5">
                                               <span
-                                                className={`font-extrabold text-[10px] px-2 py-0.5 rounded border shadow-sm print:shadow-none ${
+                                                className={`font-extrabold text-[10px] px-2 py-0.5 rounded border shadow-sm print:shadow-none whitespace-nowrap ${
                                                   entry.credit > 0
                                                     ? "bg-emerald-50 text-emerald-700 border-emerald-200 print:border-slate-300 print:bg-transparent print:text-slate-800"
                                                     : entry.debit > 0
@@ -529,9 +532,9 @@ export default function PersonLedger(props: any) {
                                               >
                                                 {entry.type}
                                               </span>
-                                              <p className="text-slate-800 text-[11px] whitespace-normal leading-relaxed break-words text-justify mt-1">
+                                              <span className="text-slate-800 text-[11px] whitespace-normal break-words text-justify">
                                                 {toPersianDigits(entry.desc)}
-                                              </p>
+                                              </span>
                                             </div>
                                           </td>
                                           <td
@@ -560,31 +563,29 @@ export default function PersonLedger(props: any) {
                                                 : "---"}
                                             </span>
                                           </td>
+                                          <td className="border-2 border-slate-700 py-3 px-2 text-center align-top font-bold text-[11px] text-slate-800">
+                                            {!isBalZero && (
+                                              <span>{isDeb ? "بد" : "بس"}</span>
+                                            )}
+                                          </td>
                                           <td className="border-2 border-slate-700 py-3 px-2 text-left align-top">
                                             <div
-                                              className={`flex flex-col items-end gap-1 font-extrabold ${isBalZero ? "text-slate-500" : "text-slate-900"}`}
+                                              className={`flex items-center justify-end gap-1 font-extrabold ${isBalZero ? "text-slate-500" : "text-slate-900"}`}
                                             >
                                               {isBalZero ? (
-                                                <span className="bg-slate-100 border border-slate-200 px-2 py-1 rounded text-xs text-slate-600 shadow-sm print:border-slate-300 print:bg-transparent print:shadow-none mt-0.5">
-                                                  صفر (تسویه)
+                                                <span className="bg-slate-100 border border-slate-200 px-2 py-1 rounded text-xs text-slate-600 shadow-sm print:border-slate-300 print:bg-transparent print:shadow-none">
+                                                  صفر
                                                 </span>
                                               ) : (
-                                                <>
-                                                  <span className="text-[13px] tracking-tight">
-                                                    {toPersianDigits(
-                                                      formatNumber(
-                                                        Math.abs(
-                                                          entry.runningBalance,
-                                                        ),
+                                                <span className="text-[13px] tracking-tight">
+                                                  {toPersianDigits(
+                                                    formatNumber(
+                                                      Math.abs(
+                                                        entry.runningBalance,
                                                       ),
-                                                    )}
-                                                  </span>
-                                                  <span
-                                                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded border shadow-sm print:border-slate-400 print:shadow-none print:bg-transparent print:text-slate-800 ${isDeb ? "bg-rose-50 border-rose-200 text-rose-700" : "bg-emerald-50 border-emerald-200 text-emerald-700"}`}
-                                                  >
-                                                    {isDeb ? "افزایش بدهی" : "پرداختی (کاهش بدهی)"}
-                                                  </span>
-                                                </>
+                                                    ),
+                                                  )}
+                                                </span>
                                               )}
                                             </div>
                                           </td>
@@ -903,6 +904,9 @@ export default function PersonLedger(props: any) {
                                           <th className="py-4 px-4 text-left w-36 print:w-28 print:px-2 border-2 border-slate-700 bg-emerald-50/50">
                                             پرداختی (کاهش بدهی)
                                           </th>
+                                          <th className="py-4 px-4 text-center w-16 print:w-12 print:px-2 border-2 border-slate-700 bg-slate-50">
+                                            تشخیص
+                                          </th>
                                           <th className="py-4 px-6 text-left w-44 print:w-32 print:px-2 border-2 border-slate-700 bg-slate-100">
                                             مانده نهایی حساب
                                           </th>
@@ -985,57 +989,56 @@ export default function PersonLedger(props: any) {
                                                 }
                                               }}
                                             >
-                                              <td className="border-2 border-slate-700 py-5 px-4 text-center text-gray-400 font-sans align-top pt-6 print:py-3 print:px-2 print:pt-4">
+                                              <td className="border-2 border-slate-700 py-3 px-4 text-center text-gray-400 font-sans align-top print:py-3 print:px-2">
                                                 <div className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center mx-auto text-[10px] font-bold shadow-sm group-hover:border-indigo-300 group-hover:text-indigo-600 transition-colors shrink-0">
                                                   {toPersianDigits(index + 1)}
                                                 </div>
                                               </td>
-                                              <td className="border-2 border-slate-700 py-5 px-4 align-top pt-5 print:py-3 print:px-2 print:pt-4">
-                                                <div className="flex flex-col gap-2.5 text-right relative">
+                                              <td className="border-2 border-slate-700 py-3 px-4 align-top print:py-3 print:px-2">
+                                                <div className="flex flex-col gap-1.5 text-right relative">
                                                   <span
-                                                    className="text-gray-700 font-bold flex items-center justify-start gap-2 text-sm max-w-fit pr-0 print:text-xs"
+                                                    className="text-gray-700 font-bold flex items-center justify-start gap-2 text-[13px] max-w-fit pr-0 print:text-xs"
                                                     dir="rtl"
                                                   >
-                                                    <span className="mt-0.5 whitespace-nowrap">
+                                                    <span className="whitespace-nowrap">
                                                       {formatDateDisplay(
-     entry.date || (entry as any).jalaliDate,
-     storeSettings?.calendarType
-  )}
+                                                        entry.date || (entry as any).jalaliDate,
+                                                        storeSettings?.calendarType
+                                                      )}
                                                     </span>
-                                                    <Calendar className="w-4 h-4 text-indigo-500/70" />
+                                                    <Calendar className="w-3.5 h-3.5 text-indigo-500/70" />
                                                   </span>
-                                                  <span className="text-xs text-gray-600 bg-white border border-gray-200 px-2.5 py-1 rounded-lg inline-flex w-max items-center gap-1.5 shadow-sm">
-                                                    <Tag className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                                                  <span className="text-[11px] text-gray-600 bg-white border border-gray-200 px-2 py-0.5 rounded inline-flex w-max items-center gap-1 shadow-sm">
+                                                    <Tag className="w-3 h-3 text-gray-400 shrink-0" />
                                                     {toPersianDigits(
                                                       entry.refId,
                                                     )}
                                                   </span>
                                                 </div>
                                               </td>
-                                              <td className="border-2 border-slate-700 py-5 px-6 align-top pt-5 max-w-sm print:py-3 print:px-2 print:pt-4">
-                                                <div className="flex flex-col items-start gap-2.5">
+                                              <td className="border-2 border-slate-700 py-3 px-6 align-top max-w-sm print:py-3 print:px-2">
+                                                <div className="flex flex-wrap items-center gap-2">
                                                   <span
-                                                    className={`w-max px-3 py-1 rounded-lg text-xs font-extrabold border shadow-sm ${badgeColor}`}
+                                                    className={`w-max px-2.5 py-0.5 rounded text-[11px] font-extrabold border shadow-sm whitespace-nowrap ${badgeColor}`}
                                                   >
                                                     {entry.type}
                                                   </span>
-                                                  <p className="text-gray-700 text-[13px] print:text-xs whitespace-normal leading-loose font-medium break-words text-justify">
+                                                  <span className="text-gray-700 text-[12px] print:text-[11px] whitespace-normal font-medium break-words text-justify">
                                                     {toPersianDigits(
                                                       entry.desc,
                                                     )}
-                                                  </p>
+                                                  </span>
                                                   {ledgerTab === "detailed" &&
                                                     entry.entryType ===
                                                       "invoice" &&
                                                     entry.rawItem?.items &&
                                                     entry.rawItem.items.length >
                                                       0 && (
-                                                      <div className="mt-2 text-xs text-gray-500 bg-gray-50 p-2 rounded-lg border border-gray-100 w-full text-right shadow-sm">
-                                                        <div className="font-bold mb-1.5 text-gray-700">
-                                                          اقلام رویداد مالی
-                                                          (جزئیات کالا/خدمات):
+                                                      <div className="mt-1.5 w-full text-[11px] text-gray-500 bg-gray-50 p-2 rounded-lg border border-gray-100 text-right shadow-sm">
+                                                        <div className="font-bold mb-1 text-gray-700">
+                                                          اقلام رویداد مالی:
                                                         </div>
-                                                        <ul className="list-disc list-inside space-y-1.5 marker:text-gray-400">
+                                                        <ul className="list-disc list-inside space-y-1 marker:text-gray-400">
                                                           {entry.rawItem.items.map(
                                                             (
                                                               item: any,
@@ -1049,7 +1052,7 @@ export default function PersonLedger(props: any) {
                                                                   {item.name}
                                                                 </span>
                                                                 <span
-                                                                  className="font-sans font-bold text-gray-500 text-[11px]"
+                                                                  className="font-sans font-bold text-gray-500 text-[10px]"
                                                                   dir="ltr"
                                                                 >
                                                                   {toPersianDigits(
@@ -1066,9 +1069,9 @@ export default function PersonLedger(props: any) {
                                                     )}
                                                 </div>
                                               </td>
-                                              <td className="border-2 border-slate-700 py-5 px-4 text-left align-top pt-6 print:py-3 print:px-2 print:pt-4">
+                                              <td className="border-2 border-slate-700 py-3 px-4 text-left align-top print:py-3 print:px-2">
                                                 <span
-                                                  className={`font-black text-[15px] print:text-[13px] ${entry.debit > 0 ? "text-indigo-600" : "text-gray-300 font-medium"}`}
+                                                  className={`font-black text-[14px] print:text-[12px] ${entry.debit > 0 ? "text-indigo-600" : "text-gray-300 font-medium"}`}
                                                 >
                                                   {entry.debit > 0
                                                     ? toPersianDigits(
@@ -1079,9 +1082,9 @@ export default function PersonLedger(props: any) {
                                                     : "---"}
                                                 </span>
                                               </td>
-                                              <td className="border-2 border-slate-700 py-5 px-4 text-left align-top pt-6 print:py-3 print:px-2 print:pt-4">
+                                              <td className="border-2 border-slate-700 py-3 px-4 text-left align-top print:py-3 print:px-2">
                                                 <span
-                                                  className={`font-black text-[15px] print:text-[13px] ${entry.credit > 0 ? "text-emerald-600" : "text-gray-300 font-medium"}`}
+                                                  className={`font-black text-[14px] print:text-[12px] ${entry.credit > 0 ? "text-emerald-600" : "text-gray-300 font-medium"}`}
                                                 >
                                                   {entry.credit > 0
                                                     ? toPersianDigits(
@@ -1092,9 +1095,14 @@ export default function PersonLedger(props: any) {
                                                     : "---"}
                                                 </span>
                                               </td>
-                                              <td className="border-2 border-slate-700 py-5 px-6 text-left align-top pt-5 print:py-3 print:px-2 print:pt-4">
+                                              <td className="border-2 border-slate-700 py-3 px-4 text-center align-top font-bold text-[13px] text-slate-800 print:py-3 print:px-2">
+                                                <span className={`${!isBalZero ? (isDeb ? "text-rose-600" : "text-emerald-600") : "text-slate-400"}`}>
+                                                  {!isBalZero ? (isDeb ? "بد" : "بس") : "-"}
+                                                </span>
+                                              </td>
+                                              <td className="border-2 border-slate-700 py-3 px-6 text-left align-top print:py-3 print:px-2">
                                                 <div
-                                                  className={`flex flex-col items-end gap-1.5 font-extrabold ${
+                                                  className={`flex items-center justify-end gap-1.5 font-extrabold ${
                                                     isBalZero
                                                       ? "text-slate-600"
                                                       : isDeb
@@ -1103,28 +1111,19 @@ export default function PersonLedger(props: any) {
                                                   }`}
                                                 >
                                                   {isBalZero ? (
-                                                    <span className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-xs shadow-sm mt-0.5 text-slate-700">
-                                                      صفر (تسویه)
+                                                    <span className="bg-slate-50 px-2 py-1 rounded border border-slate-200 text-xs shadow-sm text-slate-700">
+                                                      صفر
                                                     </span>
                                                   ) : (
-                                                    <>
-                                                      <span className="text-[17px] print:text-[14px] tracking-tight">
-                                                        {toPersianDigits(
-                                                          formatNumber(
-                                                            Math.abs(
-                                                              entry.runningBalance,
-                                                            ),
+                                                    <span className="text-[15px] print:text-[13px] tracking-tight">
+                                                      {toPersianDigits(
+                                                        formatNumber(
+                                                          Math.abs(
+                                                            entry.runningBalance,
                                                           ),
-                                                        )}
-                                                      </span>
-                                                      <span
-                                                        className={`text-[10px] font-bold px-2 py-1 rounded-lg border shadow-sm ${isDeb ? "bg-rose-50 border-rose-200 text-rose-700" : "bg-emerald-50 border-emerald-200 text-emerald-700"}`}
-                                                      >
-                                                        {isDeb
-                                                          ? "بدهی شخص"
-                                                          : "طلب شخص"}
-                                                      </span>
-                                                    </>
+                                                        ),
+                                                      )}
+                                                    </span>
                                                   )}
                                                 </div>
                                               </td>
@@ -1134,16 +1133,19 @@ export default function PersonLedger(props: any) {
                                     </tbody>
                                     <tfoot className="bg-slate-200 border-2 border-slate-700 font-bold text-[13px] text-slate-800">
                                       <tr>
-                                        <td colSpan={3} className="border-2 border-slate-700 py-5 px-6 text-left text-slate-700">
+                                        <td colSpan={3} className="border-2 border-slate-700 py-3 px-6 text-left text-slate-700">
                                           جمع کل ({filteredLedgerEntries.length} رکورد):
                                         </td>
-                                        <td className="border-2 border-slate-700 py-5 px-4 text-left text-indigo-600 text-[15px]">
+                                        <td className="border-2 border-slate-700 py-3 px-4 text-left text-indigo-600 text-[15px]">
                                           {toPersianDigits(formatNumber(totalDebit))}
                                         </td>
-                                        <td className="border-2 border-slate-700 py-5 px-4 text-left text-emerald-600 text-[15px]">
+                                        <td className="border-2 border-slate-700 py-3 px-4 text-left text-emerald-600 text-[15px]">
                                           {toPersianDigits(formatNumber(totalCredit))}
                                         </td>
-                                        <td className="border-2 border-slate-700 py-5 px-6 text-left">
+                                        <td className="border-2 border-slate-700 py-3 px-4 text-center">
+                                          
+                                        </td>
+                                        <td className="border-2 border-slate-700 py-3 px-6 text-left">
                                           <div
                                             className={`flex flex-col items-end gap-1.5 font-extrabold ${
                                               totalBalance === 0
