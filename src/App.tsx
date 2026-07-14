@@ -9935,7 +9935,7 @@ ${errMsg}`);
               "آیا از ذخیره اطلاعات بانکی و تکمیلی اطمینان دارید؟",
               async () => {
                 if (personExtraId) {
-                  const existing = persons.find((p) => p.id === personExtraId);
+                  const existing = persons.find((p) => String(p.id) === String(personExtraId));
                   if (existing) {
                     const updated = await updatePerson(personExtraId as string, {
                       ...existing,
@@ -9943,7 +9943,7 @@ ${errMsg}`);
                       bankAccounts: personBankAccounts,
                     });
                     if (updated) {
-                      setPersons((persons || []).map((p) => (p.id === personExtraId ? updated : p)));
+                      setPersons((persons || []).map((p) => (String(p.id) === String(personExtraId) ? updated : p)));
                     }
                   }
                 }
@@ -10498,7 +10498,7 @@ ${errMsg}`);
 
                               <div className="w-full text-right md:col-span-2 mt-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  سایر شماره‌های تماس
+                                  راه‌های ارتباطی و آدرس‌ها
                                 </label>
                                 {newPersonContacts.map((contact, idx) => (
                                   <div key={idx} className="flex items-center gap-2 mb-2">
@@ -10514,6 +10514,13 @@ ${errMsg}`);
                                       <option value="mobile">موبایل</option>
                                       <option value="phone">تلفن ثابت</option>
                                       <option value="fax">فکس</option>
+                                      <option value="email">ایمیل</option>
+                                      <option value="website">وبسایت</option>
+                                      <option value="instagram">اینستاگرام</option>
+                                      <option value="telegram">تلگرام</option>
+                                      <option value="whatsapp">واتساپ</option>
+                                      <option value="address">آدرس</option>
+                                      <option value="postal_code">کد پستی</option>
                                       <option value="other">دیگر</option>
                                     </select>
                                     <input
@@ -10535,9 +10542,9 @@ ${errMsg}`);
                                         newContacts[idx].number = e.target.value;
                                         setNewPersonContacts(newContacts);
                                       }}
-                                      placeholder="شماره"
-                                      className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 font-mono"
-                                      dir="ltr"
+                                      placeholder="مقدار"
+                                      className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500"
+                                      dir={contact.type === 'address' || contact.type === 'other' ? "rtl" : "ltr"}
                                     />
                                     <button
                                       type="button"
@@ -10558,7 +10565,7 @@ ${errMsg}`);
                                   className="mt-2 text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                                  افزودن شماره تماس جدید
+                                  افزودن راه ارتباطی/آدرس جدید
                                 </button>
                               </div>
                             </>

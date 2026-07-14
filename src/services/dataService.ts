@@ -558,8 +558,8 @@ export const getPersons = async () => {
   const bankAccounts = await getLocalData<any[]>('person_bank_accounts', []);
   
   const formattedPersons = (persons || []).map(p => {
-     p.contacts = contacts.filter(c => c.personId === p.id);
-     p.bankAccounts = bankAccounts.filter(b => b.personId === p.id);
+     p.contacts = contacts.filter(c => String(c.personId) === String(p.id));
+     p.bankAccounts = bankAccounts.filter(b => String(b.personId) === String(p.id));
      return p;
   });
   
@@ -629,9 +629,19 @@ export const addPerson = async (person: any) => {
   );
 
   const now = Date.now();
-  const newPerson = { ...person, personCode: finalPersonCode, accountingCode: finalAccountingCode, id: generateId(), createdAt: now, updatedAt: now };
+  const { contacts, bankAccounts, ...personData } = person;
+  const newPerson = { ...personData, personCode: finalPersonCode, accountingCode: finalAccountingCode, id: generateId(), createdAt: now, updatedAt: now };
   await appendLocalData('persons', newPerson);
   
+  if (contacts && contacts.length > 0) {
+      const allContacts = await getLocalData<any[]>('person_contacts', []);
+      await saveLocalData('person_contacts', [...allContacts, ...contacts.map((c: any) => ({...c, personId: newPerson.id}))]);
+  }
+  if (bankAccounts && bankAccounts.length > 0) {
+      const allBanks = await getLocalData<any[]>('person_bank_accounts', []);
+      await saveLocalData('person_bank_accounts', [...allBanks, ...bankAccounts.map((b: any) => ({...b, personId: newPerson.id}))]);
+  }
+
   if (newPerson.personCode) {
       await updateDocCounter('person', newPerson.personCode);
   }
@@ -656,13 +666,13 @@ export const updatePerson = async (id: string, person: any) => {
 
     if (contacts) {
        const allContacts = await getLocalData<any[]>('person_contacts', []);
-       const filteredContacts = allContacts.filter(c => c.personId !== id);
+       const filteredContacts = allContacts.filter(c => String(c.personId) !== String(id));
        await saveLocalData('person_contacts', [...filteredContacts, ...contacts.map((c: any) => ({...c, personId: id}))]);
     }
 
     if (bankAccounts) {
        const allBanks = await getLocalData<any[]>('person_bank_accounts', []);
-       const filteredBanks = allBanks.filter(b => b.personId !== id);
+       const filteredBanks = allBanks.filter(b => String(b.personId) !== String(id));
        await saveLocalData('person_bank_accounts', [...filteredBanks, ...bankAccounts.map((b: any) => ({...b, personId: id}))]);
     }
 

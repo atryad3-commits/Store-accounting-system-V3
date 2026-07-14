@@ -168,14 +168,22 @@ export default function PersonProfileView({
               <Phone className="w-4 h-4 text-indigo-500 shrink-0" />
               <span dir="ltr">{toPersianDigits(person.phone || "---")}</span>
             </div>
-            {person.contacts && person.contacts.length > 0 && person.contacts.map((contact: any, idx: number) => (
-              <div key={idx} className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-indigo-400 shrink-0" />
-                <span dir="ltr">{toPersianDigits(contact.number)}</span>
-                {contact.title && <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{contact.title}</span>}
-                <span className="text-[10px] text-gray-400">({contact.type === 'mobile' ? 'موبایل' : contact.type === 'phone' ? 'تلفن ثابت' : contact.type === 'fax' ? 'فکس' : 'دیگر'})</span>
-              </div>
-            ))}
+            {person.contacts && person.contacts.length > 0 && person.contacts.map((contact: any, idx: number) => {
+              const typeMap: any = { mobile: 'موبایل', phone: 'تلفن ثابت', fax: 'فکس', email: 'ایمیل', website: 'وبسایت', instagram: 'اینستاگرام', telegram: 'تلگرام', whatsapp: 'واتساپ', address: 'آدرس', postal_code: 'کد پستی', other: 'دیگر' };
+              const tLabel = typeMap[contact.type] || 'دیگر';
+              return (
+                <div key={idx} className="flex items-center gap-3 items-start">
+                  <span className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5 flex justify-center items-center">
+                    {contact.type === 'address' ? <MapPin className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
+                  </span>
+                  <span dir={contact.type === 'address' || contact.type === 'other' ? "rtl" : "ltr"} className="leading-relaxed">
+                    {toPersianDigits(contact.number)}
+                  </span>
+                  {contact.title && <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full whitespace-nowrap">{contact.title}</span>}
+                  <span className="text-[10px] text-gray-400 whitespace-nowrap">({tLabel})</span>
+                </div>
+              );
+            })}
             {person.personCode && (
               <div className="flex items-center gap-3">
                 <FileText className="w-4 h-4 text-indigo-500 shrink-0" />
@@ -307,6 +315,60 @@ export default function PersonProfileView({
             </div>
           </div>
 
+          {/* Bank Accounts and Notes */}
+          <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+            <h3 className="text-lg font-black text-slate-800 mb-4 flex items-center gap-2">
+              <FileText className="w-5 h-5 text-indigo-600" />
+              حساب‌های بانکی و یادداشت‌ها
+            </h3>
+            
+            <div className="space-y-4">
+              {person.additionalNotes && (
+                <div className="p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
+                  <div className="text-xs font-bold text-indigo-600 mb-1">یادداشت‌های شخص</div>
+                  <p className="text-sm font-semibold text-slate-700 leading-relaxed whitespace-pre-wrap">{person.additionalNotes}</p>
+                </div>
+              )}
+
+              {(!person.bankAccounts || person.bankAccounts.length === 0) && !person.additionalNotes ? (
+                <div className="text-center py-6 text-slate-400 font-bold text-sm bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                  اطلاعات تکمیلی ثبت نشده است.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3">
+                  {(person.bankAccounts || []).map((acc: any, i: number) => (
+                    <div key={i} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm text-slate-800">{acc.title || 'حساب بانکی'}</span>
+                        <span className="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded-lg border border-slate-200">{acc.bankName || 'نامشخص'}</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
+                        {acc.accountNumber && (
+                          <div className="bg-white p-2 rounded-xl border border-slate-200 flex flex-col">
+                            <span className="text-[10px] text-slate-400 font-bold mb-0.5">شماره حساب</span>
+                            <span className="text-sm font-mono text-slate-700" dir="ltr">{acc.accountNumber}</span>
+                          </div>
+                        )}
+                        {acc.cardNumber && (
+                          <div className="bg-white p-2 rounded-xl border border-slate-200 flex flex-col">
+                            <span className="text-[10px] text-slate-400 font-bold mb-0.5">شماره کارت</span>
+                            <span className="text-sm font-mono text-slate-700" dir="ltr">{acc.cardNumber}</span>
+                          </div>
+                        )}
+                        {acc.shebaNumber && (
+                          <div className="bg-white p-2 rounded-xl border border-slate-200 flex flex-col">
+                            <span className="text-[10px] text-slate-400 font-bold mb-0.5">شماره شبا</span>
+                            <span className="text-sm font-mono text-slate-700" dir="ltr">{acc.shebaNumber}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          
           {/* Follow Ups (CRM) */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
             <h3 className="text-lg font-black text-slate-800 mb-4 flex items-center gap-2">
