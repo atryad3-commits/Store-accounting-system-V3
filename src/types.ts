@@ -35,7 +35,8 @@ export type Person = {
   imageUrl?: string;
   personType: 'real' | 'legal';
   role: 'customer' | 'employee' | 'supplier'; 
-  phone: string; 
+  phone: string;
+  contacts?: { id?: string; type: 'mobile' | 'phone' | 'fax' | 'other'; number: string; title?: string }[]; 
   bankName?: string;
   bankAccountNumber?: string;
   cardNumber?: string;
@@ -207,6 +208,7 @@ export type User = {
 export type CompanySettings = {
   companyName: string;
   phone: string;
+  contacts?: { id?: string; type: 'mobile' | 'phone' | 'fax' | 'other'; number: string; title?: string }[];
   email: string;
   address: string;
   website: string;

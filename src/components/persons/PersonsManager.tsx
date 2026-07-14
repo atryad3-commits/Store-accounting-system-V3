@@ -52,6 +52,7 @@ export default function PersonsManager(props: any) {
     setNewPersonAddress,
     setNewPersonImage,
     setNewPersonPhone,
+    setNewPersonContacts,
     setNewPersonRole,
     setNewPersonInitialBalance,
     setNewPersonInitialBalanceType,
@@ -196,6 +197,7 @@ export default function PersonsManager(props: any) {
                                 setNewPersonAddress("");
                                 setNewPersonImage("");
                                 setNewPersonPhone("");
+                                setNewPersonContacts([]);
                                 setNewPersonRole("customer");
                                 setNewPersonInitialBalance("");
                                 setNewPersonInitialBalanceType("settled");
