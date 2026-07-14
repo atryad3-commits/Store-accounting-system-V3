@@ -68,6 +68,7 @@ export default function PersonsManager(props: any) {
     setPersonBankAcc,
     setPersonCard,
     setPersonSheba,
+    setPersonBankAccounts,
     setPersonNotes,
     setIsPersonExtraModalOpen,
     confirmAction,
@@ -959,26 +960,13 @@ export default function PersonsManager(props: any) {
                                                             null,
                                                           );
                                                           setPersonExtraId(
-                                                            p.id,
-                                                          );
-                                                          setPersonBankName(
-                                                            p.bankName || "",
-                                                          );
-                                                          setPersonBankAcc(
-                                                            p.bankAccountNumber ||
-                                                              "",
-                                                          );
-                                                          setPersonCard(
-                                                            p.cardNumber || "",
-                                                          );
-                                                          setPersonSheba(
-                                                            p.shebaNumber || "",
-                                                          );
-                                                          setPersonNotes(
-                                                            p.additionalNotes ||
-                                                              "",
-                                                          );
-                                                          setIsPersonExtraModalOpen(
+  p.id,
+);
+setPersonBankAccounts(p.bankAccounts || []);
+setPersonNotes(
+  p.additionalNotes || "",
+);
+setIsPersonExtraModalOpen(
                                                             true,
                                                           );
                                                         }}

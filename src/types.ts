@@ -41,6 +41,7 @@ export type Person = {
   bankAccountNumber?: string;
   cardNumber?: string;
   shebaNumber?: string;
+  bankAccounts?: { id?: string; bankName: string; accountNumber?: string; cardNumber?: string; shebaNumber?: string; title?: string }[];
   additionalNotes?: string;
   attachments?: { name: string; url: string; size?: number; type?: string; }[];
   group?: string;
@@ -140,6 +141,7 @@ export type Account = {
   accountNumber?: string;
   cardNumber?: string;
   shebaNumber?: string;
+  bankAccounts?: { id?: string; bankName: string; accountNumber?: string; cardNumber?: string; shebaNumber?: string; title?: string }[];
   balance: number;
   accountHolder?: string;
   title?: string;

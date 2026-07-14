@@ -239,7 +239,7 @@ export default function PersonLedger(props: any) {
                             }
                           }
                           else if (doc.sourceType === "receipt") { entryType = "transaction"; typeName = "رسید دریافت"; }
-                          else if (doc.sourceType === "payment") { entryType = "transaction"; typeName = (typeof isPayslip !== "undefined" && isPayslip) ? "فیش حقوقی" : "رسید پرداخت"; }
+                          else if (doc.sourceType === "payment") { entryType = "transaction"; typeName = (typeof isPayslip !== "undefined" && isPayslip) ? desc : "رسید پرداخت"; }
                           else if (doc.sourceType === "opening_balance") { entryType = "opening_balance"; typeName = "افتتاحیه"; }
                           else if (doc.sourceType?.startsWith("check_issued")) { entryType = "issued_check"; typeName = "چک پرداختی"; }
                           else if (doc.sourceType?.startsWith("check_received")) { entryType = "received_check"; typeName = "چک دریافتی"; }

@@ -535,9 +535,35 @@ export const deletePersonRole = async (id: string) => {
 };
 
 // Persons
+
+export const getPersonContacts = async () => {
+  return await getLocalData<any[]>('person_contacts', []);
+};
+
+export const savePersonContacts = async (contacts: any[]) => {
+  await saveLocalData('person_contacts', contacts);
+};
+
+export const getPersonBankAccounts = async () => {
+  return await getLocalData<any[]>('person_bank_accounts', []);
+};
+
+export const savePersonBankAccounts = async (accounts: any[]) => {
+  await saveLocalData('person_bank_accounts', accounts);
+};
+
 export const getPersons = async () => {
   const persons = await getLocalData<any[]>('persons', []);
-  console.log("persons in getPersons:", persons); return (persons || []).filter(p => !p.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
+  const contacts = await getLocalData<any[]>('person_contacts', []);
+  const bankAccounts = await getLocalData<any[]>('person_bank_accounts', []);
+  
+  const formattedPersons = (persons || []).map(p => {
+     p.contacts = contacts.filter(c => c.personId === p.id);
+     p.bankAccounts = bankAccounts.filter(b => b.personId === p.id);
+     return p;
+  });
+  
+  return formattedPersons.filter(p => !p.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
 };
 
 export const addPerson = async (person: any) => {
@@ -625,7 +651,20 @@ export const updatePerson = async (id: string, person: any) => {
   const index = persons.findIndex((p: any) => String(p.id) === String(id));
   if (index !== -1) {
     const oldPerson = persons[index];
-    const updatedPerson = { ...oldPerson, ...person, updatedAt: Date.now() };
+    const { contacts, bankAccounts, ...personData } = person;
+    const updatedPerson = { ...oldPerson, ...personData, updatedAt: Date.now() };
+
+    if (contacts) {
+       const allContacts = await getLocalData<any[]>('person_contacts', []);
+       const filteredContacts = allContacts.filter(c => c.personId !== id);
+       await saveLocalData('person_contacts', [...filteredContacts, ...contacts.map((c: any) => ({...c, personId: id}))]);
+    }
+
+    if (bankAccounts) {
+       const allBanks = await getLocalData<any[]>('person_bank_accounts', []);
+       const filteredBanks = allBanks.filter(b => b.personId !== id);
+       await saveLocalData('person_bank_accounts', [...filteredBanks, ...bankAccounts.map((b: any) => ({...b, personId: id}))]);
+    }
 
     // Ensure Ledger Account exists
     let parentCode = '12';
@@ -1051,8 +1090,8 @@ export const syncInvoiceAllocations = async (tx: any) => {
     if (!tx || !tx.id || !tx.linkedInvoices) return;
     try {
         const now = new Date().toISOString();
-        const salesPayments = await getLocalData('sales_invoice_payments', []);
-        const purchasePayments = await getLocalData('purchase_invoice_payments', []);
+        const salesPayments = await getLocalData<any[]>('sales_invoice_payments', []);
+        const purchasePayments = await getLocalData<any[]>('purchase_invoice_payments', []);
         const invoices = await getInvoices();
         
         let salesChanged = false;
@@ -1100,11 +1139,11 @@ export const syncInvoiceAllocations = async (tx: any) => {
 };
 
 export const getSalesInvoicePayments = async () => {
-  return await getLocalData('sales_invoice_payments', []);
+  return await getLocalData<any[]>('sales_invoice_payments', []);
 };
 
 export const getPurchaseInvoicePayments = async () => {
-  return await getLocalData('purchase_invoice_payments', []);
+  return await getLocalData<any[]>('purchase_invoice_payments', []);
 };
 export const getTransactions = async () => {
   let allTx: any[] = [];
@@ -1565,7 +1604,7 @@ export const deleteTransaction = async (id: string) => {
     const table = mapTransactionTypeToTable(t.type);
     operations.push({ type: 'delete', key: table, id: id });
     if (t.type === 'salary') {
-        const allPayslips = await getLocalData('payslips', []);
+        const allPayslips = await getLocalData<any[]>('payslips', []);
         const toDelete = allPayslips.find(p => String(p.transactionId) === String(id));
         if (toDelete) {
             operations.push({ type: 'delete', key: 'payslips', id: toDelete.id });
@@ -1748,7 +1787,7 @@ export const updateInvoice = async (id: string | number, updated: any, skipRecal
   // Generate/Update price history for invoice items
   if (newInvoice.type === 'purchase' || newInvoice.type === 'sale') {
       try {
-          const oldHistories = await getLocalData('product_price_history', []);
+          const oldHistories = await getLocalData<any[]>('product_price_history', []);
           const filteredHistories = oldHistories.filter(h => h.invoiceId?.toString() !== newInvoice.id?.toString());
           
           if (newInvoice.items && Array.isArray(newInvoice.items)) {
@@ -1941,11 +1980,11 @@ export const deleteInvoice = async (id: string, forceDelete: boolean = false, sk
     
     // Clear allocations for the deleted invoice(s)
     try {
-        const sales = await getLocalData('sales_invoice_payments', []);
+        const sales = await getLocalData<any[]>('sales_invoice_payments', []);
         const newSales = sales.filter(h => !toDeleteIds.has(h.invoiceId) && !toDeleteIds.has(String(h.invoiceId)) && !toDeleteIds.has(Number(h.invoiceId)));
         await saveLocalData('sales_invoice_payments', newSales);
 
-        const purchases = await getLocalData('purchase_invoice_payments', []);
+        const purchases = await getLocalData<any[]>('purchase_invoice_payments', []);
         const newPurchases = purchases.filter(h => !toDeleteIds.has(h.invoiceId) && !toDeleteIds.has(String(h.invoiceId)) && !toDeleteIds.has(Number(h.invoiceId)));
         await saveLocalData('purchase_invoice_payments', newPurchases);
         
@@ -2415,7 +2454,18 @@ export const deleteLedgerAccount = async (id: string | number) => {
 
 export const getAccountingDocuments = async () => {
   const docs = await getLocalData<any[]>('accounting_documents', []);
-  return (docs || []).filter(d => !d.isDeleted);
+  return (docs || [])
+    .filter(d => !d.isDeleted)
+    .sort((a, b) => {
+       // Sort by documentNumber descending as primary, then createdAt
+       const numB = Number(b.documentNumber || 0);
+       const numA = Number(a.documentNumber || 0);
+       if (numB !== numA) return numB - numA;
+       
+       const timeB = b.createdAt || new Date(b.date || 0).getTime() || 0;
+       const timeA = a.createdAt || new Date(a.date || 0).getTime() || 0;
+       return timeB - timeA;
+    });
 };
 export const saveAccountingDocuments = async (data: any[]) => saveLocalData('accounting_documents', data);
 export const addAccountingDocument = async (doc: any) => {
@@ -2513,7 +2563,7 @@ export const syncCheckAccountingDocument = async (checkType: 'issued' | 'receive
     let personLedgerId = defaultLedger;
     const personId = checkType === 'issued' ? check.payeeId : check.payerId;
     if (personId) {
-      const persons = await getLocalData('persons', []);
+      const persons = await getLocalData<any[]>('persons', []);
       const person = persons.find(p => String(p.id) === String(personId));
       if (person) {
         personName = person.name || person.alias || 'نامشخص';
@@ -2532,7 +2582,7 @@ export const syncCheckAccountingDocument = async (checkType: 'issued' | 'receive
     let bankLedgerId = defaultLedger;
     let bankAccountId = check.bankAccountId || check.accountId;
     if (checkType === 'issued' && check.checkbookId) {
-      const checkbooks = await getLocalData('checkbooks', []);
+      const checkbooks = await getLocalData<any[]>('checkbooks', []);
       const cb = checkbooks.find(c => String(c.id) === String(check.checkbookId));
       if (cb && cb.accountId) {
         bankAccountId = cb.accountId;
@@ -2774,7 +2824,7 @@ export const saveInstallments = async (installments: any[]) => {
 };
 
 export const getSystemLogs = async () => {
-  const logs = await getLocalData('system_logs', [], { limit: 50 });
+  const logs = await getLocalData<any[]>('system_logs', [], { limit: 50 });
   return logs.sort((a, b) => b.timestamp - a.timestamp);
 };
 
@@ -2786,7 +2836,7 @@ export const addSystemLog = async (action, details, entityType, entityId) => {
 
 // --- SMS Messages ---
 export const getSmsMessages = async (): Promise<any[]> => {
-  return await getLocalData('sms_messages', []);
+  return await getLocalData<any[]>('sms_messages', []);
 };
 
 export const addSmsMessage = async (message: any): Promise<void> => {
@@ -2984,7 +3034,7 @@ export const updateProductPriceHistory = async (id: string, updatedData: any) =>
 
 
 export const getDebtorsTrackings = async () => {
-  return await getLocalData('debtors_trackings', []);
+  return await getLocalData<any[]>('debtors_trackings', []);
 };
 
 export const saveDebtorsTrackings = async (data: any[]) => {

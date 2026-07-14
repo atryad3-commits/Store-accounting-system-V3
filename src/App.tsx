@@ -1536,6 +1536,7 @@ export default function App() {
   const [personBankAcc, setPersonBankAcc] = useState("");
   const [personCard, setPersonCard] = useState("");
   const [personSheba, setPersonSheba] = useState("");
+  const [personBankAccounts, setPersonBankAccounts] = useState<any[]>([]);
   const [personNotes, setPersonNotes] = useState("");
 
   // Persons Import/Export Modal states
@@ -7179,7 +7180,7 @@ ${errMsg}`);
                   />
                 ) : activeTab === "persons" ? (
                   <PersonsManager
-                    filteredPersons={filteredPersons} personPageSize={personPageSize} personCurrentPage={personCurrentPage} calculatePersonBalance={calculatePersonBalance} formatNumber={formatNumber} personSearchTerm={personSearchTerm} setPersonSearchTerm={setPersonSearchTerm} selectedPersonGroup={selectedPersonGroup} setSelectedPersonGroup={setSelectedPersonGroup} personGroups={personGroups} selectedPersonRole={selectedPersonRole} setSelectedPersonRole={setSelectedPersonRole} personRoles={personRoles} personsViewMode={personsViewMode} setPersonsViewMode={setPersonsViewMode} setIsPersonModalOpen={setIsPersonModalOpen} setPersonCurrentPage={setPersonCurrentPage} getRoleBadgeClasses={getRoleBadgeClasses} getRoleName={getRoleName} handleEditPerson={handleEditPerson} setProfilePersonId={setProfilePersonId} setLedgerPersonId={setLedgerPersonId} setRawActiveTab={setRawActiveTab} handleDeletePerson={handleDeletePerson} setPrintingPersonLedger={setPrintingPersonLedger} fetchPersons={fetchPersons} activePersonsOnly={activePersonsOnly} clearDraft={clearDraft} handleGenerateMissingAccountingCodes={handleGenerateMissingAccountingCodes} isGeneratingCodes={isGeneratingCodes} setPersonIOAction={setPersonIOAction} setIsPersonIOModalOpen={setIsPersonIOModalOpen} setEditingPersonId={setEditingPersonId} setNewPersonType={setNewPersonType} setNewPersonTitle={setNewPersonTitle} setNewPersonAlias={setNewPersonAlias} setNewPersonFirstName={setNewPersonFirstName} setNewPersonLastName={setNewPersonLastName} setNewPersonCompanyName={setNewPersonCompanyName} setNewPersonFatherName={setNewPersonFatherName} setNewPersonNationalId={setNewPersonNationalId} setNewPersonAccountingCode={setNewPersonAccountingCode} setNewPersonAddress={setNewPersonAddress} setNewPersonImage={setNewPersonImage} setNewPersonPhone={setNewPersonPhone} setNewPersonContacts={setNewPersonContacts} setNewPersonRole={setNewPersonRole} setNewPersonInitialBalance={setNewPersonInitialBalance} setNewPersonInitialBalanceType={setNewPersonInitialBalanceType} setNewPersonCreditLimit={setNewPersonCreditLimit} successMsg={successMsg} getPersonDisplayName={getPersonDisplayName} toPersianDigits={toPersianDigits} storeSettings={storeSettings} setCustomerId={setCustomerId} setReceiptPersonId={setReceiptPersonId} setPersonExtraId={setPersonExtraId} setPersonBankName={setPersonBankName} setPersonBankAcc={setPersonBankAcc} setPersonCard={setPersonCard} setPersonSheba={setPersonSheba} setPersonNotes={setPersonNotes} setIsPersonExtraModalOpen={setIsPersonExtraModalOpen} confirmAction={confirmAction} setPersonPageSize={setPersonPageSize} setActiveTab={setActiveTab}
+                    filteredPersons={filteredPersons} personPageSize={personPageSize} personCurrentPage={personCurrentPage} calculatePersonBalance={calculatePersonBalance} formatNumber={formatNumber} personSearchTerm={personSearchTerm} setPersonSearchTerm={setPersonSearchTerm} selectedPersonGroup={selectedPersonGroup} setSelectedPersonGroup={setSelectedPersonGroup} personGroups={personGroups} selectedPersonRole={selectedPersonRole} setSelectedPersonRole={setSelectedPersonRole} personRoles={personRoles} personsViewMode={personsViewMode} setPersonsViewMode={setPersonsViewMode} setIsPersonModalOpen={setIsPersonModalOpen} setPersonCurrentPage={setPersonCurrentPage} getRoleBadgeClasses={getRoleBadgeClasses} getRoleName={getRoleName} handleEditPerson={handleEditPerson} setProfilePersonId={setProfilePersonId} setLedgerPersonId={setLedgerPersonId} setRawActiveTab={setRawActiveTab} handleDeletePerson={handleDeletePerson} setPrintingPersonLedger={setPrintingPersonLedger} fetchPersons={fetchPersons} activePersonsOnly={activePersonsOnly} clearDraft={clearDraft} handleGenerateMissingAccountingCodes={handleGenerateMissingAccountingCodes} isGeneratingCodes={isGeneratingCodes} setPersonIOAction={setPersonIOAction} setIsPersonIOModalOpen={setIsPersonIOModalOpen} setEditingPersonId={setEditingPersonId} setNewPersonType={setNewPersonType} setNewPersonTitle={setNewPersonTitle} setNewPersonAlias={setNewPersonAlias} setNewPersonFirstName={setNewPersonFirstName} setNewPersonLastName={setNewPersonLastName} setNewPersonCompanyName={setNewPersonCompanyName} setNewPersonFatherName={setNewPersonFatherName} setNewPersonNationalId={setNewPersonNationalId} setNewPersonAccountingCode={setNewPersonAccountingCode} setNewPersonAddress={setNewPersonAddress} setNewPersonImage={setNewPersonImage} setNewPersonPhone={setNewPersonPhone} setNewPersonContacts={setNewPersonContacts} setNewPersonRole={setNewPersonRole} setNewPersonInitialBalance={setNewPersonInitialBalance} setNewPersonInitialBalanceType={setNewPersonInitialBalanceType} setNewPersonCreditLimit={setNewPersonCreditLimit} successMsg={successMsg} getPersonDisplayName={getPersonDisplayName} toPersianDigits={toPersianDigits} storeSettings={storeSettings} setCustomerId={setCustomerId} setReceiptPersonId={setReceiptPersonId} setPersonExtraId={setPersonExtraId} setPersonBankName={setPersonBankName} setPersonBankAcc={setPersonBankAcc} setPersonCard={setPersonCard} setPersonSheba={setPersonSheba} setPersonBankAccounts={setPersonBankAccounts} setPersonNotes={setPersonNotes} setIsPersonExtraModalOpen={setIsPersonExtraModalOpen} confirmAction={confirmAction} setPersonPageSize={setPersonPageSize} setActiveTab={setActiveTab}
                   />
                 ) : activeTab === "person_groups" ? (
                   <PersonGroupsManager showNotification={showNotification} />
@@ -9897,161 +9898,146 @@ ${errMsg}`);
               )}
 
               {isPersonExtraModalOpen && (
-                <div key="isPersonExtraModalOpen-modal"
-                  className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm"
-                  dir="rtl"
-                >
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-full max-w-lg flex flex-col"
-                  >
-                    <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                        <Info className="w-5 h-5 text-emerald-500" />
-                        ثبت اطلاعات تکمیلی بانکی و یادداشت‌ها
-                      </h3>
-                      <button
-                        onClick={() => setIsPersonExtraModalOpen(false)}
-                        className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-colors"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                    <div className="p-6">
-                      <form
-                        id="personExtraForm"
-                        onSubmit={async (e) => {
-                          e.preventDefault();
-                          confirmAction(
-                            "آیا از ذخیره اطلاعات بانکی و تکمیلی اطمینان دارید؟",
-                            async () => {
-                              if (personExtraId) {
-                                const existing = persons.find(
-                                  (p) => p.id === personExtraId,
-                                );
-                                if (existing) {
-                                  const updated = await updatePerson(
-                                    personExtraId as string,
-                                    {
-                                      ...existing,
-                                      bankName: personBankName,
-                                      bankAccountNumber: personBankAcc,
-                                      cardNumber: personCard,
-                                      shebaNumber: personSheba,
-                                      additionalNotes: personNotes,
-                                    },
-                                  );
-                                  if (updated) {
-                                    setPersons(
-                                      (persons || []).map((p, index) =>
-                                        p.id === personExtraId ? updated : p,
-                                      ),
-                                    );
-                                  }
-                                }
-                              }
-                              setIsPersonExtraModalOpen(false);
-                            },
-                          );
-                        }}
-                        className="space-y-4"
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              نام بانک
-                            </label>
-                            <input
-                              type="text"
-                              value={personBankName}
-                              onChange={(e) =>
-                                setPersonBankName(e.target.value)
-                              }
-                              className="w-full px-4 py-2 border rounded-xl"
-                              placeholder="مثال: ملت"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              شماره حساب
-                            </label>
-                            <input
-                              type="text"
-                              value={personBankAcc}
-                              onChange={(e) => setPersonBankAcc(e.target.value)}
-                              className="w-full px-4 py-2 border rounded-xl"
-                              dir="ltr"
-                              placeholder="123456789"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              شماره کارت
-                            </label>
-                            <input
-                              type="text"
-                              value={personCard}
-                              onChange={(e) => setPersonCard(e.target.value)}
-                              className="w-full px-4 py-2 border rounded-xl"
-                              dir="ltr"
-                              placeholder="6104-337X-XXXX-XXXX"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              شماره شبا
-                            </label>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-mono">
-                                IR
-                              </span>
-                              <input
-                                type="text"
-                                value={personSheba}
-                                onChange={(e) => setPersonSheba(e.target.value)}
-                                className="w-full px-4 py-2 pl-9 border rounded-xl text-left"
-                                dir="ltr"
-                                placeholder="123456..."
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            یادداشت‌های اضافی اطلاعات شخص (آدرس‌های بیشتر و ...)
-                          </label>
-                          <textarea
-                            value={personNotes}
-                            onChange={(e) => setPersonNotes(e.target.value)}
-                            className="w-full px-4 py-2 border rounded-xl"
-                            rows={3}
-                            placeholder="یادداشت و اطلاعات بیشتر خود را وارد کنید..."
-                          />
-                        </div>
-                      </form>
-                    </div>
-                    <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3 rounded-b-2xl">
-                      <button
-                        type="button"
-                        onClick={() => setIsPersonExtraModalOpen(false)}
-                        className="px-5 py-2.5 text-gray-700 font-medium hover:bg-gray-100 rounded-xl transition-colors text-sm"
-                      >
-                        انصراف
-                      </button>
-                      <button
-                        form="personExtraForm"
-                        type="submit"
-                        className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition-colors shadow-sm text-sm flex items-center gap-2"
-                      >
-                        <Save className="w-4 h-4" />
-                        ذخیره اطلاعات تکمیلی
-                      </button>
-                    </div>
-                  </motion.div>
+  <div key="isPersonExtraModalOpen-modal"
+    className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm"
+    dir="rtl"
+  >
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-full max-w-4xl flex flex-col max-h-[90vh]"
+    >
+      <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <Info className="w-5 h-5 text-emerald-500" />
+          ثبت اطلاعات تکمیلی بانکی و یادداشت‌ها
+        </h3>
+        <button
+          onClick={() => setIsPersonExtraModalOpen(false)}
+          className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+      <div className="p-6 overflow-y-auto">
+        <form
+          id="personExtraForm"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            confirmAction(
+              "آیا از ذخیره اطلاعات بانکی و تکمیلی اطمینان دارید؟",
+              async () => {
+                if (personExtraId) {
+                  const existing = persons.find((p) => p.id === personExtraId);
+                  if (existing) {
+                    const updated = await updatePerson(personExtraId as string, {
+                      ...existing,
+                      additionalNotes: personNotes,
+                      bankAccounts: personBankAccounts,
+                    });
+                    if (updated) {
+                      setPersons((persons || []).map((p) => (p.id === personExtraId ? updated : p)));
+                    }
+                  }
+                }
+                setIsPersonExtraModalOpen(false);
+              },
+            );
+          }}
+          className="space-y-6"
+        >
+          <div>
+             <div className="flex justify-between items-center mb-3">
+               <label className="block text-sm font-medium text-gray-700">
+                 حساب‌های بانکی
+               </label>
+               <button
+                 type="button"
+                 onClick={() => setPersonBankAccounts([...personBankAccounts, { id: generateId(), bankName: '', accountNumber: '', cardNumber: '', shebaNumber: '', title: '' }])}
+                 className="text-emerald-600 text-sm font-medium flex items-center gap-1 hover:text-emerald-700"
+               >
+                 <Plus className="w-4 h-4" />
+                 افزودن حساب
+               </button>
+             </div>
+             
+             {personBankAccounts.length === 0 ? (
+                <div className="text-center py-6 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                  <p className="text-sm text-gray-500">هیچ حسابی ثبت نشده است.</p>
                 </div>
-              )}
+             ) : (
+                <div className="space-y-3">
+                  {personBankAccounts.map((account, index) => (
+                    <div key={account.id || index} className="p-4 bg-gray-50 rounded-xl border border-gray-200 relative group">
+                      <button
+                         type="button"
+                         onClick={() => setPersonBankAccounts(personBankAccounts.filter((_, i) => i !== index))}
+                         className="absolute left-3 top-3 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 rounded-lg"
+                      >
+                         <Trash2 className="w-4 h-4" />
+                      </button>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                        <div className="lg:col-span-1">
+                           <label className="block text-xs text-gray-500 mb-1">عنوان حساب</label>
+                           <input type="text" value={account.title || ''} onChange={e => { const newAccs = [...personBankAccounts]; newAccs[index].title = e.target.value; setPersonBankAccounts(newAccs); }} className="w-full px-3 py-1.5 text-sm border rounded-lg" placeholder="مثلا: حساب جاری" />
+                        </div>
+                        <div className="lg:col-span-1">
+                           <label className="block text-xs text-gray-500 mb-1">نام بانک</label>
+                           <input type="text" value={account.bankName || ''} onChange={e => { const newAccs = [...personBankAccounts]; newAccs[index].bankName = e.target.value; setPersonBankAccounts(newAccs); }} className="w-full px-3 py-1.5 text-sm border rounded-lg" placeholder="مثلا: ملی" />
+                        </div>
+                        <div className="lg:col-span-1">
+                           <label className="block text-xs text-gray-500 mb-1">شماره حساب</label>
+                           <input type="text" dir="ltr" value={account.accountNumber || ''} onChange={e => { const newAccs = [...personBankAccounts]; newAccs[index].accountNumber = e.target.value; setPersonBankAccounts(newAccs); }} className="w-full px-3 py-1.5 text-sm border rounded-lg text-left" placeholder="010..." />
+                        </div>
+                        <div className="lg:col-span-1">
+                           <label className="block text-xs text-gray-500 mb-1">شماره کارت</label>
+                           <input type="text" dir="ltr" value={account.cardNumber || ''} onChange={e => { const newAccs = [...personBankAccounts]; newAccs[index].cardNumber = e.target.value; setPersonBankAccounts(newAccs); }} className="w-full px-3 py-1.5 text-sm border rounded-lg text-left" placeholder="6037..." />
+                        </div>
+                        <div className="lg:col-span-1">
+                           <label className="block text-xs text-gray-500 mb-1">شماره شبا</label>
+                           <input type="text" dir="ltr" value={account.shebaNumber || ''} onChange={e => { const newAccs = [...personBankAccounts]; newAccs[index].shebaNumber = e.target.value; setPersonBankAccounts(newAccs); }} className="w-full px-3 py-1.5 text-sm border rounded-lg text-left" placeholder="IR..." />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+             )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              یادداشت‌های اضافی اطلاعات شخص (آدرس‌های بیشتر و ...)
+            </label>
+            <textarea
+              value={personNotes}
+              onChange={(e) => setPersonNotes(e.target.value)}
+              className="w-full px-4 py-2 border rounded-xl"
+              rows={3}
+              placeholder="یادداشت و اطلاعات بیشتر خود را وارد کنید..."
+            />
+          </div>
+        </form>
+      </div>
+      <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end gap-3 rounded-b-2xl">
+        <button
+          type="button"
+          onClick={() => setIsPersonExtraModalOpen(false)}
+          className="px-5 py-2.5 text-gray-700 font-medium hover:bg-gray-100 rounded-xl transition-colors text-sm"
+        >
+          انصراف
+        </button>
+        <button
+          form="personExtraForm"
+          type="submit"
+          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition-colors shadow-sm text-sm flex items-center gap-2"
+        >
+          <Save className="w-4 h-4" />
+          ذخیره اطلاعات تکمیلی
+        </button>
+      </div>
+    </motion.div>
+  </div>
+)}
               <PersonIOModal isOpen={isPersonIOModalOpen} onClose={() => setIsPersonIOModalOpen(false)} action={personIOAction} setAction={setPersonIOAction} persons={persons} storeSettings={storeSettings} addPerson={addPerson} showNotification={showNotification} confirmAction={confirmAction} getRoleName={getRoleName} fetchPersons={fetchPersons} />
               {isPersonModalOpen && (
                 <div key="isPersonModalOpen-modal"
@@ -11449,7 +11435,7 @@ ${errMsg}`);
                             }
                           }
                           else if (doc.sourceType === "receipt") { entryType = "transaction"; typeName = "رسید دریافت"; }
-                          else if (doc.sourceType === "payment") { entryType = "transaction"; typeName = (typeof isPayslip !== "undefined" && isPayslip) ? "فیش حقوقی" : "رسید پرداخت"; }
+                          else if (doc.sourceType === "payment") { entryType = "transaction"; typeName = (typeof isPayslip !== "undefined" && isPayslip) ? desc : "رسید پرداخت"; }
                           else if (doc.sourceType === "opening_balance") { entryType = "opening_balance"; typeName = "افتتاحیه"; }
                           else if (doc.sourceType?.startsWith("check_issued")) { entryType = "issued_check"; typeName = "چک پرداختی"; }
                           else if (doc.sourceType?.startsWith("check_received")) { entryType = "received_check"; typeName = "چک دریافتی"; }
