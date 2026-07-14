@@ -7279,6 +7279,12 @@ ${errMsg}`);
                     calculatePersonBalance={calculatePersonBalance}
                     onBack={() => setActiveTab("persons")}
                     onEdit={handleEditPerson}
+                    onViewExtraInfo={(p: any) => {
+                      setPersonExtraId(p.id);
+                      setPersonBankAccounts(p.bankAccounts || []);
+                      setPersonNotes(p.additionalNotes || "");
+                      setIsPersonExtraModalOpen(true);
+                    }}
                     onViewLedger={(id) => {
                       setLedgerPersonId(id);
                       setActiveTab("person_ledger");

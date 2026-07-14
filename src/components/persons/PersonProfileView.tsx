@@ -17,6 +17,7 @@ interface PersonProfileViewProps {
   calculatePersonBalance: (id: string | number) => { amount: number, status: string, color?: string, bg?: string };
   onBack: () => void;
   onEdit: (person: any) => void;
+  onViewExtraInfo: (person: any) => void;
   onViewLedger: (personId: string | number) => void;
   onCreateSale: (personId: string | number) => void;
   onCreatePurchase: (personId: string | number) => void;
@@ -42,6 +43,7 @@ export default function PersonProfileView({
   calculatePersonBalance,
   onBack,
   onEdit,
+  onViewExtraInfo,
   onViewLedger,
   onCreateSale,
   onCreatePurchase,
@@ -216,6 +218,14 @@ export default function PersonProfileView({
           >
             <Edit2 className="w-4 h-4" />
             ویرایش اطلاعات
+          </button>
+          
+          <button 
+            onClick={() => onViewExtraInfo(person)}
+            className="mt-3 w-full py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 border border-indigo-100"
+          >
+            <FileText className="w-4 h-4" />
+            اطلاعات تکمیلی بانکی و یادداشت‌ها
           </button>
         </div>
 
