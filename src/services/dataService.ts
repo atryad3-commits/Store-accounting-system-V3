@@ -635,11 +635,11 @@ export const addPerson = async (person: any) => {
   
   if (contacts && contacts.length > 0) {
       const allContacts = await getLocalData<any[]>('person_contacts', []);
-      await saveLocalData('person_contacts', [...allContacts, ...contacts.map((c: any) => ({...c, personId: newPerson.id}))]);
+      await saveLocalData('person_contacts', [...allContacts, ...contacts.map((c: any) => ({...c, id: c.id || generateId(), personId: newPerson.id}))]);
   }
   if (bankAccounts && bankAccounts.length > 0) {
       const allBanks = await getLocalData<any[]>('person_bank_accounts', []);
-      await saveLocalData('person_bank_accounts', [...allBanks, ...bankAccounts.map((b: any) => ({...b, personId: newPerson.id}))]);
+      await saveLocalData('person_bank_accounts', [...allBanks, ...bankAccounts.map((b: any) => ({...b, id: b.id || generateId(), personId: newPerson.id}))]);
   }
 
   if (newPerson.personCode) {
@@ -667,13 +667,13 @@ export const updatePerson = async (id: string, person: any) => {
     if (contacts) {
        const allContacts = await getLocalData<any[]>('person_contacts', []);
        const filteredContacts = allContacts.filter(c => String(c.personId) !== String(id));
-       await saveLocalData('person_contacts', [...filteredContacts, ...contacts.map((c: any) => ({...c, personId: id}))]);
+       await saveLocalData('person_contacts', [...filteredContacts, ...contacts.map((c: any) => ({...c, id: c.id || generateId(), personId: id}))]);
     }
 
     if (bankAccounts) {
        const allBanks = await getLocalData<any[]>('person_bank_accounts', []);
        const filteredBanks = allBanks.filter(b => String(b.personId) !== String(id));
-       await saveLocalData('person_bank_accounts', [...filteredBanks, ...bankAccounts.map((b: any) => ({...b, personId: id}))]);
+       await saveLocalData('person_bank_accounts', [...filteredBanks, ...bankAccounts.map((b: any) => ({...b, id: b.id || generateId(), personId: id}))]);
     }
 
     // Ensure Ledger Account exists

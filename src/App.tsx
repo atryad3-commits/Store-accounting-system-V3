@@ -1,3 +1,4 @@
+import FastStocktakingMobile from "./components/inventory/FastStocktakingMobile";
 import PricingWizardModal from './components/modals/PricingWizardModal';
 import ReceiptsList from './components/financial/ReceiptsList';
 import InvoicesList from './components/invoices/InvoicesList';
@@ -314,6 +315,8 @@ const customPersonFilter = (option: any, inputValue: string) => {
 };
 
 export default function App() {
+  const isFastStocktaking = window.location.hash.startsWith('#fast-stocktaking');
+  if (isFastStocktaking) return <FastStocktakingMobile />;
   const [activeFinancialYear, setActiveFinancialYearState] =
     useState<any>(null);
   const [hasCheckedFinancialYears, setHasCheckedFinancialYears] =
@@ -9937,14 +9940,12 @@ ${errMsg}`);
                 if (personExtraId) {
                   const existing = persons.find((p) => String(p.id) === String(personExtraId));
                   if (existing) {
-                    const updated = await updatePerson(personExtraId as string, {
+                    await updatePerson(personExtraId as string, {
                       ...existing,
                       additionalNotes: personNotes,
                       bankAccounts: personBankAccounts,
                     });
-                    if (updated) {
-                      setPersons((persons || []).map((p) => (String(p.id) === String(personExtraId) ? updated : p)));
-                    }
+                    await fetchDataSilent();
                   }
                 }
                 setIsPersonExtraModalOpen(false);

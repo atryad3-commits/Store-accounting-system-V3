@@ -275,6 +275,14 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                          st.status === 'applied' ? <span className="inline-block px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold border border-emerald-200">اعمال شده</span> : 
                          <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200">{st.status}</span>}
                       </td>
+                      <td className="p-4 text-center">
+                         {st.status !== 'applied' && (
+                           <div className="flex flex-col items-center gap-1">
+                             <a href={`#fast-stocktaking?id=${st.id}`} target="_blank" rel="noreferrer" className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 hover:bg-indigo-100 flex items-center gap-1 whitespace-nowrap">باز کردن در موبایل</a>
+                             <span className="text-[10px] text-slate-400 font-mono">کد: {st.id}</span>
+                           </div>
+                         )}
+                      </td>
                       <td className="p-4 flex items-center justify-center gap-2">
                         <button onClick={() => handleViewOrEdit(st)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="مشاهده / ویرایش / اعمال">
                           <CheckCircle className="w-5 h-5" />
@@ -345,9 +353,9 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                     {showProductDropdown && productSearch && warehouseId && (
                       <div className="absolute top-full right-0 left-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-100 max-h-60 overflow-y-auto z-50">
                         {(products || []).filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).length > 0 ? (
-                          (products || []).filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).map(p => (
+                          (products || []).filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).map((p, pIdx) => (
                             <button 
-                              key={p.id}
+                              key={p.id || pIdx}
                               onClick={() => handleAddProductToCounting(p)}
                               className="w-full text-right p-3 hover:bg-indigo-50 border-b border-slate-50 last:border-0 flex justify-between items-center transition-colors"
                             >
@@ -394,9 +402,9 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                         {showProductDropdown && productSearch && (
                           <div className="absolute top-full right-0 left-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-100 max-h-60 overflow-y-auto z-50">
                             {(products || []).filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).length > 0 ? (
-                              (products || []).filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).map(p => (
+                              (products || []).filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch))).map((p, pIdx) => (
                                 <button 
-                                  key={p.id}
+                                  key={p.id || pIdx}
                                   onClick={() => handleAddProductToCounting(p)}
                                   className="w-full text-right p-3 hover:bg-indigo-50 border-b border-slate-50 last:border-0 flex justify-between items-center transition-colors"
                                 >
@@ -438,7 +446,7 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                        {filteredItems.map((it, idx) => {
                          const p = products.find(prod => prod.id === it.productId);
                          return (
-                           <tr key={it.productId} id={`item-row-${it.productId}`} className="hover:bg-slate-50/30 transition-colors">
+                           <tr key={`${it.productId}-${idx}`} id={`item-row-${it.productId}`} className="hover:bg-slate-50/30 transition-colors">
                              <td className="p-4 text-center text-slate-400 font-mono text-sm">{idx + 1}</td>
                              <td className="p-4 font-mono text-sm text-slate-500">{p?.code || p?.barcode || '-'}</td>
                              <td className="p-4 font-bold text-slate-800">{it.productName}</td>
