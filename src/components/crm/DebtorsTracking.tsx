@@ -17,17 +17,11 @@ import {
 } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import { Plus, X, Search, Phone, User, Calendar, Save, ListFilter, UserPlus, Users } from 'lucide-react';
+import { Trash2, Plus, X, Search, Phone, User, Calendar, Save, ListFilter, UserPlus, Users, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { getDebtorsTrackings, saveDebtorsTrackings } from '../../services/dataService';
+import { getDebtorsTrackings, saveDebtorsTrackings, getCrmColumns, saveCrmColumns } from '../../services/dataService';
 
-const COLUMNS = [
-  { id: 'initial', title: 'تماس اولیه', color: 'bg-slate-100', borderColor: 'border-slate-200', titleColor: 'text-slate-700' },
-  { id: 'promised', title: 'وعده پرداخت', color: 'bg-amber-50', borderColor: 'border-amber-200', titleColor: 'text-amber-700' },
-  { id: 'legal', title: 'اقدام قانونی', color: 'bg-rose-50', borderColor: 'border-rose-200', titleColor: 'text-rose-700' },
-  { id: 'paid', title: 'تسویه شده', color: 'bg-emerald-50', borderColor: 'border-emerald-200', titleColor: 'text-emerald-700' },
-  { id: 'failed', title: 'عدم وصول', color: 'bg-gray-100', borderColor: 'border-gray-300', titleColor: 'text-gray-600' }
-];
+
 
 function SortableItem(props: any) {
   const {
@@ -48,6 +42,7 @@ function SortableItem(props: any) {
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       {props.children}
+
     </div>
   );
 }
@@ -67,11 +62,13 @@ import DatePicker from 'react-multi-date-picker';
 import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
 
-export default function DebtorsTracking({ persons, showNotification, storeSettings }: any) {
+export default function DebtorsTracking({ persons, showNotification, storeSettings, confirmAction }: any) {
+  const [columns, setColumns] = useState<any[]>([]);
   const [items, setItems] = useState<any[]>([]);
   const [activeId, setActiveId] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [isColumnsModalOpen, setIsColumnsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
   
   const [addMode, setAddMode] = useState<'single' | 'group'>('single');
@@ -82,23 +79,56 @@ export default function DebtorsTracking({ persons, showNotification, storeSettin
   const [newNextDate, setNewNextDate] = useState('');
   
   const [searchQuery, setSearchQuery] = useState('');
-
+  
+  const [editingColumnId, setEditingColumnId] = useState<string | null>(null);
+  const [newColumnTitle, setNewColumnTitle] = useState('');
+  
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   useEffect(() => {
-    loadItems();
+    loadData();
   }, []);
 
-  const loadItems = async () => {
+  const loadData = async () => {
     try {
-      const data = await getDebtorsTrackings();
-      setItems(data || []);
+      const dataItems = await getDebtorsTrackings();
+      setItems(dataItems || []);
+      const cols = await getCrmColumns();
+      setColumns(cols || []);
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleSaveColumns = async (newCols: any[]) => {
+    setColumns(newCols);
+    await saveCrmColumns(newCols);
+  };
+
+  const handleAddColumn = () => {
+    if (!newColumnTitle.trim()) return;
+    const newCol = {
+      id: 'col_' + Date.now(),
+      title: newColumnTitle.trim(),
+      color: 'bg-gray-50',
+      borderColor: 'border-gray-200',
+      titleColor: 'text-gray-700'
+    };
+    handleSaveColumns([...columns, newCol]);
+    setNewColumnTitle('');
+  };
+
+  const handleDeleteColumn = (id: string) => {
+    if (items.some(item => item.status === id)) {
+      showNotification('ابتدا موارد داخل این ستون را جابجا کنید', 'error');
+      return;
+    }
+    confirmAction('آیا از حذف این ستون مطمئن هستید؟', () => {
+      handleSaveColumns(columns.filter(c => c.id !== id));
+    });
   };
 
   const handleDragStart = (event: any) => {
@@ -108,53 +138,86 @@ export default function DebtorsTracking({ persons, showNotification, storeSettin
   const handleDragOver = (event: any) => {
     const { active, over } = event;
     if (!over) return;
-
     const activeId = active.id;
     const overId = over.id;
-
     if (activeId === overId) return;
 
-    const isActiveColumn = COLUMNS.some(c => c.id === activeId);
-    const isOverColumn = COLUMNS.some(c => c.id === overId);
+    const activeContainer = items.find(i => i.id === activeId)?.status;
+    const overContainer = columns.some(c => c.id === overId) ? overId : items.find(i => i.id === overId)?.status;
 
-    if (!isActiveColumn && isOverColumn) {
-      setItems((prev) => {
-        const activeItems = prev.map(item => 
-          item.id === activeId ? { ...item, status: overId } : item
-        );
-        return activeItems;
-      });
+    if (!activeContainer || !overContainer || activeContainer === overContainer) {
+      return;
     }
+
+    setItems((prev) => {
+      const activeItems = prev.filter((item) => item.id !== activeId);
+      const activeItem = prev.find((item) => item.id === activeId);
+      if (!activeItem) return prev;
+      
+      let newIndex = prev.findIndex((item) => item.id === overId);
+      if (columns.some(c => c.id === overId)) {
+        newIndex = activeItems.length;
+      }
+      if (newIndex < 0) newIndex = activeItems.length;
+      
+      const newItems = [
+        ...activeItems.slice(0, newIndex),
+        { ...activeItem, status: overContainer },
+        ...activeItems.slice(newIndex)
+      ];
+      return newItems;
+    });
   };
 
   const handleDragEnd = async (event: any) => {
     const { active, over } = event;
     setActiveId(null);
-
     if (!over) return;
-
     const activeId = active.id;
     const overId = over.id;
 
-    const isOverColumn = COLUMNS.some(c => c.id === overId);
-    let newItems = [...items];
+    const activeContainer = items.find(i => i.id === activeId)?.status;
+    const overContainer = columns.some(c => c.id === overId) ? overId : items.find(i => i.id === overId)?.status;
 
-    if (isOverColumn) {
-      newItems = newItems.map(item => 
-        item.id === activeId ? { ...item, status: overId } : item
-      );
-    } else {
+    let newItems = [...items];
+    
+    if (activeContainer && overContainer && activeContainer === overContainer) {
       const oldIndex = newItems.findIndex(item => item.id === activeId);
       const newIndex = newItems.findIndex(item => item.id === overId);
-      
       if (oldIndex !== -1 && newIndex !== -1) {
-        newItems[oldIndex].status = newItems[newIndex].status;
         newItems = arrayMove(newItems, oldIndex, newIndex);
+        setItems(newItems);
+        await saveDebtorsTrackings(newItems);
+      }
+    } else if (activeContainer && overContainer && activeContainer !== overContainer) {
+      const oldIndex = newItems.findIndex(item => item.id === activeId);
+      if (oldIndex !== -1) {
+         // Revert the optimistic update since we will ask for confirmation
+         const targetStatusName = columns.find(c => c.id === overContainer)?.title || '';
+         const personId = newItems[oldIndex].personId;
+         const person = persons.find(p => String(p.id) === personId);
+         
+         if (confirmAction) {
+           confirmAction(`آیا از انتقال "${person?.name || person?.companyName}" به وضعیت "${targetStatusName}" مطمئن هستید؟`, async () => {
+              newItems[oldIndex].status = overContainer;
+              
+              // Also add a note about status change
+              if (!newItems[oldIndex].notes) newItems[oldIndex].notes = [];
+              newItems[oldIndex].notes.push({
+                text: `تغییر وضعیت به ${targetStatusName}`,
+                date: new Date().toISOString()
+              });
+              
+              setItems(newItems);
+              await saveDebtorsTrackings(newItems);
+           });
+         } else {
+             newItems[oldIndex].status = overContainer;
+             setItems(newItems);
+             await saveDebtorsTrackings(newItems);
+         }
       }
     }
-
-    setItems(newItems);
-    await saveDebtorsTrackings(newItems);
   };
 
   const handleAddSubmit = async (e: React.FormEvent) => {
@@ -284,7 +347,7 @@ export default function DebtorsTracking({ persons, showNotification, storeSettin
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          {COLUMNS.map(column => {
+          {columns.map(column => {
             const columnItems = filteredItems.filter(item => item.status === column.id);
             return (
               <div key={column.id} className={`flex-shrink-0 w-80 rounded-2xl border ${column.borderColor} ${column.color} flex flex-col max-h-[700px]`}>
@@ -429,7 +492,7 @@ export default function DebtorsTracking({ persons, showNotification, storeSettin
                        {persons.find((p: any) => String(p.id) === selectedItem.personId)?.name || 'نامشخص'}
                     </h4>
                     <span className="text-[10px] font-bold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded mt-1 inline-block">
-                      {COLUMNS.find(c => c.id === selectedItem.status)?.title}
+                      {columns.find(c => c.id === selectedItem.status)?.title || selectedItem.status}
                     </span>
                   </div>
                 </div>
@@ -456,9 +519,9 @@ export default function DebtorsTracking({ persons, showNotification, storeSettin
                   <div>
                     <label className="block text-xs font-black text-gray-700 mb-1.5">ثبت یادداشت جدید</label>
                     <textarea 
-                      value={newNote} 
-                      onChange={e => setNewNote(e.target.value)} 
-                      rows={2} 
+                      value={newNote}
+                      onChange={e => setNewNote(e.target.value)}
+                      rows={2}
                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none resize-none"
                       placeholder="نتیجه تماس یا توافقات..."
                     />
@@ -489,6 +552,51 @@ export default function DebtorsTracking({ persons, showNotification, storeSettin
                   >
                     <Save className="w-4 h-4" /> ذخیره یادداشت
                   </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isColumnsModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsColumnsModalOpen(false)} className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                <h3 className="font-black text-gray-900 flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-indigo-500" /> مدیریت وضعیت‌های پیگیری
+                </h3>
+                <button onClick={() => setIsColumnsModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+              </div>
+              
+              <div className="p-5 space-y-4">
+                <div className="flex gap-2">
+                   <input 
+                      type="text" 
+                      value={newColumnTitle}
+                      onChange={e => setNewColumnTitle(e.target.value)}
+                      placeholder="عنوان وضعیت جدید..."
+                      className="flex-1 border border-gray-200 rounded-xl px-4 py-2 text-sm bg-gray-50 focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                   />
+                   <button 
+                      onClick={handleAddColumn}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition-colors whitespace-nowrap"
+                   >
+                      افزودن وضعیت
+                   </button>
+                </div>
+                
+                <div className="space-y-2 mt-4 max-h-64 overflow-y-auto">
+                   {columns.map(c => (
+                     <div key={c.id} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-xl">
+                        <span className="text-sm font-bold text-gray-800">{c.title}</span>
+                        <button onClick={() => handleDeleteColumn(c.id)} className="text-rose-500 hover:text-rose-700 p-1">
+                           <Trash2 className="w-4 h-4" />
+                        </button>
+                     </div>
+                   ))}
                 </div>
               </div>
             </motion.div>

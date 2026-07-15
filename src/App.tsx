@@ -7466,7 +7466,7 @@ ${errMsg}`);
                 ) : activeTab === "kardex" ? (
                   <KardexReport />
                 ) : activeTab === "crm_dashboard" ? (
-                  <CRMDashboard persons={persons} showNotification={showNotification} />
+                  <CRMDashboard persons={persons} showNotification={showNotification} confirmAction={confirmAction} storeSettings={storeSettings} />
                 ) : activeTab === "analytical_dashboard" ? (
                   <AnalyticalDashboard showNotification={showNotification} />
                 ) : activeTab === "sms_panel" ? (

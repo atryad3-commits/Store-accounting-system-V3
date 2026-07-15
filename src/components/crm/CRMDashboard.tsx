@@ -10,7 +10,7 @@ interface CRMDashboardProps {
   persons: any[];
 }
 
-export default function CRMDashboard({ showNotification, persons, storeSettings }: any) {
+export default function CRMDashboard({ showNotification, persons, storeSettings, confirmAction }: any) {
   const [followUps, setFollowUps] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'all'>('pending');
@@ -140,7 +140,7 @@ export default function CRMDashboard({ showNotification, persons, storeSettings 
       </div>
 
       {mainTab === 'debtors' ? (
-        <DebtorsTracking persons={persons} showNotification={showNotification} storeSettings={storeSettings} />
+        <DebtorsTracking persons={persons} showNotification={showNotification} storeSettings={storeSettings} confirmAction={confirmAction} />
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
