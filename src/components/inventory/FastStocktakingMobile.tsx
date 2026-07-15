@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { 
   Package, Plus, Search, CheckCircle, Save, AlertCircle, X, Check, Box, ChevronRight
 } from "lucide-react";
-import { 
-  getStocktakings, 
+import { getProductCategories, getStocktakings, 
   updateStocktaking, 
   getProducts, 
   getWarehouseStocks, 
@@ -31,6 +30,11 @@ export default function FastStocktakingMobile() {
 
   // New Product
   const [isCreatingProduct, setIsCreatingProduct] = useState(false);
+
+  const [categories, setCategories] = useState<any[]>([]);
+  const [newProductCategoryId, setNewProductCategoryId] = useState("");
+  const [newProductUnit, setNewProductUnit] = useState("عدد");
+
   const [newProductName, setNewProductName] = useState("");
   const [newProductCode, setNewProductCode] = useState("");
 
@@ -41,6 +45,8 @@ export default function FastStocktakingMobile() {
     const loadInit = async () => {
       try {
         const p = await getProducts();
+        const cats = await getProductCategories();
+        setCategories(cats);
         setProducts(p.filter((pr: any) => pr.type === "product" || !pr.type));
       } catch (err) {}
       if (stocktakingCode) {
@@ -87,13 +93,16 @@ export default function FastStocktakingMobile() {
         code: newProductCode,
         type: "product",
         isActive: true,
-        unit: "عدد",
+        unit: newProductUnit,
+        categoryId: newProductCategoryId,
       });
       setProducts(prev => [newP, ...prev]);
       setSelectedProduct(newP);
       setIsCreatingProduct(false);
       setNewProductName("");
       setNewProductCode("");
+      setNewProductCategoryId("");
+      setNewProductUnit("عدد");
       setTimeout(() => {
          document.getElementById('countedQtyInput')?.focus();
       }, 100);
@@ -212,14 +221,27 @@ export default function FastStocktakingMobile() {
     <div className="min-h-screen bg-gray-100 flex flex-col" dir="rtl">
       {/* Header */}
       <header className="bg-white px-4 py-3 border-b border-gray-200 flex items-center justify-between sticky top-0 z-20 shadow-sm">
-        <div>
-          <h1 className="font-black text-gray-800 text-lg flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-emerald-500" />
-            در حال شمارش
-          </h1>
-          <p className="text-xs text-gray-500 font-mono">
-            کد: {session.id} | تعداد کل اقلام: {session.items?.filter(i => i.countedStock !== null).length || 0}
-          </p>
+                <div className="flex-1 w-full">
+          <div className="flex justify-between items-center w-full mb-1">
+            <h1 className="font-black text-gray-800 text-lg flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-emerald-500" />
+              در حال شمارش
+            </h1>
+            <p className="text-xs text-gray-500 font-mono bg-gray-100 px-2 py-1 rounded-lg">
+              کد: {session.id}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 mt-1.5 w-full">
+            <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+               <div 
+                 className="bg-emerald-500 h-2 rounded-full transition-all duration-500" 
+                 style={{ width: `${products.length > 0 ? Math.min(100, Math.round(((session.items?.filter((i: any) => i.countedStock !== null).length || 0) / products.length) * 100)) : 0}%` }}
+               ></div>
+            </div>
+            <span className="text-[10px] font-bold text-gray-500 whitespace-nowrap">
+               {session.items?.filter((i: any) => i.countedStock !== null).length || 0} از {products.length}
+            </span>
+          </div>
         </div>
         <button onClick={() => setSession(null)} className="p-2 text-gray-400 hover:bg-gray-50 rounded-xl">
            <X className="w-5 h-5" />
@@ -245,6 +267,19 @@ export default function FastStocktakingMobile() {
                <div>
                   <label className="block text-xs font-bold text-gray-600 mb-1">کد کالا / بارکد (اختیاری)</label>
                   <input type="text" value={newProductCode} onChange={e => setNewProductCode(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 font-mono" dir="ltr" />
+               </div>
+               <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">دسته‌بندی (گروه کالا)</label>
+                  <select value={newProductCategoryId} onChange={e => setNewProductCategoryId(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500">
+                    <option value="">بدون دسته‌بندی</option>
+                    {categories.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+               </div>
+               <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">واحد اندازه‌گیری</label>
+                  <input type="text" value={newProductUnit} onChange={e => setNewProductUnit(e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500" placeholder="مثال: عدد، کیلوگرم، متر" />
                </div>
                <button type="submit" disabled={loading} className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl flex items-center justify-center gap-2">
                  <Save className="w-4 h-4" /> ذخیره و انتخاب

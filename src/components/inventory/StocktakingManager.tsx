@@ -522,19 +522,48 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                    </table>
                  </div>
 
-                 <div className="mt-8 flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <div className="flex gap-6">
-                      <div className="text-sm">
-                        <span className="text-slate-500 block mb-1">اقلام شمرده شده</span>
-                        <span className="font-bold text-slate-800">{toPersianDigits((items || []).filter(i => i.countedStock !== null).length)} از {toPersianDigits((items || []).length)}</span>
+                 
+                 <div className="mt-8 flex flex-col lg:flex-row lg:items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200 gap-6">
+                    <div className="flex flex-col md:flex-row gap-6 w-full lg:w-auto flex-1">
+                      <div className="flex gap-6">
+                        <div className="text-sm">
+                          <span className="text-slate-500 block mb-1">اقلام شمرده شده</span>
+                          <span className="font-bold text-slate-800">
+                            {toPersianDigits((items || []).filter(i => i.countedStock !== null).length)} از {toPersianDigits((products || []).filter(p => p.type === 'product' || !p.type).length)} کل کالاها
+                          </span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-slate-500 block mb-1">دارای مغایرت</span>
+                          <span className="font-bold text-rose-600">
+                            {toPersianDigits((items || []).filter(i => i.countedStock !== null && i.difference !== 0).length)}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-sm">
-                        <span className="text-slate-500 block mb-1">تعداد دارای مغایرت</span>
-                        <span className="font-bold text-rose-600">{toPersianDigits((items || []).filter(i => i.countedStock !== null && i.difference !== 0).length)}</span>
+                      
+                      <div className="flex-1 w-full max-w-sm self-center">
+                        <div className="flex justify-between text-xs mb-2">
+                          <span className="font-bold text-slate-600">پیشرفت کل انبارگردانی</span>
+                          <span className="font-bold text-indigo-600">
+                            {toPersianDigits(
+                              (products || []).filter(p => p.type === 'product' || !p.type).length > 0 
+                              ? Math.min(100, Math.round(((items || []).filter(i => i.countedStock !== null).length / (products || []).filter(p => p.type === 'product' || !p.type).length) * 100))
+                              : 0
+                            )}٪
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                          <div 
+                            className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500 ease-out" 
+                            style={{ 
+                              width: `${(products || []).filter(p => p.type === 'product' || !p.type).length > 0 ? Math.min(100, Math.round(((items || []).filter(i => i.countedStock !== null).length / (products || []).filter(p => p.type === 'product' || !p.type).length) * 100)) : 0}%`
+                            }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
                     
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 w-full lg:w-auto justify-end">
+
                        <button onClick={handleSaveDraft} className="px-6 py-2.5 bg-white border border-slate-300 hover:border-indigo-400 text-slate-700 hover:text-indigo-700 rounded-xl font-bold flex items-center gap-2 shadow-sm transition-all focus:ring-2 focus:ring-indigo-100">
                          <Save className="w-5 h-5" /> ذخیره موقت انبارگردانی
                        </button>
