@@ -15,6 +15,7 @@ import {
   verticalListSortingStrategy,
   useSortable
 } from '@dnd-kit/sortable';
+import { useDroppable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Plus, X, Search, Phone, User, Calendar, Save, ListFilter, UserPlus, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -51,7 +52,22 @@ function SortableItem(props: any) {
   );
 }
 
-export default function DebtorsTracking({ persons, showNotification }: any) {
+function DroppableColumn({ id, items, children, className }: any) {
+  const { setNodeRef } = useDroppable({ id });
+  return (
+    <div ref={setNodeRef} className={className}>
+      <SortableContext items={items.map((i: any) => i.id)} strategy={verticalListSortingStrategy}>
+        {children}
+      </SortableContext>
+    </div>
+  );
+}
+
+import DatePicker from 'react-multi-date-picker';
+import persian from 'react-date-object/calendars/persian';
+import persian_fa from 'react-date-object/locales/persian_fa';
+
+export default function DebtorsTracking({ persons, showNotification, storeSettings }: any) {
   const [items, setItems] = useState<any[]>([]);
   const [activeId, setActiveId] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -279,8 +295,7 @@ export default function DebtorsTracking({ persons, showNotification }: any) {
                   </span>
                 </div>
                 
-                <div className="p-3 flex-1 overflow-y-auto space-y-3 custom-scrollbar min-h-[150px]" id={column.id}>
-                  <SortableContext items={columnItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                <DroppableColumn id={column.id} items={columnItems} className="p-3 flex-1 overflow-y-auto space-y-3 custom-scrollbar min-h-[150px]">
                     {columnItems.map(item => {
                       const person = persons.find((p: any) => String(p.id) === item.personId);
                       const lastNote = item.notes && item.notes.length > 0 ? item.notes[item.notes.length - 1] : null;
@@ -306,7 +321,7 @@ export default function DebtorsTracking({ persons, showNotification }: any) {
                             {item.nextActionDate && (
                               <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg mt-2 w-fit">
                                 <Calendar className="w-3 h-3" />
-                                اقدام بعدی: <span className="font-sans">{item.nextActionDate}</span>
+                                اقدام بعدی: <span className="font-sans">{storeSettings?.calendarType === 'gregorian' ? new Date(item.nextActionDate).toLocaleDateString('en-US') : new Date(item.nextActionDate).toLocaleDateString('fa-IR')}</span>
                               </div>
                             )}
 
@@ -319,8 +334,7 @@ export default function DebtorsTracking({ persons, showNotification }: any) {
                         </SortableItem>
                       );
                     })}
-                  </SortableContext>
-                </div>
+                  </DroppableColumn>
               </div>
             );
           })}
@@ -429,7 +443,7 @@ export default function DebtorsTracking({ persons, showNotification }: any) {
                       selectedItem.notes.map((note: any, idx: number) => (
                         <div key={idx} className="bg-gray-50 p-3 rounded-xl border border-gray-100 relative">
                            <span className="absolute left-3 top-3 text-[9px] font-bold text-gray-400 font-sans">
-                             {new Date(note.date).toLocaleDateString('fa-IR')}
+                             {storeSettings?.calendarType === 'gregorian' ? new Date(note.date).toLocaleDateString('en-US') : new Date(note.date).toLocaleDateString('fa-IR')}
                            </span>
                            <p className="text-xs text-gray-700 leading-relaxed pl-16 whitespace-pre-wrap">{note.text}</p>
                         </div>
@@ -451,11 +465,21 @@ export default function DebtorsTracking({ persons, showNotification }: any) {
                   </div>
                   <div>
                     <label className="block text-xs font-black text-gray-700 mb-1.5">تاریخ اقدام بعدی (اختیاری)</label>
-                    <input 
-                      type="date" 
-                      value={newNextDate} 
-                      onChange={e => setNewNextDate(e.target.value)} 
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none font-sans"
+                    <DatePicker
+                      value={newNextDate ? new Date(newNextDate) : null}
+                      onChange={(date: any) => {
+                          if (date) {
+                              const d = new Date(date.toDate());
+                              const localDate = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+                              setNewNextDate(localDate.toISOString().split('T')[0]);
+                          } else {
+                              setNewNextDate('');
+                          }
+                      }}
+                      calendar={storeSettings?.calendarType === "gregorian" ? undefined : persian}
+                      locale={storeSettings?.calendarType === "gregorian" ? undefined : persian_fa}
+                      containerClassName="w-full"
+                      inputClass="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none font-sans"
                     />
                   </div>
                   <button 
