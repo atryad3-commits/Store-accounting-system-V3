@@ -417,6 +417,34 @@ export default function App() {
     | "product_last_prices"
   >("financial_report");
 
+  useEffect(() => {
+    const handlePopState = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        setRawActiveTab(hash as any);
+      }
+    };
+    window.addEventListener('hashchange', handlePopState);
+    window.addEventListener('popstate', handlePopState);
+    
+    const initialHash = window.location.hash.replace('#', '');
+    if (initialHash) {
+       setRawActiveTab(initialHash as any);
+    }
+    
+    return () => {
+       window.removeEventListener('hashchange', handlePopState);
+       window.removeEventListener('popstate', handlePopState);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab && window.location.hash !== `#${activeTab}`) {
+      window.history.pushState(null, '', `#${activeTab}`);
+    }
+  }, [activeTab]);
+
+
   const setActiveTab = (tab: any, force: boolean = false) => {
     if (tab === activeTab) return;
 
