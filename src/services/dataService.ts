@@ -2326,7 +2326,17 @@ export const addStocktaking = async (st: any) => {
   let activeYear = null;
   if (st.date) activeYear = await checkFinancialYear(st.date);
   const stocktakings = await getStocktakings();
-  const added = { ...st, id: generateId(), fiscalYearId: activeYear ? activeYear.id : undefined };
+  
+  let newId;
+  let isUnique = false;
+  while (!isUnique) {
+    newId = Math.floor(10000 + Math.random() * 90000).toString();
+    if (!stocktakings.find(s => String(s.id) === newId)) {
+      isUnique = true;
+    }
+  }
+
+  const added = { ...st, id: newId, fiscalYearId: activeYear ? activeYear.id : undefined };
   stocktakings.push(added);
   await saveStocktakings(stocktakings);
   return added;

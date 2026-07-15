@@ -3537,7 +3537,7 @@ description: receiptDescription,
     const history = await getProductPriceHistory(p.id);
     setCurrentProductPriceHistory(history);
     setNewProductName(p.name);
-    setNewProductPrice(p.price.toString());
+    setNewProductPrice(p.price?.toString() || "");
     setNewProductPurchasePrice(p.purchasePrice?.toString() || "");
     setNewProductPriceDate(new Date().toISOString().split("T")[0]);
     setNewProductType(p.type);
@@ -3559,7 +3559,7 @@ description: receiptDescription,
   const handleDuplicateProduct = (p: Product | any) => {
     setEditingProductId(null);
     setNewProductName(p.name + " (کپی)");
-    setNewProductPrice(p.price.toString());
+    setNewProductPrice(p.price?.toString() || "");
     setNewProductPurchasePrice(p.purchasePrice?.toString() || "");
     setNewProductPriceDate(new Date().toISOString().split("T")[0]);
     setNewProductType(p.type);
