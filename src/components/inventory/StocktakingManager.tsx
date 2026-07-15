@@ -6,6 +6,7 @@ import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 import { Stocktaking, StocktakingItem, Product, Warehouse, WarehouseStock } from '../../types';
+import FastProductCreateModal from '../products/FastProductCreateModal';
 
 interface Props {
   showNotification?: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
@@ -32,6 +33,7 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
   // Fast Search State
   const [productSearch, setProductSearch] = useState('');
   const [showProductDropdown, setShowProductDropdown] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const tableRef = useRef<HTMLDivElement>(null);
 
@@ -345,6 +347,15 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                           setShowProductDropdown(true);
                         }}
                         onFocus={() => setShowProductDropdown(true)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && productSearch.trim()) {
+                                const matched = (products || []).filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch)));
+                                if (matched.length > 0) {
+                                  handleAddProductToCounting(matched[0]);
+                                }
+                              }
+                            }}
+
                         placeholder="جستجوی سریع کالا / اسکن بارکد ..." 
                         className="w-full py-3 pr-10 pl-4 bg-white border-2 border-indigo-100 rounded-xl outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 font-bold transition-all shadow-sm"
                         disabled={!warehouseId}
@@ -367,7 +378,14 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                             </button>
                           ))
                         ) : (
-                          <div className="p-4 text-center text-slate-500 text-sm">کالایی یافت نشد</div>
+                          
+                              <div className="p-4 text-center text-slate-500 text-sm flex flex-col items-center gap-2">
+                                کالایی یافت نشد
+                                <button onClick={() => setIsProductModalOpen(true)} className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors">
+                                  + افزودن کالای جدید
+                                </button>
+                              </div>
+
                         )}
                       </div>
                     )}
@@ -395,6 +413,15 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                               setShowProductDropdown(true);
                             }}
                             onFocus={() => setShowProductDropdown(true)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && productSearch.trim()) {
+                                const matched = (products || []).filter(p => (p.type === 'product' || !p.type) && (p.name.includes(productSearch) || p.code?.includes(productSearch) || p.barcode?.includes(productSearch)));
+                                if (matched.length > 0) {
+                                  handleAddProductToCounting(matched[0]);
+                                }
+                              }
+                            }}
+
                             placeholder="افزودن کالای جدید (اسکن/جستجو)..." 
                             className="w-full py-2 pr-10 pl-4 bg-indigo-50/50 border border-indigo-100 rounded-xl outline-none focus:border-indigo-400 focus:bg-white text-sm font-bold transition-all placeholder-indigo-300"
                           />
@@ -416,7 +443,14 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                                 </button>
                               ))
                             ) : (
-                              <div className="p-4 text-center text-slate-500 text-sm">کالایی یافت نشد</div>
+                              
+                              <div className="p-4 text-center text-slate-500 text-sm flex flex-col items-center gap-2">
+                                کالایی یافت نشد
+                                <button onClick={() => setIsProductModalOpen(true)} className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors">
+                                  + افزودن کالای جدید
+                                </button>
+                              </div>
+
                             )}
                           </div>
                         )}
@@ -525,6 +559,23 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
           </div>
         </div>
       )}
-    </div>
+    
+      {isProductModalOpen && (
+        <FastProductCreateModal
+          onClose={() => setIsProductModalOpen(false)}
+          isOpen={true}
+          onSave={async (newProduct) => {
+             
+             getProducts().then((prods) => {
+                 setProducts(prods.filter((pr) => pr.type === 'product' || !pr.type));
+                 setIsProductModalOpen(false);
+                 setProductSearch('');
+                 handleAddProductToCounting(newProduct);
+             });
+             return true;
+          }}
+        />
+      )}
+</div>
   );
 }

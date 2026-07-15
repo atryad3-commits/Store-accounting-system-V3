@@ -70,12 +70,7 @@ export const allSidebarGroups: SidebarGroup[] = [
         label: "کاردکس کالا (تاریخچه)",
         roles: ["admin", "accountant", "viewer"],
       },
-      {
-        id: "stocktaking",
-        label: "انبارگردانی",
-        roles: ["admin", "manager"],
-      },
-    ],
+          ],
   },
   {
     id: "sales_operations",
@@ -230,10 +225,15 @@ export const allSidebarGroups: SidebarGroup[] = [
         label: "صدور رسید پایانه انبار",
         roles: ["admin", "accountant"],
       },
-      {
+            {
         id: "list_warehouse_docs",
         label: "لیست اسناد انبار",
         roles: ["admin", "accountant"],
+      },
+      {
+        id: "stocktaking",
+        label: "انبارگردانی",
+        roles: ["admin", "manager"],
       },
     ],
   },
