@@ -1670,6 +1670,50 @@ export const getInvoices = async () => {
   return (invoices || []).filter(inv => !inv.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
 };
 
+
+export const syncProductLatestPrices = async (productId: string) => {
+  const history = await getLocalData<any[]>('product_price_history', []);
+  const productHistory = history.filter((h: any) => String(h.productId) === String(productId));
+
+  if (productHistory.length === 0) return;
+
+  // Sort by date descending (latest first)
+  // Store original insertion index to use as secondary sort (higher index = newer)
+  productHistory.forEach((h: any, i: number) => h._index = i);
+  
+  // Sort by date descending, then by insertion index descending
+  productHistory.sort((a: any, b: any) => {
+      const timeDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (timeDiff !== 0) return timeDiff;
+      return (b._index || 0) - (a._index || 0);
+  });
+
+  const latestPurchase = productHistory.find((h: any) => h.type === 'purchase')?.price || 0;
+  const latestSale = productHistory.find((h: any) => h.type === 'sale')?.price || 0;
+
+  const products = await getLocalData<any[]>('products', []);
+  const index = products.findIndex((p: any) => String(p.id) === String(productId));
+  if (index !== -1) {
+    const product = products[index];
+    const updatePayload: any = {};
+    let shouldUpdate = false;
+    
+    if (latestPurchase > 0 && product.purchasePrice !== latestPurchase) {
+      updatePayload.purchasePrice = latestPurchase;
+      shouldUpdate = true;
+    }
+    if (latestSale > 0 && product.price !== latestSale) {
+      updatePayload.price = latestSale;
+      shouldUpdate = true;
+    }
+
+    if (shouldUpdate) {
+      const newProduct = { ...product, ...updatePayload, updatedAt: Date.now() };
+      await updateLocalData('products', product.id, newProduct);
+    }
+  }
+};
+
 export const addInvoice = async (invoice: any, skipRecalc: boolean = false) => {
   let activeYear = null;
   if (invoice.date) activeYear = await checkFinancialYear(invoice.date);
@@ -1694,7 +1738,8 @@ export const addInvoice = async (invoice: any, skipRecalc: boolean = false) => {
 
   // Generate price history for invoice items
   if (newInvoice.type === 'purchase' || newInvoice.type === 'sale') {
-     if (newInvoice.items && Array.isArray(newInvoice.items)) {
+     const affectedProducts = new Set<string>();
+          if (newInvoice.items && Array.isArray(newInvoice.items)) {
          for (const item of newInvoice.items) {
              if (item.productId && Number(item.unitPrice) > 0) {
                  await appendLocalData('product_price_history', {
@@ -1707,7 +1752,11 @@ export const addInvoice = async (invoice: any, skipRecalc: boolean = false) => {
                      quantity: Number(item.quantity) || 0,
                      invoiceItemId: item.id || generateId()
                  });
+                 affectedProducts.add(String(item.productId));
              }
+         }
+         for (const pId of Array.from(affectedProducts)) {
+             await syncProductLatestPrices(pId);
          }
      }
   }
@@ -1800,8 +1849,9 @@ export const updateInvoice = async (id: string | number, updated: any, skipRecal
           const oldHistories = await getLocalData<any[]>('product_price_history', []);
           const filteredHistories = oldHistories.filter(h => h.invoiceId?.toString() !== newInvoice.id?.toString());
           
+          const affectedProducts = new Set<string>();
           if (newInvoice.items && Array.isArray(newInvoice.items)) {
-              for (const item of newInvoice.items) {
+         for (const item of newInvoice.items) {
                   if (item.productId && Number(item.unitPrice) > 0) {
                       filteredHistories.push({
                           id: generateId(),
@@ -1813,10 +1863,14 @@ export const updateInvoice = async (id: string | number, updated: any, skipRecal
                           quantity: Number(item.quantity) || 0,
                           invoiceItemId: item.id || generateId()
                       });
+                      affectedProducts.add(String(item.productId));
                   }
               }
           }
           await saveLocalData('product_price_history', filteredHistories);
+          for (const pId of Array.from(affectedProducts)) {
+              await syncProductLatestPrices(pId);
+          }
       } catch (e) {
           console.error(e);
       }
@@ -1934,6 +1988,24 @@ export const voidInvoice = async (id: string | number) => {
     }
   
 
+    // Remove product price histories for the voided invoices
+    const oldHistories = await getLocalData<any[]>('product_price_history', []);
+    const affectedProductsForVoid = new Set<string>();
+    const filteredHistories = oldHistories.filter(h => {
+        if (toVoidIds.has(h.invoiceId) || toVoidIds.has(String(h.invoiceId))) {
+            affectedProductsForVoid.add(String(h.productId));
+            return false;
+        }
+        return true;
+    });
+    
+    if (affectedProductsForVoid.size > 0) {
+        await saveLocalData('product_price_history', filteredHistories);
+        for (const pId of Array.from(affectedProductsForVoid)) {
+            await syncProductLatestPrices(pId);
+        }
+    }
+
     // void related accounting docs
     const accDocs = await getLocalData<any[]>('accounting_documents', []);
     let accDocsChanged = false;
@@ -1976,6 +2048,24 @@ export const deleteInvoice = async (id: string, forceDelete: boolean = false, sk
       }
     });
     
+    // Remove product price histories for the deleted invoices
+    const oldHistories = await getLocalData<any[]>('product_price_history', []);
+    const affectedProductsForDelete = new Set<string>();
+    const filteredHistories = oldHistories.filter(h => {
+        if (toDeleteIds.has(h.invoiceId) || toDeleteIds.has(String(h.invoiceId))) {
+            affectedProductsForDelete.add(String(h.productId));
+            return false;
+        }
+        return true;
+    });
+    
+    if (affectedProductsForDelete.size > 0) {
+        await saveLocalData('product_price_history', filteredHistories);
+        for (const pId of Array.from(affectedProductsForDelete)) {
+            await syncProductLatestPrices(pId);
+        }
+    }
+
     // delete related accounting docs
     const accDocs = await getLocalData<any[]>('accounting_documents', []);
     accDocs.forEach(d => {
@@ -3049,7 +3139,17 @@ export const getProductPriceHistory = async (productId: string) => {
 };
 
 export const updateProductPriceHistory = async (id: string, updatedData: any) => {
-  return await updateLocalData('product_price_history', id, updatedData);
+  const result = await updateLocalData('product_price_history', id, updatedData);
+  if (updatedData && updatedData.productId) {
+      await syncProductLatestPrices(updatedData.productId);
+  } else {
+      const oldHistories = await getLocalData<any[]>('product_price_history', []);
+      const history = oldHistories.find(h => String(h.id) === String(id));
+      if (history && history.productId) {
+          await syncProductLatestPrices(history.productId);
+      }
+  }
+  return result;
 };
 
 

@@ -15,6 +15,8 @@ export default function ProductCardModal({ product, warehouses = [], currency = 
   const [priceHistory, setPriceHistory] = useState<any[]>([]);
   const [currentPurchasePrice, setCurrentPurchasePrice] = useState(product.purchasePrice || 0);
   const [currentSalePrice, setCurrentSalePrice] = useState(product.price || 0);
+  const [lastSaleDate, setLastSaleDate] = useState<string>('');
+  const [lastPurchaseDate, setLastPurchaseDate] = useState<string>('');
   
   const formatCur = (num) => toPersianDigits(addCommas(Math.round(Number(num) || 0)));
   const formatNum = (num) => toPersianDigits(addCommas(Math.round(Number(num)*100)/100 || 0));
@@ -22,8 +24,14 @@ export default function ProductCardModal({ product, warehouses = [], currency = 
   useEffect(() => {
     const salePrices = priceHistory.filter((h: any) => h.type === 'sale').sort((a: any,b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
     const purchasePrices = priceHistory.filter((h: any) => h.type === 'purchase').sort((a: any,b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    if (salePrices.length > 0) setCurrentSalePrice(salePrices[0].price);
-    if (purchasePrices.length > 0) setCurrentPurchasePrice(purchasePrices[0].price);
+    if (salePrices.length > 0) {
+      setCurrentSalePrice(salePrices[0].price);
+      setLastSaleDate(salePrices[0].date);
+    }
+    if (purchasePrices.length > 0) {
+      setCurrentPurchasePrice(purchasePrices[0].price);
+      setLastPurchaseDate(purchasePrices[0].date);
+    }
   }, [priceHistory]);
 
   useEffect(() => {
@@ -225,10 +233,12 @@ const fetchHistory = async () => {
                    <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-xl flex flex-col justify-center">
                      <span className="text-xs text-emerald-600 font-bold block mb-1">قیمت فروش فعلی</span>
                      <span className="text-lg font-sans font-black text-gray-800">{Number(currentSalePrice).toLocaleString()} <span className="text-xs font-normal">{currency}</span></span>
+                     {lastSaleDate && <span className="text-[10px] text-emerald-700 mt-1">آخرین تغییر: {formatDateDisplay(lastSaleDate)}</span>}
                    </div>
                    <div className="bg-rose-50/50 border border-rose-100 p-4 rounded-xl flex flex-col justify-center">
                      <span className="text-xs text-rose-600 font-bold block mb-1">قیمت خرید فعلی</span>
                      <span className="text-lg font-sans font-black text-gray-800">{Number(currentPurchasePrice).toLocaleString()} <span className="text-xs font-normal">{currency}</span></span>
+                     {lastPurchaseDate && <span className="text-[10px] text-rose-700 mt-1">آخرین تغییر: {formatDateDisplay(lastPurchaseDate)}</span>}
                    </div>
                    <div className="bg-amber-50/50 border border-amber-100 p-4 rounded-xl flex flex-col justify-center relative overflow-hidden">
                      <span className="text-xs text-amber-600 font-bold block mb-1 z-10 relative">موجودی مستند (محاسباتی)</span>
