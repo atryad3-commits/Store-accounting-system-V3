@@ -47,7 +47,7 @@ export default function ReceiptsList(props: any) {
                       : "لیست رسیدهای پرداخت وجه رسمی"}
                   </h2>
                   <button
-                     onClick={() => { if (isReceive) { setIsReceiveModalOpen?.(true); } else { setIsPayModalOpen?.(true); } }}
+                     onClick={() => { if (isReceive) { setActiveTab?.("create_receive_receipt"); } else { setActiveTab?.("create_pay_receipt"); } }}
                      className={`px-4 py-2 ${isReceive ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"} text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-sm`}
                   >
                      <Plus className="w-4 h-4" /> 

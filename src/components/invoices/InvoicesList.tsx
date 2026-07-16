@@ -682,13 +682,13 @@ export default function InvoicesList(props: any) {
                                       inv.type === "purchase_return"
                                     ) {
                                       setReceiptPersonId(inv.personId);
-                                      setIsReceiveModalOpen?.(true);
+                                      setActiveTab?.("create_receive_receipt");
                                     } else if (
                                       inv.type === "purchase" ||
                                       inv.type === "sale_return"
                                     ) {
                                       setReceiptPersonId(inv.personId);
-                                      setIsPayModalOpen?.(true);
+                                      setActiveTab?.("create_pay_receipt");
                                     }
                                   }}
                                   className="p-1.5 text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg cursor-pointer bg-transparent border-none"

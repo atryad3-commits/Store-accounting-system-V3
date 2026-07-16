@@ -8,7 +8,7 @@ import persian_fa from "react-date-object/locales/persian_fa";
 
 export default function ReceiveReceiptModal(props: any) {
   const { isOpen, onClose, ...rest } = props;
-  if (!isOpen) return null;
+  
   const {
     
     receiptHasDraft,
@@ -88,13 +88,8 @@ export default function ReceiveReceiptModal(props: any) {
           : "bg-rose-100 text-rose-800";
 
         return (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm overflow-y-auto font-sans" dir="rtl">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl my-auto flex flex-col max-h-[90vh] overflow-hidden relative"
-            >
+          <div className="w-full font-sans" dir="rtl">
+<div className="bg-white rounded-2xl shadow-sm border border-slate-200 w-full flex flex-col overflow-hidden relative">
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-emerald-50/50">
                 <div className="flex items-center gap-3">
@@ -106,15 +101,10 @@ export default function ReceiveReceiptModal(props: any) {
                     <p className="text-xs font-bold text-slate-500 mt-0.5">ثبت دریافتی‌های نقدی و چکی</p>
                   </div>
                 </div>
-                <button
-                  onClick={onClose}
-                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                
               </div>
               
-              <div className="p-6 overflow-y-auto space-y-6">
+              <div className="p-6 space-y-6">
 
             {receiptHasDraft && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-center text-amber-800 shadow-sm col-span-full w-full">
@@ -226,8 +216,8 @@ export default function ReceiveReceiptModal(props: any) {
                 }
                 className="space-y-6"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="lg:col-span-1 md:col-span-2">
                     <label className="block text-sm font-bold text-slate-700 mb-1 flex items-center gap-1">
                       <FileText className="w-4 h-4" /> شماره رسید
                     </label>
@@ -235,7 +225,7 @@ export default function ReceiveReceiptModal(props: any) {
                         {receiptNumber || "در حال رزرو..."}
                     </div>
                   </div>
-                  <div>
+                  <div className="lg:col-span-3 md:col-span-2">
                     <label className="block text-sm font-bold text-slate-700 mb-1 flex items-center gap-1">
                       <User className="w-4 h-4" /> طرف حساب (شخص/شرکت)
                     </label>
@@ -640,7 +630,7 @@ export default function ReceiveReceiptModal(props: any) {
                     </>
                   )}
 
-                  <div className="md:col-span-2 lg:col-span-3">
+                  <div className="md:col-span-2 lg:col-span-4">
                     <label className="block text-sm font-bold text-slate-700 mb-1">
                       توضیحات و بابت
                     </label>
@@ -823,7 +813,7 @@ export default function ReceiveReceiptModal(props: any) {
               </form>
             </div>
           </div>
-            </motion.div>
+            </div>
           </div>
         );
 

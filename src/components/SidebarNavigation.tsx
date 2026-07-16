@@ -155,9 +155,9 @@ export default function SidebarNavigation({
                               key={`item-${item.id}-${itemIdx}`}
                               onClick={() => {
                                 if (item.id === "create_receive_receipt") {
-                                  setIsReceiveModalOpen?.(true);
+                                  setActiveTab?.("create_receive_receipt");
                                 } else if (item.id === "create_pay_receipt") {
-                                  setIsPayModalOpen?.(true);
+                                  setActiveTab?.("create_pay_receipt");
                                 } else {
                                   setActiveTab(item.id as any);
                                 }
@@ -237,9 +237,9 @@ export default function SidebarNavigation({
                         key={`hz-item-${item.id}-${itemIdx}`}
                         onClick={() => {
                         if (item.id === "create_receive_receipt") {
-                          setIsReceiveModalOpen?.(true);
+                          setActiveTab?.("create_receive_receipt");
                         } else if (item.id === "create_pay_receipt") {
-                          setIsPayModalOpen?.(true);
+                          setActiveTab?.("create_pay_receipt");
                         } else {
                           setActiveTab(item.id as any);
                         }

@@ -6360,6 +6360,121 @@ ${errMsg}`);
 
   const renderTabContent = () => {
     switch (activeTab) {
+            case "create_receive_receipt":
+        return (
+          <ReceiveReceiptModal
+            isOpen={true}
+            onClose={() => setRawActiveTab("debts_credits")}
+            receiptHasDraft={receiptHasDraft}
+            restoreReceiptDraft={restoreReceiptDraft}
+            discardReceiptDraft={discardReceiptDraft}
+            handleSubmitReceipt={handleSubmitReceipt}
+            receiptPersonId={receiptPersonId}
+            setReceiptPersonId={setReceiptPersonId}
+            setIsPersonModalOpen={setIsPersonModalOpen}
+            persons={persons}
+            getPersonDisplayName={getPersonDisplayName}
+            receiptMethod={receiptMethod}
+            setReceiptMethod={setReceiptMethod}
+            accounts={accounts}
+            cashboxes={cashboxes}
+            receiptAmount={receiptAmount}
+            setReceiptAmount={setReceiptAmount}
+            receiptDate={receiptDate}
+            setReceiptDate={setReceiptDate}
+            receiptNumber={receiptNumber}
+            lastCreatedReceipt={lastCreatedReceipt}
+            toPersianDigits={toPersianDigits}
+            storeSettings={storeSettings}
+            setPrintingTransaction={setPrintingTransaction}
+            setLastCreatedReceipt={setLastCreatedReceipt}
+            receiptSuccessMsg={receiptSuccessMsg}
+            setReceiptLinkedInvoices={setReceiptLinkedInvoices}
+            activePersonsOnly={activePersonsOnly}
+            mapPersonToOption={mapPersonToOption}
+            customPersonFilter={customPersonFilter}
+            renderPersonInfoBox={renderPersonInfoBox}
+            numToPersianWords={numToPersianWords}
+            receiptResourceType={receiptResourceType}
+            setReceiptResourceType={setReceiptResourceType}
+            receiptResourceId={receiptResourceId}
+            setReceiptResourceId={setReceiptResourceId}
+            invoices={invoices}
+            getDefaultExchangeRate={getDefaultExchangeRate}
+            receiptLinkedInvoices={receiptLinkedInvoices}
+            formatDateDisplay={formatDateDisplay}
+            formatCurrency={formatCurrency}
+            customAlert={customAlert}
+            receiptCheckNumber={receiptCheckNumber}
+            setReceiptCheckNumber={setReceiptCheckNumber}
+            receiptCheckDueDate={receiptCheckDueDate}
+            setReceiptCheckDueDate={setReceiptCheckDueDate}
+            receiptCheckBankName={receiptCheckBankName}
+            setReceiptCheckBankName={setReceiptCheckBankName}
+            receiptNote={receiptNote}
+            setReceiptNote={setReceiptNote}
+          />
+        );
+      case "create_pay_receipt":
+        return (
+          <PayReceiptModal
+            isOpen={true}
+            onClose={() => setRawActiveTab("debts_credits")}
+            receiptHasDraft={receiptHasDraft}
+            restoreReceiptDraft={restoreReceiptDraft}
+            discardReceiptDraft={discardReceiptDraft}
+            handleSubmitReceipt={handleSubmitReceipt}
+            receiptPersonId={receiptPersonId}
+            setReceiptPersonId={setReceiptPersonId}
+            setIsPersonModalOpen={setIsPersonModalOpen}
+            persons={persons}
+            getPersonDisplayName={getPersonDisplayName}
+            receiptMethod={receiptMethod}
+            setReceiptMethod={setReceiptMethod}
+            accounts={accounts}
+            cashboxes={cashboxes}
+            receiptAmount={receiptAmount}
+            setReceiptAmount={setReceiptAmount}
+            receiptDate={receiptDate}
+            setReceiptDate={setReceiptDate}
+            receiptNumber={receiptNumber}
+            lastCreatedReceipt={lastCreatedReceipt}
+            toPersianDigits={toPersianDigits}
+            storeSettings={storeSettings}
+            setPrintingTransaction={setPrintingTransaction}
+            setLastCreatedReceipt={setLastCreatedReceipt}
+            receiptSuccessMsg={receiptSuccessMsg}
+            setReceiptLinkedInvoices={setReceiptLinkedInvoices}
+            activePersonsOnly={activePersonsOnly}
+            mapPersonToOption={mapPersonToOption}
+            customPersonFilter={customPersonFilter}
+            renderPersonInfoBox={renderPersonInfoBox}
+            numToPersianWords={numToPersianWords}
+            receiptResourceType={receiptResourceType}
+            setReceiptResourceType={setReceiptResourceType}
+            receiptResourceId={receiptResourceId}
+            setReceiptResourceId={setReceiptResourceId}
+            invoices={invoices}
+            getDefaultExchangeRate={getDefaultExchangeRate}
+            receiptLinkedInvoices={receiptLinkedInvoices}
+            formatDateDisplay={formatDateDisplay}
+            formatCurrency={formatCurrency}
+            customAlert={customAlert}
+            receiptCheckbookId={receiptCheckbookId}
+            setReceiptCheckbookId={setReceiptCheckbookId}
+            checkbooks={checkbooks}
+            issuedChecks={issuedChecks}
+            receiptCheckNumber={receiptCheckNumber}
+            setReceiptCheckNumber={setReceiptCheckNumber}
+            receiptCheckDueDate={receiptCheckDueDate}
+            setReceiptCheckDueDate={setReceiptCheckDueDate}
+            receiptCheckBankName={receiptCheckBankName}
+            setReceiptCheckBankName={setReceiptCheckBankName}
+            receiptNote={receiptNote}
+            setReceiptNote={setReceiptNote}
+          />
+        );
+
       case "create_warehouse_doc":
         return (
           <WarehouseDocCreate setIsPersonModalOpen={setIsPersonModalOpen} invoiceNumber={invoiceNumber} persons={persons} date={date} setDate={setDate} persian={persian} persian_fa={persian_fa} items={items} setItems={setItems} handleItemChange={handleItemChange} products={products} handleRemoveItem={handleRemoveItem} storeSettings={storeSettings} Package={Package} invoiceWarehouseId={invoiceWarehouseId} setInvoiceWarehouseId={setInvoiceWarehouseId} warehouses={warehouses} FastBarcodeScanner={FastBarcodeScanner} handleFastBarcodeScan={handleFastBarcodeScan} SearchableSelect={SearchableSelect} handleFastAddProduct={handleFastAddProduct} invoiceTitle={invoiceTitle} invoiceMode={invoiceMode} setInvoiceMode={setInvoiceMode} setInvoiceNumber={setInvoiceNumber} setInvoiceTitle={setInvoiceTitle} User={User} activePersonsOnly={activePersonsOnly} getRoleName={getRoleName} customerId={customerId} setCustomerId={setCustomerId} renderPersonInfoBox={renderPersonInfoBox} formatCurrency={formatCurrency} submitting={submitting} handleInvoicePreviewTrigger={handleInvoicePreviewTrigger} Plus={Plus} Trash2={Trash2} Save={Save} RefreshCw={RefreshCw} FileText={FileText} Tag={Tag} setInvoiceType={setInvoiceType} DatePicker={DatePicker} invoiceDescription={invoiceDescription} setInvoiceDescription={setInvoiceDescription} invoiceNote={invoiceNote} setInvoiceNote={setInvoiceNote} formatProductStockDetails={formatProductStockDetails} warehouseOperationType={warehouseOperationType} setWarehouseOperationType={setWarehouseOperationType} warehouseWizardStep={warehouseWizardStep} setWarehouseWizardStep={setWarehouseWizardStep} setSourceInvoiceId={setSourceInvoiceId} customAlert={customAlert} invoices={invoices} hasRemainingWarehouseItems={hasRemainingWarehouseItems} sourceInvoiceId={sourceInvoiceId} deletePreviousDocs={deletePreviousDocs} setDeletePreviousDocs={setDeletePreviousDocs} setInvoiceCurrency={setInvoiceCurrency} setExchangeRate={setExchangeRate} setExchangeRateInput={setExchangeRateInput} deleteInvoice={deleteInvoice} handleVoidInvoice={handleVoidInvoice} setInvoices={setInvoices} fetchInvoices={fetchInvoices} generateId={generateId} handleAddItem={handleAddItem} />
@@ -6641,7 +6756,7 @@ ${errMsg}`);
               <button
                 type="button"
                 onClick={() => {
-                  setIsReceiveModalOpen(true);
+                  setRawActiveTab("create_receive_receipt");
                   setIsComposeOpen(false);
                 }}
                 className="p-4 border border-slate-200 hover:border-[#b3261e]/40 hover:bg-rose-50/10 rounded-2xl text-right flex gap-4 transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
@@ -6664,7 +6779,7 @@ ${errMsg}`);
               <button
                 type="button"
                 onClick={() => {
-                  setIsPayModalOpen(true);
+                  setRawActiveTab("create_pay_receipt");
                   setIsComposeOpen(false);
                 }}
                 className="p-4 border border-slate-200 hover:border-[#b3261e]/40 hover:bg-rose-50/10 rounded-2xl text-right flex gap-4 transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer"
@@ -8297,121 +8412,9 @@ ${errMsg}`);
             </main>
 
             
-      <ReceiveReceiptModal
-        isOpen={isReceiveModalOpen}
-        onClose={() => setIsReceiveModalOpen(false)}
-        receiptHasDraft={receiptHasDraft}
-        restoreReceiptDraft={restoreReceiptDraft}
-        discardReceiptDraft={discardReceiptDraft}
-        handleSubmitReceipt={handleSubmitReceipt}
-        receiptPersonId={receiptPersonId}
-        setReceiptPersonId={setReceiptPersonId}
-        persons={persons}
-        getPersonDisplayName={getPersonDisplayName}
-        receiptMethod={receiptMethod}
-        setReceiptMethod={setReceiptMethod}
-        accounts={accounts}
-        cashboxes={cashboxes}
-        receiptAmount={receiptAmount}
-        setReceiptAmount={setReceiptAmount}
-        receiptDate={receiptDate}
-        setReceiptDate={setReceiptDate}
-        receiptNumber={receiptNumber}
-        receiptCheckNumber={receiptCheckNumber}
-        setReceiptCheckNumber={setReceiptCheckNumber}
-        receiptCheckDueDate={receiptCheckDueDate}
-        setReceiptCheckDueDate={setReceiptCheckDueDate}
-        receiptCheckBankName={receiptCheckBankName}
-        setReceiptCheckBankName={setReceiptCheckBankName}
-        receiptNote={receiptNote}
-        setReceiptNote={setReceiptNote}
-        formatNumber={formatNumber}
-        submittingReceipt={submittingReceipt}
-        lastCreatedReceipt={lastCreatedReceipt}
-        toPersianDigits={toPersianDigits}
-        storeSettings={storeSettings}
-        setPrintingTransaction={setPrintingTransaction}
-        setLastCreatedReceipt={setLastCreatedReceipt}
-        receiptSuccessMsg={receiptSuccessMsg}
-        setReceiptLinkedInvoices={setReceiptLinkedInvoices}
-        activePersonsOnly={activePersonsOnly}
-        mapPersonToOption={mapPersonToOption}
-        customPersonFilter={customPersonFilter}
-        renderPersonInfoBox={renderPersonInfoBox}
-        numToPersianWords={numToPersianWords}
-        receiptResourceType={receiptResourceType}
-        setReceiptResourceType={setReceiptResourceType}
-        receiptResourceId={receiptResourceId}
-        setReceiptResourceId={setReceiptResourceId}
-        invoices={invoices}
-        getDefaultExchangeRate={getDefaultExchangeRate}
-        receiptLinkedInvoices={receiptLinkedInvoices}
-        formatDateDisplay={formatDateDisplay}
-        formatCurrency={formatCurrency}
-        customAlert={customAlert}
-        receiptCheckbookId={receiptCheckbookId}
-        setReceiptCheckbookId={setReceiptCheckbookId}
-        checkbooks={checkbooks}
-        issuedChecks={issuedChecks}
-      />
+      
 
-      <PayReceiptModal
-        isOpen={isPayModalOpen}
-        onClose={() => setIsPayModalOpen(false)}
-        receiptHasDraft={receiptHasDraft}
-        restoreReceiptDraft={restoreReceiptDraft}
-        discardReceiptDraft={discardReceiptDraft}
-        handleSubmitReceipt={handleSubmitReceipt}
-        receiptPersonId={receiptPersonId}
-        setReceiptPersonId={setReceiptPersonId}
-        persons={persons}
-        getPersonDisplayName={getPersonDisplayName}
-        receiptMethod={receiptMethod}
-        setReceiptMethod={setReceiptMethod}
-        accounts={accounts}
-        cashboxes={cashboxes}
-        receiptAmount={receiptAmount}
-        setReceiptAmount={setReceiptAmount}
-        receiptDate={receiptDate}
-        setReceiptDate={setReceiptDate}
-        receiptNumber={receiptNumber}
-        receiptCheckNumber={receiptCheckNumber}
-        setReceiptCheckNumber={setReceiptCheckNumber}
-        receiptCheckDueDate={receiptCheckDueDate}
-        setReceiptCheckDueDate={setReceiptCheckDueDate}
-        receiptCheckBankName={receiptCheckBankName}
-        setReceiptCheckBankName={setReceiptCheckBankName}
-        receiptNote={receiptNote}
-        setReceiptNote={setReceiptNote}
-        formatNumber={formatNumber}
-        submittingReceipt={submittingReceipt}
-        lastCreatedReceipt={lastCreatedReceipt}
-        toPersianDigits={toPersianDigits}
-        storeSettings={storeSettings}
-        setPrintingTransaction={setPrintingTransaction}
-        setLastCreatedReceipt={setLastCreatedReceipt}
-        receiptSuccessMsg={receiptSuccessMsg}
-        setReceiptLinkedInvoices={setReceiptLinkedInvoices}
-        activePersonsOnly={activePersonsOnly}
-        mapPersonToOption={mapPersonToOption}
-        customPersonFilter={customPersonFilter}
-        renderPersonInfoBox={renderPersonInfoBox}
-        numToPersianWords={numToPersianWords}
-        receiptResourceType={receiptResourceType}
-        setReceiptResourceType={setReceiptResourceType}
-        receiptResourceId={receiptResourceId}
-        setReceiptResourceId={setReceiptResourceId}
-        invoices={invoices}
-        getDefaultExchangeRate={getDefaultExchangeRate}
-        receiptLinkedInvoices={receiptLinkedInvoices}
-        formatDateDisplay={formatDateDisplay}
-        formatCurrency={formatCurrency}
-        customAlert={customAlert}
-        receiptCheckbookId={receiptCheckbookId}
-        setReceiptCheckbookId={setReceiptCheckbookId}
-        checkbooks={checkbooks}
-        issuedChecks={issuedChecks}
-      />
+      
 
               <AnimatePresence>
               {viewingPayslip && (

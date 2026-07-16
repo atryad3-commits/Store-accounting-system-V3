@@ -87,7 +87,7 @@ function PersonLedgerActionsDropdown({
             <button
               onClick={() => {
                 setIsOpen(false);
-                setIsReceiveModalOpen?.(true);
+                setActiveTab?.("create_receive_receipt");
                 setReceiptPersonId(ledgerPersonId);
               }}
               className="w-full text-right px-3 py-2 text-sm rounded-xl hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 font-semibold flex items-center gap-2 transition-colors"
@@ -98,7 +98,7 @@ function PersonLedgerActionsDropdown({
             <button
               onClick={() => {
                 setIsOpen(false);
-                setIsPayModalOpen?.(true);
+                setActiveTab?.("create_pay_receipt");
                 setReceiptPersonId(ledgerPersonId);
               }}
               className="w-full text-right px-3 py-2 text-sm rounded-xl hover:bg-rose-50 text-slate-700 hover:text-rose-700 font-semibold flex items-center gap-2 transition-colors"
