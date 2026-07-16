@@ -121,7 +121,7 @@ export default function SearchableSelect({
                     const isSelected = String(opt.value) === String(value);
                     return (
                       <li
-                        key={opt.value}
+                        key={opt.value || `key-${Math.random()}`}
                         onClick={() => {
                           onChange(opt.value);
                           setIsOpen(false);
