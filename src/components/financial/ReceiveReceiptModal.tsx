@@ -637,7 +637,7 @@ const isReceive = true;
                               if (!cb) return null;
                               const available = (issuedChecks || []).filter((ic: any) => String(ic.checkbookId) === String(receiptCheckbookId) && ic.status === 'blank');
                               return available.map((c: any) => (
-                                <option key={c.id} value={c.checkNumber}>
+                                <option key={c.id || Math.random().toString()} value={c.checkNumber}>
                                   {c.checkNumber}
                                 </option>
                               ));

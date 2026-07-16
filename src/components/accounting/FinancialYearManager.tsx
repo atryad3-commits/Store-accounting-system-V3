@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Calendar as CalendarIcon, Plus, CheckCircle, AlertTriangle, Lock, Eye, Trash2, HelpCircle } from 'lucide-react';
 import { getFinancialYears, addFinancialYear, closeFinancialYear, getStoreSettings } from '../../services/dataService';
 import { formatDateDisplay } from '../../utils/format';
+import YearClosingChecklistModal from './YearClosingChecklistModal';
 import DatePickerModule from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
@@ -23,6 +24,8 @@ export default function FinancialYearManager({ showNotification }: any) {
 
   // Confirm close dialog state
   const [confirmCloseId, setConfirmCloseId] = useState<string | number | null>(null);
+  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
+  const [selectedYearForClose, setSelectedYearForClose] = useState<any>(null);
 
   useEffect(() => {
     loadData();
@@ -341,7 +344,7 @@ export default function FinancialYearManager({ showNotification }: any) {
                         <td className="p-3 text-center">
                           {y.status === 'open' ? (
                             <button
-                              onClick={() => setConfirmCloseId(y.id)}
+                              onClick={() => { setSelectedYearForClose(y); setIsChecklistOpen(true); }}
                               className="px-3 py-1 text-xs bg-rose-50 text-rose-700 hover:bg-rose-100 rounded-lg border border-rose-200 font-bold transition-all"
                             >
                               بستن سال مالی
@@ -365,51 +368,15 @@ export default function FinancialYearManager({ showNotification }: any) {
 
       {/* Close Confirm modal */}
       <AnimatePresence>
-        {confirmCloseId && (
-          <div key="confirm-close-modal" className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-xl text-right"
-              dir="rtl"
-            >
-              <div className="flex items-start gap-4 mb-4">
-                <div className="bg-rose-50 p-3 rounded-full text-rose-600">
-                  <AlertTriangle className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-black text-slate-800">آیا از بستن این سال مالی اطمینان دارید؟</h4>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                    با بستن سال مالی، تمام اسناد، تراکنش‌ها، فاکتورها و چک‌های مربوط به این بازه قفل و بایگانی شده و دیگر تحت هیچ شرایطی امکان ثبت، ویرایش یا حذف آن‌ها وجود نخواهد داشت. این عملیات غیرقابل بازگشت است.
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-xl text-xs flex items-start gap-2.5 mb-5">
-                <HelpCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <p>
-                  پس از بستن سال مالی موفق، سیستم آماده کار نخواهد بود تا زمانی که طبق قوانین حسابداری سال مالی جدیدی برای سیستم تعریف و افتتاح نمایید.
-                </p>
-              </div>
-
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setConfirmCloseId(null)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-bold rounded-xl transition"
-                >
-                  انصراف
-                </button>
-                <button
-                  onClick={() => handleCloseYear(confirmCloseId)}
-                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-rose-600/20 transition"
-                >
-                  بله، سال مالی بسته شود
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
+        <YearClosingChecklistModal
+        isOpen={isChecklistOpen}
+        onClose={() => setIsChecklistOpen(false)}
+        year={selectedYearForClose}
+        onConfirm={(id: any) => {
+          setIsChecklistOpen(false);
+          handleCloseYear(id);
+        }}
+      />
       </AnimatePresence>
     </div>
   );

@@ -6363,7 +6363,7 @@ ${errMsg}`);
     switch (activeTab) {
             case "create_receive_receipt":
         return (
-          <ReceiveReceiptModal
+          <ReceiveReceiptModal formatNumber={formatNumber}
             isOpen={true}
             onClose={() => setRawActiveTab("debts_credits")}
             receiptHasDraft={receiptHasDraft}
@@ -6418,7 +6418,7 @@ ${errMsg}`);
         );
       case "create_pay_receipt":
         return (
-          <PayReceiptModal
+          <PayReceiptModal formatNumber={formatNumber}
             isOpen={true}
             onClose={() => setRawActiveTab("debts_credits")}
             receiptHasDraft={receiptHasDraft}
