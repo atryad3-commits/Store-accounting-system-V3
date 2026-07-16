@@ -152,7 +152,7 @@ export default function SidebarNavigation({
                           const isItemActive = activeTab === item.id;
                           return (
                             <button
-                              key={`item-${item.id}-${itemIdx}`}
+                              key={`item-${group.id}-${item.id}-${itemIdx}`}
                               onClick={() => {
                                 if (item.id === "create_receive_receipt") {
                                   setActiveTab?.("create_receive_receipt");
@@ -234,7 +234,7 @@ export default function SidebarNavigation({
                     const isItemActive = activeTab === item.id;
                     return (
                       <button
-                        key={`hz-item-${item.id}-${itemIdx}`}
+                        key={`hz-item-${group.id}-${item.id}-${itemIdx}`}
                         onClick={() => {
                         if (item.id === "create_receive_receipt") {
                           setActiveTab?.("create_receive_receipt");

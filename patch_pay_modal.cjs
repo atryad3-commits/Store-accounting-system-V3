@@ -1,16 +1,15 @@
 const fs = require('fs');
-let code = fs.readFileSync('src/components/financial/ReceiveReceiptModal.tsx', 'utf-8');
+let code = fs.readFileSync('src/components/financial/PayReceiptModal.tsx', 'utf-8');
 
-if (!code.includes('import { getReceivedChecks }')) {
+if (!code.includes('import { getIssuedChecks }')) {
   code = code.replace(
     'import React from "react";',
-    'import React, { useState, useEffect } from "react";\nimport { getReceivedChecks } from "../../services/dataService";'
+    'import React, { useState, useEffect } from "react";\nimport { getIssuedChecks } from "../../services/dataService";'
   );
 }
 
-const componentStart = 'export default function ReceiveReceiptModal(props: any) {';
 if (!code.includes('const [nearbyChecks, setNearbyChecks]')) {
-  const insertIndex = code.indexOf('const isReceive = true;');
+  const insertIndex = code.indexOf('const isReceive = false;');
   const insertCode = `
   const [nearbyChecks, setNearbyChecks] = useState<any[]>([]);
   useEffect(() => {
@@ -18,10 +17,8 @@ if (!code.includes('const [nearbyChecks, setNearbyChecks]')) {
       // Calculate +/- 30 days
       const fetchChecks = async () => {
         try {
-          const allChecks = await getReceivedChecks();
+          const allChecks = await getIssuedChecks();
           
-          const selectedDate = new Date(receiptCheckDueDate);
-          // Sometimes receiptCheckDueDate is a DateObject, so handle it
           let targetTime = 0;
           if (receiptCheckDueDate?.toDate) {
             targetTime = receiptCheckDueDate.toDate().getTime();
@@ -70,7 +67,7 @@ const datePickerCode = `<DatePicker
 const uiToInsert = `
                           {nearbyChecks.length > 0 && (
                             <div className="mt-2 p-2 bg-indigo-50 border border-indigo-100 rounded-lg text-xs">
-                              <p className="font-bold text-indigo-800 mb-1">چک‌های وصولی هم‌زمان (±۳۰ روز):</p>
+                              <p className="font-bold text-indigo-800 mb-1">چک‌های صادره هم‌زمان (±۳۰ روز):</p>
                               <ul className="space-y-1 max-h-32 overflow-y-auto">
                                 {nearbyChecks.map(c => (
                                   <li key={c.id} className="flex justify-between items-center text-slate-600 border-b border-indigo-100/50 pb-1">
@@ -85,5 +82,5 @@ const uiToInsert = `
 
 code = code.replace(datePickerCode, datePickerCode + uiToInsert);
 
-fs.writeFileSync('src/components/financial/ReceiveReceiptModal.tsx', code, 'utf-8');
-console.log('ReceiveReceiptModal patched');
+fs.writeFileSync('src/components/financial/PayReceiptModal.tsx', code, 'utf-8');
+console.log('PayReceiptModal patched');

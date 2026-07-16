@@ -302,6 +302,7 @@ import {
   WarehouseStock,
 } from "./types";
 import appVersion from "./version.json";
+import OrderList from "./components/inventory/OrderList";
 
 const customPersonFilter = (option: any, inputValue: string) => {
   if (!inputValue) return true;
@@ -7618,6 +7619,13 @@ ${errMsg}`);
                   />
                 ) : activeTab === "inventory_report" ? (
                   <InventoryReport showNotification={showNotification} categories={productCategories} />
+                ) : activeTab === "order_list" ? (
+                  <OrderList 
+                    products={products}
+                    categories={productCategories}
+                    formatCurrency={formatCurrency}
+                    toPersianDigits={toPersianDigits}
+                  />
                 ) : activeTab === "kardex" ? (
                   <KardexReport />
                 ) : activeTab === "crm_dashboard" ? (

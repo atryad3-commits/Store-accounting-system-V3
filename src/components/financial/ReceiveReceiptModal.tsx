@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { getReceivedChecks } from "../../services/dataService";
 import { motion } from "framer-motion";
 import { RefreshCw, Save, ArrowDownLeft, ArrowUpRight, CheckCircle, FileText, Calendar, Building2, User, UserPlus, Wallet, DollarSign, CreditCard, Printer, X, CheckSquare } from "lucide-react";
 import Select from "react-select";
@@ -66,7 +67,48 @@ export default function ReceiveReceiptModal(props: any) {
     issuedChecks
   } = props;
 
-  const isReceive = true;
+  
+  const [nearbyChecks, setNearbyChecks] = useState<any[]>([]);
+  useEffect(() => {
+    if (receiptMethod === 'check' && receiptCheckDueDate) {
+      // Calculate +/- 30 days
+      const fetchChecks = async () => {
+        try {
+          const allChecks = await getReceivedChecks();
+          
+          const selectedDate = new Date(receiptCheckDueDate);
+          // Sometimes receiptCheckDueDate is a DateObject, so handle it
+          let targetTime = 0;
+          if (receiptCheckDueDate?.toDate) {
+            targetTime = receiptCheckDueDate.toDate().getTime();
+          } else if (typeof receiptCheckDueDate === 'string' || typeof receiptCheckDueDate === 'number') {
+            targetTime = new Date(receiptCheckDueDate).getTime();
+          }
+          
+          if (!targetTime || isNaN(targetTime)) return;
+          
+          const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+          const minTime = targetTime - thirtyDaysMs;
+          const maxTime = targetTime + thirtyDaysMs;
+          
+          const nearby = allChecks.filter(c => {
+            if (!c.dueDate) return false;
+            const checkTime = new Date(c.dueDate).getTime();
+            return checkTime >= minTime && checkTime <= maxTime;
+          });
+          
+          setNearbyChecks(nearby);
+        } catch(e) {
+          console.error(e);
+        }
+      };
+      fetchChecks();
+    } else {
+      setNearbyChecks([]);
+    }
+  }, [receiptCheckDueDate, receiptMethod]);
+  
+const isReceive = true;
 
         const themeRing = isReceive
           ? "focus:ring-emerald-500"

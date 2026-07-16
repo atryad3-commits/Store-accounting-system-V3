@@ -1,4 +1,6 @@
-import React from "react";
+const fs = require('fs');
+
+const content = `import React from "react";
 import {
   BarChart3,
   ShoppingCart,
@@ -52,7 +54,6 @@ export const allSidebarGroups: SidebarGroup[] = [
       { id: "list_purchase", label: "لیست فاکتورهای خرید", roles: ["admin", "accountant", "viewer"] },
       { id: "list_purchase_return", label: "لیست برگشتی‌های خرید", roles: ["admin", "accountant", "viewer"] },
       { id: "product_last_prices", label: "آخرین قیمت‌های کالا", roles: ["admin", "accountant", "viewer"] },
-      { id: "order_list", label: "لیست سفارش خرید (نیازسنجی)", roles: ["admin", "accountant", "viewer"] },
     ],
   },
   {
@@ -184,7 +185,6 @@ export const allSidebarGroups: SidebarGroup[] = [
       { id: "users_manager", label: "مدیریت دسترسی کاربران", roles: ["admin"] },
       { id: "sms_panel", label: "تنظیمات پنل پیامک", roles: ["admin"] },
       { id: "data_reconciliation", label: "تطبیق و اصلاح داده‌ها", roles: ["admin"] },
-      { id: "checklist", label: "چک‌لیست سیستم", roles: ["admin"] },
       { id: "system_diagnostics", label: "عیب‌یابی سیستم", roles: ["admin"] },
       { id: "system_logs", label: "لاگ عملیات کاربران", roles: ["admin"] },
       { id: "database_logs", label: "لاگ دیتابیس", roles: ["admin"] },
@@ -288,3 +288,7 @@ export function getFilteredSidebarGroups(
       return g;
     });
 }
+`;
+
+fs.writeFileSync('src/utils/sidebarData.tsx', content, 'utf-8');
+console.log('sidebarData.tsx rewritten with highly precise categorization');
