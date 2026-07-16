@@ -180,9 +180,9 @@ export default function EditReceiptModal({
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Person Selector */}
-            <div>
+            <div className="md:col-span-2 lg:col-span-4">
               <label className="block text-xs font-black text-slate-700 mb-1.5 flex items-center gap-1.5">
                 <User className="w-4 h-4 text-slate-400" /> طرف حساب شخص/شرکت *
               </label>
@@ -200,7 +200,7 @@ export default function EditReceiptModal({
             </div>
 
             {/* Date Field */}
-            <div>
+            <div className="lg:col-span-2">
               <label className="block text-xs font-black text-slate-700 mb-1.5 flex items-center gap-1.5">
                 <Calendar className="w-4 h-4 text-slate-400" /> تاریخ سند
               </label>
@@ -216,7 +216,7 @@ export default function EditReceiptModal({
             </div>
 
             {/* Amount Field */}
-            <div>
+            <div className="lg:col-span-2">
               <label className="block text-xs font-black text-slate-700 mb-1.5 flex items-center gap-1.5">
                 <DollarSign className="w-4 h-4 text-slate-400" /> مبلغ کل سند (تومان) *
               </label>
@@ -233,7 +233,7 @@ export default function EditReceiptModal({
 
             {/* Info Word Display */}
             {amount && !isNaN(Number(amount)) && Number(amount) > 0 && (
-              <div className="md:col-span-2 bg-slate-50 border p-4 rounded-xl text-xs space-y-1">
+              <div className="md:col-span-2 lg:col-span-4 bg-slate-50 border p-4 rounded-xl text-xs space-y-1">
                 <p className="text-slate-500">حروف: <span className="font-extrabold text-slate-800">{numToPersianWords(Number(amount))} {storeSettings.currency || 'تومان'}</span> تمام.</p>
               </div>
             )}
