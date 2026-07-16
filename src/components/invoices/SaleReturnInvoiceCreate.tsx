@@ -313,7 +313,7 @@ export default function SaleReturnInvoiceCreate(props: any) {
                       {warehouses
                         .filter((w) => w.isActive !== false)
                         .map((v) => (
-                          <option key={v.id} value={v.id}>
+                          <option key={v.id || `key-${Math.random()}`} value={v.id}>
                             {v.name}
                           </option>
                         ))}
@@ -424,7 +424,7 @@ export default function SaleReturnInvoiceCreate(props: any) {
                     )}
                     {(items || []).map((item, index) => (
                       <tr
-                        key={item.id}
+                        key={item.id || `key-${Math.random()}`}
                         className="hover:bg-indigo-50/20 transition-colors"
                         data-row-type="sale-return-row"
                       >

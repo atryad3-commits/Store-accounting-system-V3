@@ -282,7 +282,7 @@ export default function QuickRefund({ showNotification, onComplete }: { showNoti
                          : cashboxes.find(c => c.id?.toString() === req.resourceId?.toString())?.name;
 
                        return (
-                         <tr key={req.id} className="hover:bg-gray-50/50 transition-colors">
+                         <tr key={req.id || `key-${Math.random()}`} className="hover:bg-gray-50/50 transition-colors">
                            <td className="px-4 py-3 font-mono text-gray-600 text-xs">#{req.id?.toString().slice(-4)}</td>
                            <td className="px-4 py-3 font-bold text-gray-800">
                              {personName || 'نامشخص'}
@@ -406,7 +406,7 @@ export default function QuickRefund({ showNotification, onComplete }: { showNoti
                             >
                               <option value="">-- گروه مشتری متفرقه --</option>
                               {(personGroups || []).map(g => (
-                                <option key={g.id} value={g.id}>{g.name}</option>
+                                <option key={g.id || `key-${Math.random()}`} value={g.id}>{g.name}</option>
                               ))}
                             </select>
                           </div>
@@ -434,7 +434,7 @@ export default function QuickRefund({ showNotification, onComplete }: { showNoti
                          <select required value={personId} onChange={e => setPersonId(e.target.value)} className="w-full border rounded-xl px-4 py-2.5 text-sm bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
                            <option value="">-- انتخاب کنید --</option>
                            {(persons || []).filter(p => p.isActive !== false).map(p => (
-                             <option key={p.id} value={p.id}>{p.alias || p.name} {p.personType === 'legal' ? '(حقوقی)' : ''}</option>
+                             <option key={p.id || `key-${Math.random()}`} value={p.id}>{p.alias || p.name} {p.personType === 'legal' ? '(حقوقی)' : ''}</option>
                            ))}
                          </select>
                       </div>

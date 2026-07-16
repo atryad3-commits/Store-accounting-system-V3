@@ -182,7 +182,7 @@ export default function QuickPriceInquiry({ products, settings }: QuickPriceInqu
                   </div>
                   <ul className="divide-y divide-slate-100 overflow-y-auto custom-scrollbar">
                     {suggestedProducts.map((p) => (
-                      <li key={p.id}>
+                      <li key={p.id || `key-${Math.random()}`}>
                         <button
                           onClick={() => handleSelectProduct(p)}
                           className="w-full text-right p-3.5 hover:bg-indigo-50/40 transition-colors flex items-center justify-between group/item"
@@ -246,7 +246,7 @@ export default function QuickPriceInquiry({ products, settings }: QuickPriceInqu
              <AnimatePresence mode="wait">
                {selectedProduct ? (
                  <motion.div 
-                   key={selectedProduct.id}
+                   key={selectedProduct.id || `key-${Math.random()}`}
                    initial={{ opacity: 0, scale: 0.98, y: 15 }}
                    animate={{ opacity: 1, scale: 1, y: 0 }}
                    exit={{ opacity: 0, scale: 0.98, y: -15 }}
@@ -409,7 +409,7 @@ export default function QuickPriceInquiry({ products, settings }: QuickPriceInqu
                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                          {alternativeProducts.map((alt) => (
                            <div 
-                             key={alt.id}
+                             key={alt.id || `key-${Math.random()}`}
                              onClick={() => handleSelectProduct(alt)}
                              className="bg-white hover:bg-slate-50 p-3 rounded-xl border border-slate-200/80 hover:border-indigo-200 transition-all cursor-pointer shadow-sm flex flex-col justify-between group/alt text-right"
                            >

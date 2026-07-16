@@ -624,7 +624,7 @@ export default function InvoiceAllocation({
 
                     return (
                       <button
-                        key={tx.id}
+                        key={tx.id || `key-${Math.random()}`}
                         onClick={() => setSelectedTxId(tx.id.toString())}
                         className={`w-full text-right p-3.5 transition-all flex flex-col gap-2 border-r-4 ${
                           isSelected 
@@ -713,7 +713,7 @@ export default function InvoiceAllocation({
                   </motion.div>
                 ) : (
                   <motion.div
-                    key={selectedTx.id}
+                    key={selectedTx.id || `key-${Math.random()}`}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 10 }}
@@ -835,7 +835,7 @@ export default function InvoiceAllocation({
 
                             return (
                               <div 
-                                key={inv.id} 
+                                key={inv.id || `key-${Math.random()}`} 
                                 className={`p-4 rounded-xl border transition-all ${
                                   currentAllocated > 0 
                                     ? 'bg-indigo-50/20 border-indigo-200 ring-1 ring-indigo-200/50' 

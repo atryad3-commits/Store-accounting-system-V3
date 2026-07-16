@@ -169,7 +169,7 @@ export default function GroupPriceUpdateWizard({
                   >
                     <option value="all">همه دسته‌ها</option>
                     {productCategories.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                      <option key={c.id || `key-${Math.random()}`} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                 )}
@@ -242,7 +242,7 @@ export default function GroupPriceUpdateWizard({
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {(items || []).map((item, idx) => (
-                  <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <tr key={item.id || `key-${Math.random()}`} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="p-4 text-center font-sans font-bold text-slate-500 text-xs border-l border-slate-100/50">
                       {toPersianDigits(idx + 1)}
                     </td>

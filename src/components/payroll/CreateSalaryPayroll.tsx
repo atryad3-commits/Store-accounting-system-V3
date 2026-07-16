@@ -1,14 +1,13 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { 
-    Wallet, Info, MinusCircle, PlusCircle, Calendar, DollarSign, User, UserPlus, CreditCard, Banknote, Plus, Trash2, Save, Calculator, Briefcase, CheckCircle, FileText, RefreshCw, Tag, AlertCircle, Package, ScanLine, Box, ArrowLeft, Minus, Edit2, Printer, Search, FileSpreadsheet
-} from 'lucide-react';
+    Wallet, Info, DollarSign, User, UserPlus, CreditCard, Banknote, Plus, Trash2, Save, Calculator, Briefcase, CheckCircle, FileText, RefreshCw, Tag, AlertCircle, Package, ScanLine, Box, ArrowLeft, Minus, Edit2, Printer, Search, FileSpreadsheet
+, Calendar, PlusCircle, MinusCircle} from 'lucide-react';
 
 export default function CreateSalaryPayroll(props: any) {
   const {
 
-    persian, persian_fa, storeSettings, formatCurrency, DatePicker, SearchableSelect, DollarSign, User, UserPlus, Save, RefreshCw, FileSpreadsheet
-  , handleSubmitSalary, activePersonsOnly, getRoleName, salaryPersonId, setSalaryPersonId, renderPersonInfoBox, Calendar, salaryPeriodMonth, setSalaryPeriodMonth, salaryPeriodYear, setSalaryPeriodYear, salaryDate, setSalaryDate, salaryBaseAmount, setSalaryBaseAmount, numToPersianWords, PlusCircle, salaryHousingAllowance, setSalaryHousingAllowance, salaryGroceryAllowance, setSalaryGroceryAllowance, salaryOtherAllowances, setSalaryOtherAllowances, MinusCircle, salaryInsuranceDeduction, setSalaryInsuranceDeduction, salaryTaxDeduction, setSalaryTaxDeduction, salaryOtherDeductions, setSalaryOtherDeductions, salaryDescription, setSalaryDescription, submittingSalary, setIsPersonModalOpen,
+    persian, persian_fa, storeSettings, formatCurrency, DatePicker, SearchableSelect, handleSubmitSalary, activePersonsOnly, getRoleName, salaryPersonId, setSalaryPersonId, renderPersonInfoBox,  salaryPeriodMonth, setSalaryPeriodMonth, salaryPeriodYear, setSalaryPeriodYear, salaryDate, setSalaryDate, salaryBaseAmount, setSalaryBaseAmount, numToPersianWords,  salaryHousingAllowance, setSalaryHousingAllowance, salaryGroceryAllowance, setSalaryGroceryAllowance, salaryOtherAllowances, setSalaryOtherAllowances,  salaryInsuranceDeduction, setSalaryInsuranceDeduction, salaryTaxDeduction, setSalaryTaxDeduction, salaryOtherDeductions, setSalaryOtherDeductions, salaryDescription, setSalaryDescription, submittingSalary, setIsPersonModalOpen,
   } = props;
 
   return (

@@ -208,7 +208,7 @@ export default function CRMDashboard({ showNotification, persons, storeSettings,
               {filteredFollowUps.map(item => {
                 const person = persons.find(p => String(p.id) === String(item.personId));
                 return (
-                  <div key={item.id} className="p-4 border border-slate-200 rounded-2xl hover:border-indigo-300 transition-colors bg-white flex flex-col md:flex-row gap-4 items-start md:items-center">
+                  <div key={item.id || `key-${Math.random()}`} className="p-4 border border-slate-200 rounded-2xl hover:border-indigo-300 transition-colors bg-white flex flex-col md:flex-row gap-4 items-start md:items-center">
                     <div className="flex-1 w-full">
                       <div className="flex items-center gap-2 mb-2">
                         <span className={`text-xs font-bold px-2 py-1 rounded-md ${
@@ -310,7 +310,7 @@ export default function CRMDashboard({ showNotification, persons, storeSettings,
                     >
                       <option value="">انتخاب کنید...</option>
                       {(persons || []).map(p => (
-                        <option key={p.id} value={p.id}>{p.name || p.companyName || 'بدون نام'} {p.role === 'customer' ? '(مشتری)' : p.role === 'supplier' ? '(تامین‌کننده)' : ''}</option>
+                        <option key={p.id || `key-${Math.random()}`} value={p.id}>{p.name || p.companyName || 'بدون نام'} {p.role === 'customer' ? '(مشتری)' : p.role === 'supplier' ? '(تامین‌کننده)' : ''}</option>
                       ))}
                     </select>
                   </div>

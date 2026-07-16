@@ -75,7 +75,7 @@ export default function ChartOfAccounts({ showNotification, currentUser }: any) 
     return (
       <div className={`space-y-1 ${depth > 0 ? 'pr-6 border-r border-slate-200 mr-2 mt-1' : ''}`}>
         {children.map(acc => (
-          <div key={acc.id} className="flex flex-col">
+          <div key={acc.id || `key-${Math.random()}`} className="flex flex-col">
             <div className="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg group">
               <div className="flex items-center gap-2">
                 {['group', 'general', 'subsidiary'].includes(acc.type) ? (
@@ -196,7 +196,7 @@ export default function ChartOfAccounts({ showNotification, currentUser }: any) 
                 >
                   <option value="">-- فاقد پدر (سطح اول) --</option>
                   {(accounts || []).filter(a => a.id !== editingId && ['group', 'general', 'subsidiary'].includes(a.type)).map(a => (
-                    <option key={a.id} value={a.id}>{a.code} - {a.title} ({a.type === 'group'?'گروه':a.type==='general'?'کل':'معین'})</option>
+                    <option key={a.id || `key-${Math.random()}`} value={a.id}>{a.code} - {a.title} ({a.type === 'group'?'گروه':a.type==='general'?'کل':'معین'})</option>
                   ))}
                 </select>
               </div>

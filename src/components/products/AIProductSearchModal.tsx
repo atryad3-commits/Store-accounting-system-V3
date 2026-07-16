@@ -148,7 +148,7 @@ export default function AIProductSearchModal({
                 >
                   <option value="">بدون دسته‌بندی</option>
                   {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
+                    <option key={cat.id || `key-${Math.random()}`} value={cat.id}>
                       {cat.name}
                     </option>
                   ))}
@@ -201,7 +201,7 @@ export default function AIProductSearchModal({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[40vh] overflow-y-auto pr-1">
                 {results.map((result) => (
                   <div
-                    key={result.id}
+                    key={result.id || `key-${Math.random()}`}
                     onClick={() => toggleSelect(result.id)}
                     className={`p-3 rounded-xl border transition-all cursor-pointer flex gap-3 ${
                       selectedIds.has(result.id)

@@ -156,7 +156,7 @@ export default function AccountingDocsList({ onNavigateToCreate, onNavigateToVie
             >
               <option value="">همه حساب‌ها</option>
               {(accounts || []).filter(a => ['general', 'subsidiary', 'detailed'].includes(a.type)).map(a => (
-                <option key={a.id} value={a.id}>{a.code} - {a.title}</option>
+                <option key={a.id || `key-${Math.random()}`} value={a.id}>{a.code} - {a.title}</option>
               ))}
             </select>
           </div>
@@ -196,7 +196,7 @@ export default function AccountingDocsList({ onNavigateToCreate, onNavigateToVie
                   const total = doc.items.reduce((sum, item) => sum + Number(item.debit || 0), 0);
                   
                   return (
-                  <tr key={doc.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={doc.id || `key-${Math.random()}`} className="hover:bg-slate-50 transition-colors">
                     <td className="p-4 text-sm font-black text-slate-800 font-mono">{doc.documentNumber}</td>
                     <td className="p-4 text-sm font-bold text-slate-600">
                       <div className="flex items-center gap-1.5">

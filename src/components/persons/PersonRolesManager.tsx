@@ -257,7 +257,7 @@ export default function PersonRolesManager({ showNotification }: PersonRolesMana
 
                   return (
                     <tr
-                      key={role.id}
+                      key={role.id || `key-${Math.random()}`}
                       className={`transition-all hover:bg-slate-50/40 ${
                         isPendingDelete ? "bg-rose-50/30" : ""
                       }`}

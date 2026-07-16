@@ -215,7 +215,7 @@ export default function OpeningBalances({ showNotification, onBack }: any) {
               >
                 <option value="">-- انتخاب حساب --</option>
                 {(accounts || []).filter(a => ['general', 'subsidiary', 'detailed'].includes(a.type)).map(a => (
-                  <option key={a.id} value={a.id}>{a.code} - {a.title}</option>
+                  <option key={a.id || `key-${Math.random()}`} value={a.id}>{a.code} - {a.title}</option>
                 ))}
               </select>
             </div>

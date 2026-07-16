@@ -212,7 +212,7 @@ export default function FastProductCreateModal({
                 >
                   <option value="">بدون دسته‌بندی</option>
                   {categories.map((c: any) => (
-                    <option key={c.id} value={c.name}>{c.name}</option>
+                    <option key={c.id || `key-${Math.random()}`} value={c.name}>{c.name}</option>
                   ))}
                 </select>
               )}

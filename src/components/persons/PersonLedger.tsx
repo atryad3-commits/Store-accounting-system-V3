@@ -982,7 +982,7 @@ export default function PersonLedger(props: any) {
 
                                           return (
                                             <tr
-                                              key={entry.id}
+                                              key={entry.id || `key-${Math.random()}`}
                                               className={`transition-colors group cursor-pointer ${
                                                 isDeb ? "bg-rose-50/40 print:bg-rose-50/50" : isCred ? "bg-emerald-50/40 print:bg-emerald-50/50" : "bg-white print:bg-white"
                                               } hover:bg-slate-50/80`}

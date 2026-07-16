@@ -524,7 +524,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
           { id: 'check_calendar', label: 'تقویم چک‌ها', icon: <Calendar className="w-4 h-4" /> }
         ].map(tab => (
           <button
-            key={tab.id}
+            key={tab.id || `key-${Math.random()}`}
             onClick={() => setActiveSubTab(tab.id as any)}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
               activeSubTab === tab.id
@@ -651,7 +651,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                     <option value="all">همه دسته‌چک‌ها</option>
                     {(checkbooks || []).map(cb => {
                       const bank = accounts.find(a => a.id == cb.accountId)?.bankName || 'حساب';
-                      return <option key={cb.id} value={cb.id.toString()}>{bank} ({cb.startNumber})</option>
+                      return <option key={cb.id || `key-${Math.random()}`} value={cb.id.toString()}>{bank} ({cb.startNumber})</option>
                     })}
                   </select>
                 </div>
@@ -716,7 +716,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                       const bankName = acc?.bankName || 'پرداخت نقدی/مستقیم';
                       const payee = persons.find(p => p.id?.toString() === c.payeeId?.toString());
                       return (
-                        <React.Fragment key={c.id}>
+                        <React.Fragment key={c.id || `key-${Math.random()}`}>
 <tr className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-4 py-3.5">
                             <div 
@@ -948,7 +948,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                     {filteredReceivedChecks.map(c => {
                       const payer = persons.find(p => p.id?.toString() === c.payerId?.toString());
                       return (
-                        <React.Fragment key={c.id}>
+                        <React.Fragment key={c.id || `key-${Math.random()}`}>
 <tr className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-4 py-3.5">
                             <div 
@@ -1158,7 +1158,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                        if (range.start === 0) return false;
                        return cDate >= range.start && cDate <= range.end;
                     }).map(c => (
-                      <div key={c.id} className="border border-gray-100 rounded-xl p-3 shadow-xs hover:border-emerald-200 transition-colors">
+                      <div key={c.id || `key-${Math.random()}`} className="border border-gray-100 rounded-xl p-3 shadow-xs hover:border-emerald-200 transition-colors">
                         <div className="flex justify-between items-center mb-2">
                           <span 
                             className="font-mono text-sm font-black text-gray-900 cursor-pointer hover:text-indigo-600 hover:underline transition-colors decoration-dashed underline-offset-4"
@@ -1211,7 +1211,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                        if (range.start === 0) return false;
                        return cDate >= range.start && cDate <= range.end;
                     }).map(c => (
-                      <div key={c.id} className="border border-gray-100 rounded-xl p-3 shadow-xs hover:border-rose-200 transition-colors">
+                      <div key={c.id || `key-${Math.random()}`} className="border border-gray-100 rounded-xl p-3 shadow-xs hover:border-rose-200 transition-colors">
                         <div className="flex justify-between items-center mb-2">
                           <span 
                             className="font-mono text-sm font-black text-gray-900 cursor-pointer hover:text-indigo-600 hover:underline transition-colors decoration-dashed underline-offset-4"
@@ -1374,7 +1374,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                       <option value="">-- بدون انتخاب (صدور مستقیم) --</option>
                       {(checkbooks || []).map(cb => {
                         const acc = accounts.find(a => a.id == cb.accountId);
-                        return <option key={cb.id} value={cb.id}>{acc?.bankName || 'نامشخص'} (برگه‌های: {cb.startNumber} تا {cb.endNumber})</option>;
+                        return <option key={cb.id || `key-${Math.random()}`} value={cb.id}>{acc?.bankName || 'نامشخص'} (برگه‌های: {cb.startNumber} تا {cb.endNumber})</option>;
                       })}
                     </select>
                   </div>
@@ -1384,7 +1384,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                       <select required value={icCheckNumber} onChange={e => setIcCheckNumber(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-sm font-mono text-center bg-white" dir="ltr">
                         <option value="">-- انتخاب از برگ‌های سفید --</option>
                         {(issuedChecks || []).filter(ic => String(ic.checkbookId) === String(icCheckbookId) && ic.status === 'blank').map(c => (
-                          <option key={c.id} value={c.checkNumber}>{c.checkNumber}</option>
+                          <option key={c.id || `key-${Math.random()}`} value={c.checkNumber}>{c.checkNumber}</option>
                         ))}
                       </select>
                     ) : (
@@ -1398,7 +1398,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                   <select required value={icPayeeId} onChange={e => setIcPayeeId(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-sm bg-white">
                     <option value="">-- انتخاب طرف حساب --</option>
                     {(persons || []).filter(p => p.isActive !== false).map(p => (
-                      <option key={p.id} value={p.id}>{p.name} ({p.role === 'customer' ? 'مشتری' : p.role === 'supplier' ? 'تامین کننده' : 'همکار'})</option>
+                      <option key={p.id || `key-${Math.random()}`} value={p.id}>{p.name} ({p.role === 'customer' ? 'مشتری' : p.role === 'supplier' ? 'تامین کننده' : 'همکار'})</option>
                     ))}
                   </select>
                 </div>
@@ -1533,7 +1533,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                   <select required value={rcPayerId} onChange={e => setRcPayerId(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-sm bg-white">
                     <option value="">-- انتخاب پرداخت‌کننده --</option>
                     {(persons || []).filter(p => p.isActive !== false).map(p => (
-                      <option key={p.id} value={p.id}>{p.name} ({p.role === 'customer' ? 'مشتری' : p.role === 'supplier' ? 'تامین کننده' : 'همکار'})</option>
+                      <option key={p.id || `key-${Math.random()}`} value={p.id}>{p.name} ({p.role === 'customer' ? 'مشتری' : p.role === 'supplier' ? 'تامین کننده' : 'همکار'})</option>
                     ))}
                   </select>
                 </div>
@@ -1780,7 +1780,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                        >
                           <option value="">-- انتخاب شخص --</option>
                           {(persons || []).map(p => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
+                            <option key={p.id || `key-${Math.random()}`} value={p.id}>{p.name}</option>
                           ))}
                        </select>
                     </div>

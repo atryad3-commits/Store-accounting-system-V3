@@ -184,7 +184,7 @@ const InventoryReport: React.FC<InventoryReportProps> = ({ showNotification, cat
              >
                <option value="all">تمام انبارها (کلي)</option>
                {(warehouses || []).filter(w => w.isActive !== false).map(w => (
-                 <option key={w.id} value={w.id}>{w.name}</option>
+                 <option key={w.id || `key-${Math.random()}`} value={w.id}>{w.name}</option>
                ))}
              </select>
           </div>

@@ -347,7 +347,7 @@ export default function FinancialDashboard({
             </h3>
             <div className="flex-1 overflow-auto max-h-64 space-y-3 pr-1">
               {checks.length === 0 ? <div className="text-center text-sm text-gray-400 mt-4">چک پرداختی یافت نشد</div> : checks.map((c: any) => (
-                <div key={c.id} className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex flex-col gap-2">
+                <div key={c.id || `key-${Math.random()}`} className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex flex-col gap-2">
                   <div className="flex justify-between items-start">
                     <span className="text-sm font-black text-gray-800">{getPersonDisplayName(persons.find((x: any) => String(x.id) === String(c.payeeId)) || {})}</span>
                     <span className="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full font-bold">{toPersianDigits(c.dueDate)}</span>
@@ -375,7 +375,7 @@ export default function FinancialDashboard({
             </h3>
             <div className="flex-1 overflow-auto max-h-64 space-y-3 pr-1">
               {checks.length === 0 ? <div className="text-center text-sm text-gray-400 mt-4">چک دریافتی یافت نشد</div> : checks.map((c: any) => (
-                <div key={c.id} className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex flex-col gap-2">
+                <div key={c.id || `key-${Math.random()}`} className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex flex-col gap-2">
                   <div className="flex justify-between items-start">
                     <span className="text-sm font-black text-gray-800">{getPersonDisplayName(persons.find((x: any) => String(x.id) === String(c.payerId)) || {})}</span>
                     <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">{toPersianDigits(c.dueDate)}</span>
@@ -407,7 +407,7 @@ export default function FinancialDashboard({
             </h3>
             <div className="flex-1 overflow-auto max-h-64 space-y-3 pr-1">
               {d.map((p: any) => (
-                <div key={p.id} className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex justify-between items-center">
+                <div key={p.id || `key-${Math.random()}`} className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex justify-between items-center">
                   <span className="text-sm font-bold text-gray-800 line-clamp-1">{getPersonDisplayName(p)}</span>
                   <span className="text-sm font-extrabold text-emerald-600">{formatNumber(p.balanceAmount)}</span>
                 </div>
@@ -433,7 +433,7 @@ export default function FinancialDashboard({
             </h3>
             <div className="flex-1 overflow-auto max-h-64 space-y-3 pr-1">
               {c.map((p: any) => (
-                <div key={p.id} className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex justify-between items-center">
+                <div key={p.id || `key-${Math.random()}`} className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex justify-between items-center">
                   <span className="text-sm font-bold text-gray-800 line-clamp-1">{getPersonDisplayName(p)}</span>
                   <span className="text-sm font-extrabold text-indigo-600">{formatNumber(p.balanceAmount)}</span>
                 </div>
@@ -554,7 +554,7 @@ export default function FinancialDashboard({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {widgets.map(widget => (
               <SortableWidget 
-                key={widget.id} 
+                key={widget.id || `key-${Math.random()}`} 
                 widget={widget} 
                 onRemove={() => removeWidget(widget.id)}
                 onEdit={() => setEditingWidget(widget)}
@@ -588,7 +588,7 @@ export default function FinancialDashboard({
                 ) : (
                   WIDGET_TYPES.filter(wt => !widgets.find(w => w.id === wt.id)).map(wt => (
                     <button 
-                      key={wt.id} 
+                      key={wt.id || `key-${Math.random()}`} 
                       onClick={() => addWidget(wt)}
                       className="flex items-center justify-between p-4 bg-gray-50 hover:bg-indigo-50 border border-gray-100 hover:border-indigo-200 rounded-xl transition-all text-right group"
                     >

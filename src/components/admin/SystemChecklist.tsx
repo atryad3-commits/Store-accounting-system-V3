@@ -272,7 +272,7 @@ export default function SystemChecklist() {
           if (colorClass === 'cyan') { catColor = "bg-cyan-100 text-cyan-700"; focusColor = "text-cyan-600 focus:ring-cyan-500"; hoverText = "group-hover:text-cyan-700"; }
 
           return (
-            <div key={category.id}>
+            <div key={category.id || `key-${Math.random()}`}>
               <div className="flex items-center justify-between border-b-2 border-gray-100 pb-3 mb-5">
                 <h3 className="text-lg font-black text-gray-800 flex items-center gap-2">
                   <span className={`w-8 h-8 rounded-full ${catColor} flex items-center justify-center text-sm`}>
@@ -288,7 +288,7 @@ export default function SystemChecklist() {
                   
                   return (
                     <div 
-                      key={item.id} 
+                      key={item.id || `key-${Math.random()}`} 
                       onClick={() => toggleCheck(item.id)}
                       className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all shadow-sm group cursor-pointer ${
                         isChecked 

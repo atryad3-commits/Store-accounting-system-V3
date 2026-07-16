@@ -49,7 +49,7 @@ export default function ListSalaryPayroll(props: any) {
                       const isDirectPay = tx.resourceType !== "none";
                       return (
                         <tr
-                          key={tx.id}
+                          key={tx.id || `key-${Math.random()}`}
                           className="hover:bg-gray-50 transition-colors"
                         >
                           <td className="p-4 font-mono font-bold text-indigo-600">

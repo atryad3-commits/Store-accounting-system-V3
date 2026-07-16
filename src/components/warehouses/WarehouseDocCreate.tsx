@@ -208,7 +208,7 @@ const isReceipt = [
                       {warehouses
                         .filter((w) => w.isActive !== false)
                         .map((v) => (
-                          <option key={v.id} value={v.id}>
+                          <option key={v.id || `key-${Math.random()}`} value={v.id}>
                             {v.name}
                           </option>
                         ))}
@@ -349,7 +349,7 @@ const isReceipt = [
                               </h3>
                               <div className="space-y-2">
                                 {pastDocs.map((doc: any) => (
-                                  <div key={doc.id} className="flex items-center justify-between bg-white p-3 rounded-lg border border-amber-200 shadow-sm">
+                                  <div key={doc.id || `key-${Math.random()}`} className="flex items-center justify-between bg-white p-3 rounded-lg border border-amber-200 shadow-sm">
                                     <span className="text-sm text-gray-700 font-medium">شماره سند: {doc.invoiceNumber} - تاریخ: {doc.date}</span>
                                     <button onClick={() => {
                                       if (handleVoidInvoice) {
@@ -720,7 +720,7 @@ const isReceipt = [
                       )}
                       {(items || []).map((item, index) => (
                         <tr
-                          key={item.id}
+                          key={item.id || `key-${Math.random()}`}
                           className="hover:bg-slate-50/50 transition-colors"
                         >
                           <td className="p-4 text-center font-bold text-gray-400">

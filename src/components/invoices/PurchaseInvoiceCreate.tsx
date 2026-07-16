@@ -4,11 +4,11 @@ import { motion } from 'framer-motion';
 import DatePicker from 'react-multi-date-picker';
 import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
-import { 
+import {  
   History, CheckCircle, RefreshCw, Info, Save, Trash2, Plus, 
   ShoppingCart, Building2, UserCircle, Hash, Percent,
   Calendar, CreditCard, Banknote, FileText, Truck
-} from 'lucide-react';
+, UserPlus } from 'lucide-react';
 
       export default function PurchaseInvoiceCreate(props: any) {
   const {
@@ -347,7 +347,7 @@ import {
                       {warehouses
                         .filter((w) => w.isActive !== false)
                         .map((v) => (
-                          <option key={v.id} value={v.id}>
+                          <option key={v.id || `key-${Math.random()}`} value={v.id}>
                             {v.name}
                           </option>
                         ))}
@@ -453,7 +453,7 @@ import {
                     )}
                     {(items || []).map((item, index) => (
                       <tr
-                        key={item.id}
+                        key={item.id || `key-${Math.random()}`}
                         className="hover:bg-emerald-50/20 transition-colors"
                         data-row-type="purchase-row"
                       >

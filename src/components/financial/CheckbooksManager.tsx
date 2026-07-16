@@ -98,7 +98,7 @@ export default function CheckbooksManager(props: any) {
             const bankName = bankAccount?.bankName || 'حساب بانکی نامشخص';
             const accountNo = bankAccount?.accountNumber ? `حساب: ${bankAccount.accountNumber}` : '';
             return (
-              <div key={cb.id} className="border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all bg-white relative overflow-hidden group">
+              <div key={cb.id || `key-${Math.random()}`} className="border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all bg-white relative overflow-hidden group">
                 <div className="absolute top-0 right-0 left-0 h-1.5 bg-indigo-500"></div>
                 <div className="text-sm font-black text-indigo-950 mb-1 flex items-center gap-1">
                   <Building2 className="w-4 h-4 text-indigo-600" />

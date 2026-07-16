@@ -25,6 +25,7 @@
     "express": "^4.21.2",
     "firebase": "^12.15.0",
     "firebase-admin": "^14.1.0",
+    "glob": "^13.0.6",
     "html2pdf.js": "^0.14.0",
     "html5-qrcode": "^2.3.8",
     "jsonwebtoken": "^9.0.3",

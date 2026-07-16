@@ -289,7 +289,7 @@ export default function ModuleSelector({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {modules.map((m, idx) => (
                 <motion.div
-                  key={m.id}
+                  key={m.id || `key-${Math.random()}`}
                   initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: idx * 0.04 + 0.1 }}
@@ -365,7 +365,7 @@ export default function ModuleSelector({
                 </div>
               ) : (
                 sortedActivities.map((act) => (
-                  <div key={act.id} className="group/item flex gap-3 items-start border-r-2 border-slate-100 pr-3 relative hover:border-indigo-400 transition-colors py-1">
+                  <div key={act.id || `key-${Math.random()}`} className="group/item flex gap-3 items-start border-r-2 border-slate-100 pr-3 relative hover:border-indigo-400 transition-colors py-1">
                     <div className="absolute right-[-5px] top-2 w-2.5 h-2.5 rounded-full bg-slate-200 group-hover/item:bg-indigo-500 transition-colors border-2 border-white" />
                     
                     <div className="flex-1 min-w-0">

@@ -395,7 +395,7 @@ export default function ProductsTab(props: any) {
 
                           {productCategories.slice(0, 5).map((cat) => (
                             <button
-                              key={cat.id}
+                              key={cat.id || `key-${Math.random()}`}
                               onClick={() =>
                                 setSelectedProductCategory(cat.id.toString())
                               }
@@ -433,7 +433,7 @@ export default function ProductsTab(props: any) {
                                 </option>
                                 {productCategories.slice(5).map((cat) => (
                                   <option
-                                    key={cat.id}
+                                    key={cat.id || `key-${Math.random()}`}
                                     value={cat.id.toString()}
                                   >
                                     {cat.name}

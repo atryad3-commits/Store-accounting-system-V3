@@ -7766,7 +7766,7 @@ ${errMsg}`);
                                     .sort((a, b) => b.timestamp - a.timestamp)
                                     .map((msg) => (
                                       <tr
-                                        key={msg.id}
+                                        key={msg.id || `key-${Math.random()}`}
                                         className="hover:bg-gray-50/50 transition-colors"
                                       >
                                         <td
@@ -9072,7 +9072,7 @@ ${errMsg}`);
                               },
                             ].map((fmt) => (
                               <button
-                                key={fmt.id}
+                                key={fmt.id || `key-${Math.random()}`}
                                 type="button"
                                 onClick={() => setBarcodeFormat(fmt.id)}
                                 className={`p-3 rounded-2xl border text-right transition-all cursor-pointer flex flex-col gap-1 ${

@@ -110,7 +110,7 @@ export default function ReceiptsList(props: any) {
                               : `صندوق: ${cashboxes.find((cb) => cb.id.toString() === tx.resourceId?.toString())?.name || "نامشخص"}`;
                         return (
                           <tr
-                            key={tx.id}
+                            key={tx.id || `key-${Math.random()}`}
                             className={`${themeRowHover} transition-colors`}
                           >
                             <td
