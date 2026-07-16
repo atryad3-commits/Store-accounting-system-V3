@@ -1,14 +1,14 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { 
-    Wallet, Info, MinusCircle, PlusCircle, Calendar, DollarSign, User, CreditCard, Banknote, Plus, Trash2, Save, Calculator, Briefcase, CheckCircle, FileText, RefreshCw, Tag, AlertCircle, Package, ScanLine, Box, ArrowLeft, Minus, Edit2, Printer, Search, FileSpreadsheet
+    Wallet, Info, MinusCircle, PlusCircle, Calendar, DollarSign, User, UserPlus, CreditCard, Banknote, Plus, Trash2, Save, Calculator, Briefcase, CheckCircle, FileText, RefreshCw, Tag, AlertCircle, Package, ScanLine, Box, ArrowLeft, Minus, Edit2, Printer, Search, FileSpreadsheet
 } from 'lucide-react';
 
 export default function CreateSalaryPayroll(props: any) {
   const {
 
-    persian, persian_fa, storeSettings, formatCurrency, DatePicker, SearchableSelect, DollarSign, User, Save, RefreshCw, FileSpreadsheet
-  , handleSubmitSalary, activePersonsOnly, getRoleName, salaryPersonId, setSalaryPersonId, renderPersonInfoBox, Calendar, salaryPeriodMonth, setSalaryPeriodMonth, salaryPeriodYear, setSalaryPeriodYear, salaryDate, setSalaryDate, salaryBaseAmount, setSalaryBaseAmount, numToPersianWords, PlusCircle, salaryHousingAllowance, setSalaryHousingAllowance, salaryGroceryAllowance, setSalaryGroceryAllowance, salaryOtherAllowances, setSalaryOtherAllowances, MinusCircle, salaryInsuranceDeduction, setSalaryInsuranceDeduction, salaryTaxDeduction, setSalaryTaxDeduction, salaryOtherDeductions, setSalaryOtherDeductions, salaryDescription, setSalaryDescription, submittingSalary
+    persian, persian_fa, storeSettings, formatCurrency, DatePicker, SearchableSelect, DollarSign, User, UserPlus, Save, RefreshCw, FileSpreadsheet
+  , handleSubmitSalary, activePersonsOnly, getRoleName, salaryPersonId, setSalaryPersonId, renderPersonInfoBox, Calendar, salaryPeriodMonth, setSalaryPeriodMonth, salaryPeriodYear, setSalaryPeriodYear, salaryDate, setSalaryDate, salaryBaseAmount, setSalaryBaseAmount, numToPersianWords, PlusCircle, salaryHousingAllowance, setSalaryHousingAllowance, salaryGroceryAllowance, setSalaryGroceryAllowance, salaryOtherAllowances, setSalaryOtherAllowances, MinusCircle, salaryInsuranceDeduction, setSalaryInsuranceDeduction, salaryTaxDeduction, setSalaryTaxDeduction, salaryOtherDeductions, setSalaryOtherDeductions, salaryDescription, setSalaryDescription, submittingSalary, setIsPersonModalOpen,
   } = props;
 
   return (
@@ -31,9 +31,11 @@ export default function CreateSalaryPayroll(props: any) {
                       <User className="w-4 h-4 text-indigo-500" />
                       انتخاب کارمند
                     </label>
-                    <SearchableSelect
-                      options={(activePersonsOnly || []).map((p) => ({
-                        value: p.id,
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <SearchableSelect
+                          options={(activePersonsOnly || []).map((p) => ({
+                            value: p.id,
                         label: p.alias || p.name,
                         subLabel: p.personCode
                           ? `کد: ${p.personCode} | ${getRoleName(p.role)}`
@@ -43,10 +45,20 @@ export default function CreateSalaryPayroll(props: any) {
                         searchStr: `${p.alias || ""} ${p.name || ""} ${p.title || ""} ${p.firstName || ""} ${p.lastName || ""} ${p.phone || ""} ${p.nationalId || ""} ${p.personCode || ""} ${p.companyName || ""} ${p.fatherName || ""}`,
                       }))}
                       value={salaryPersonId}
-                      onChange={(val) => setSalaryPersonId(val)}
-                      placeholder="-- جستجو و انتخاب کارمند --"
-                      searchPlaceholder="جستجو نام، کد یا نقش..."
-                    />
+                        onChange={(val) => setSalaryPersonId(val)}
+                        placeholder="-- جستجو و انتخاب کارمند --"
+                        searchPlaceholder="جستجو نام، کد یا نقش..."
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsPersonModalOpen && setIsPersonModalOpen(true)}
+                        className="bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 rounded-xl px-4 flex items-center justify-center transition-colors shadow-sm"
+                        title="تعریف شخص جدید"
+                      >
+                        <UserPlus className="w-5 h-5" />
+                      </button>
+                    </div>
                     {salaryPersonId &&
                       renderPersonInfoBox(
                         salaryPersonId,

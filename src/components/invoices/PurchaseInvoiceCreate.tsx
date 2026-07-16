@@ -68,7 +68,7 @@ import {
     invoiceMode,
     setInvoiceMode,
     setInvoiceNumber,
-    setInvoiceTitle,
+    setInvoiceTitle, setIsPersonModalOpen,
     User,
     activePersonsOnly,
     getRoleName,
@@ -253,10 +253,11 @@ import {
                     <User className="w-4 h-4 text-emerald-500" /> تامین کننده
                     (طرف حساب)
                   </label>
-                  <div className="border border-emerald-100 rounded-xl bg-emerald-50/30 focus-within:ring-2 focus-within:ring-emerald-500 transition-colors">
-                    <SearchableSelect
-                      options={(activePersonsOnly || []).map((p) => ({
-                        value: p.id,
+                  <div className="flex gap-2">
+                    <div className="flex-1 border border-emerald-100 rounded-xl bg-emerald-50/30 focus-within:ring-2 focus-within:ring-emerald-500 transition-colors">
+                      <SearchableSelect
+                        options={(activePersonsOnly || []).map((p) => ({
+                          value: p.id,
                         label: p.alias || p.name,
                         subLabel: p.phone || undefined,
                         badge: getRoleName(p.role),
@@ -269,7 +270,16 @@ import {
                       searchPlaceholder="جستجوی شخص یا شرکت..."
                     />
                   </div>
-                  {customerId &&
+                  <button
+                    type="button"
+                    onClick={() => setIsPersonModalOpen && setIsPersonModalOpen(true)}
+                    className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 rounded-xl px-4 flex items-center justify-center transition-colors"
+                    title="تعریف شخص جدید"
+                  >
+                    <UserPlus className="w-5 h-5" />
+                  </button>
+                </div>
+                {customerId &&
                     renderPersonInfoBox(
                       customerId,
                       "bg-emerald-50/50 border-emerald-100/50 text-slate-600",

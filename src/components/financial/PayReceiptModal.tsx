@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { RefreshCw, Save, ArrowDownLeft, ArrowUpRight, CheckCircle, FileText, Calendar, Building2, User, Wallet, DollarSign, CreditCard, Printer, X, CheckSquare } from "lucide-react";
+import { RefreshCw, Save, ArrowDownLeft, ArrowUpRight, CheckCircle, FileText, Calendar, Building2, User, UserPlus, Wallet, DollarSign, CreditCard, Printer, X, CheckSquare } from "lucide-react";
 import Select from "react-select";
 import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
@@ -16,7 +16,7 @@ export default function PayReceiptModal(props: any) {
     discardReceiptDraft,
     handleSubmitReceipt,
     receiptPersonId,
-    setReceiptPersonId,
+    setReceiptPersonId, setIsPersonModalOpen,
     persons,
     getPersonDisplayName,
     receiptMethod,
@@ -239,8 +239,10 @@ export default function PayReceiptModal(props: any) {
                     <label className="block text-sm font-bold text-slate-700 mb-1 flex items-center gap-1">
                       <User className="w-4 h-4" /> طرف حساب (شخص/شرکت)
                     </label>
-                    <Select
-                      isRtl
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <Select
+                          isRtl
                       value={
                         receiptPersonId
                           ? {
@@ -319,7 +321,17 @@ export default function PayReceiptModal(props: any) {
                           },
                         }),
                       }}
-                    />
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsPersonModalOpen && setIsPersonModalOpen(true)}
+                        className="bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 rounded-xl px-4 flex items-center justify-center transition-colors shadow-sm"
+                        title="تعریف شخص جدید"
+                      >
+                        <UserPlus className="w-5 h-5" />
+                      </button>
+                    </div>
                     <input
                       type="hidden"
                       required

@@ -126,7 +126,7 @@ export default function WarehouseDocCreate(props: any) {
     invoiceMode,
     setInvoiceMode,
     setInvoiceNumber,
-    setInvoiceTitle,
+    setInvoiceTitle, setIsPersonModalOpen,
     User,
     activePersonsOnly,
     getRoleName,
@@ -577,9 +577,11 @@ const isReceipt = [
                     <label className="block text-sm font-bold text-gray-700 mb-1 flex items-center gap-1">
                       <User className="w-4 h-4" /> نام تامین کننده یا خریدار
                     </label>
-                    <SearchableSelect
-                      options={(activePersonsOnly || []).map((p) => ({
-                        value: p.id,
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <SearchableSelect
+                          options={(activePersonsOnly || []).map((p) => ({
+                            value: p.id,
                         label: p.alias || p.name,
                         subLabel: p.phone || undefined,
                         badge: getRoleName(p.role),
@@ -587,10 +589,20 @@ const isReceipt = [
                         searchStr: `${p.alias || ""} ${p.name || ""} ${p.title || ""} ${p.firstName || ""} ${p.lastName || ""} ${p.phone || ""} ${p.nationalId || ""} ${p.personCode || ""} ${p.companyName || ""} ${p.fatherName || ""}`,
                       }))}
                       value={String(customerId || "")}
-                      onChange={(val) => setCustomerId(val)}
-                      placeholder="-- انتخاب کنید --"
-                      searchPlaceholder="جستجوی شخص..."
-                    />
+                        onChange={(val) => setCustomerId(val)}
+                        placeholder="-- انتخاب کنید --"
+                        searchPlaceholder="جستجوی شخص..."
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsPersonModalOpen && setIsPersonModalOpen(true)}
+                        className="bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 rounded-xl px-4 flex items-center justify-center transition-colors shadow-sm"
+                        title="تعریف شخص جدید"
+                      >
+                        <UserPlus className="w-5 h-5" />
+                      </button>
+                    </div>
                     {customerId &&
                       renderPersonInfoBox(
                         customerId,

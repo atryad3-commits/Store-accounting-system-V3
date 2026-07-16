@@ -1,7 +1,13 @@
 const fs = require('fs');
 let code = fs.readFileSync('src/App.tsx', 'utf-8');
 
-const badBlock = `      // Auto-select the newly created person in active creation forms
+const oldSubmitEnd = `      }
+
+      await fetchDataSilent();`;
+
+const newSubmitEnd = `      }
+
+      // Auto-select the newly created person in active creation forms
       if (!isEdit && addedPerson?.id) {
         if (isReceiveModalOpen || isPayModalOpen) {
           setReceiptPersonId(addedPerson.id.toString());
@@ -13,11 +19,15 @@ const badBlock = `      // Auto-select the newly created person in active creati
           activeTab === "create_warehouse_doc"
         ) {
           setCustomerId(addedPerson.id.toString());
-        } else if (activeTab === "create_salary_payroll") {
-          setSalaryPersonId(addedPerson.id.toString());
         }
-      }`;
+      }
 
-code = code.replace(badBlock, '');
-fs.writeFileSync('src/App.tsx', code, 'utf-8');
-console.log('Removed bad block from first occurrence (handleSubmitProduct)');
+      await fetchDataSilent();`;
+
+if (code.includes(oldSubmitEnd)) {
+  code = code.replace(oldSubmitEnd, newSubmitEnd);
+  fs.writeFileSync('src/App.tsx', code, 'utf-8');
+  console.log('Patched App.tsx handleSubmitPerson');
+} else {
+  console.log('Could not find pattern in App.tsx');
+}
