@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { addCommas, numberToWords } from "../../utils/format";
 
+const persianToEnglish = (str: string) => {
+  const persianNumbers = [/۰/g, /۱/g, /۲/g, /۳/g, /۴/g, /۵/g, /۶/g, /۷/g, /۸/g, /۹/g];
+  const arabicNumbers  = [/٠/g, /١/g, /٢/g, /٣/g, /٤/g, /٥/g, /٦/g, /٧/g, /٨/g, /٩/g];
+  if(typeof str === 'string') {
+    for(let i=0; i<10; i++) {
+      str = str.replace(persianNumbers[i], i.toString()).replace(arabicNumbers[i], i.toString());
+    }
+  }
+  return str;
+};
+
 export const CurrencyInput = ({
   value,
   onChange,
@@ -17,7 +28,7 @@ export const CurrencyInput = ({
     }
   }, [value]);
   const handleChange = (e: any) => {
-    let raw = e.target.value.replace(/,/g, "");
+    let raw = persianToEnglish(e.target.value).replace(/,/g, "");
     if (raw && isNaN(Number(raw))) return;
     setLocalVal(addCommas(raw));
     if (onChange) onChange({ target: { value: raw } });

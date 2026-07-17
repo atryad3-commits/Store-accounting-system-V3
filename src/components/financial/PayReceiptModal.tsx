@@ -3,6 +3,7 @@ import { getIssuedChecks } from "../../services/dataService";
 import { motion } from "framer-motion";
 import { RefreshCw, Save, ArrowDownLeft, ArrowUpRight, CheckCircle, FileText, Calendar, Building2, User, UserPlus, Wallet, DollarSign, CreditCard, Printer, X, CheckSquare } from "lucide-react";
 import Select from "react-select";
+import CurrencyInput from "../common/CurrencyInput";
 import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
@@ -414,12 +415,10 @@ const isReceive = false;
                       ({storeSettings.currency || "تومان"})
                     </label>
                     <div className="relative">
-                      <input
-                        type="number"
+                      <CurrencyInput
                         value={receiptAmount}
-                        onChange={(e) => setReceiptAmount(e.target.value)}
+                        onChange={(e: any) => setReceiptAmount(e.target.value)}
                         className={`w-full pl-16 pr-4 py-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 ${themeRing} outline-none font-sans font-mono font-black text-slate-900 text-right text-lg md:text-xl transition-all shadow-sm`}
-                        dir="ltr"
                         placeholder="۰"
                         required
                       />

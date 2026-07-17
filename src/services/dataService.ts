@@ -1168,7 +1168,18 @@ export const getTransactions = async () => {
       // ignore table not existing errors
     }
   }
-  return (allTx || []).filter(t => t && !t.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
+  
+  // Deduplicate by ID to prevent duplicate key warnings
+  const uniqueTx = new Map();
+  allTx.forEach(t => {
+    if (t && !t.isDeleted) {
+        if (!uniqueTx.has(t.id) || t.updatedAt > uniqueTx.get(t.id).updatedAt) {
+            uniqueTx.set(t.id, t);
+        }
+    }
+  });
+  
+  return Array.from(uniqueTx.values()).sort((a, b) => b.createdAt - a.createdAt);
 };
 
 export const addTransaction = async (transaction: any) => {
@@ -1666,8 +1677,18 @@ export const getInvoices = async () => {
      const data = await getLocalData<any[]>(t, [], { limit: 500 });
      if (data) allInvoices = allInvoices.concat(data);
   }
-  const invoices = allInvoices;
-  return (invoices || []).filter(inv => !inv.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
+  
+  // Deduplicate by ID
+  const uniqueInv = new Map();
+  allInvoices.forEach(inv => {
+    if (inv && !inv.isDeleted) {
+        if (!uniqueInv.has(inv.id) || inv.updatedAt > uniqueInv.get(inv.id).updatedAt) {
+            uniqueInv.set(inv.id, inv);
+        }
+    }
+  });
+  
+  return Array.from(uniqueInv.values()).sort((a, b) => b.createdAt - a.createdAt);
 };
 
 

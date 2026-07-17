@@ -24,6 +24,8 @@ import PersonOpeningBalances from "./components/persons/PersonOpeningBalances";
 import PersonLedger from "./components/persons/PersonLedger";
 import SettingsTab from "./components/admin/SettingsTab";
 import SidebarNavigation from "./components/SidebarNavigation";
+import MobileRestrictedMenu from "./components/MobileRestrictedMenu";
+import MinimalMobileReceiptModal from "./components/modals/MinimalMobileReceiptModal";
 
 import WarehouseManager from './components/warehouses/WarehouseManager';
 
@@ -317,6 +319,7 @@ const customPersonFilter = (option: any, inputValue: string) => {
 };
 
 export default function App() {
+
   const isFastStocktaking = window.location.hash.startsWith('#fast-stocktaking');
   if (isFastStocktaking) return <FastStocktakingMobile />;
   const [activeFinancialYear, setActiveFinancialYearState] =
@@ -351,6 +354,7 @@ export default function App() {
     setConfirmState({ isOpen: true, message, onConfirm, details, loading: false });
   };
   const { user, loading: authLoading, signIn, signOut } = useAuth();
+  // Mobile routing restriction
   const [activeTab, setRawActiveTab] = useState<
     | "create_sale"
     | "debts_credits"
@@ -420,6 +424,21 @@ export default function App() {
     | "kardex"
     | "product_last_prices"
   >("financial_report");
+
+  // Mobile routing restriction
+  useEffect(() => {
+    const checkMobileRoute = () => {
+      if (window.innerWidth < 768) {
+         const mobileAllowedTabs = ["persons", "create_receive_receipt", "create_pay_receipt", "person_ledger", "person_profile"];
+         if (!mobileAllowedTabs.includes(activeTab)) {
+            setRawActiveTab("persons");
+         }
+      }
+    };
+    checkMobileRoute();
+    window.addEventListener('resize', checkMobileRoute);
+    return () => window.removeEventListener('resize', checkMobileRoute);
+  }, [activeTab]);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -2965,6 +2984,8 @@ description: receiptDescription,
       }
     }
 
+    setIsReceiveModalOpen(false);
+    setIsPayModalOpen(false);
     setPreviewReceiptData(basePayload);
   };
 
@@ -6605,6 +6626,35 @@ ${errMsg}`);
           </motion.div>
         )}
       </AnimatePresence>
+      
+      <MinimalMobileReceiptModal 
+        isOpen={isReceiveModalOpen || isPayModalOpen}
+        onClose={() => {
+          setIsReceiveModalOpen(false);
+          setIsPayModalOpen(false);
+        }}
+        type={isReceiveModalOpen ? 'receive' : 'pay'}
+        persons={persons}
+        receiptPersonId={receiptPersonId}
+        setReceiptPersonId={setReceiptPersonId}
+        receiptAmount={receiptAmount}
+        setReceiptAmount={setReceiptAmount}
+        receiptNote={receiptNote}
+        setReceiptNote={setReceiptNote}
+        receiptMethod={receiptMethod}
+        setReceiptMethod={setReceiptMethod}
+        handleSubmitReceipt={handleSubmitReceipt}
+        accounts={accounts}
+        cashboxes={cashboxes}
+        receiptResourceType={receiptResourceType}
+        setReceiptResourceType={setReceiptResourceType}
+        receiptResourceId={receiptResourceId}
+        setReceiptResourceId={setReceiptResourceId}
+        formatNumber={formatNumber}
+        submittingReceipt={submittingReceipt}
+      />
+
+      <MobileRestrictedMenu activeTab={activeTab} setActiveTab={setActiveTab} setIsReceiveModalOpen={setIsReceiveModalOpen} setIsPayModalOpen={setIsPayModalOpen} />
       {/* Confirm Action Modal */}{" "}
       {confirmState.isOpen && (
         <div className="fixed inset-0 bg-slate-900/40 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm">
@@ -7098,7 +7148,8 @@ ${errMsg}`);
               }}
             />
           )}
-          <SidebarNavigation
+          <div className="hidden md:block">
+<SidebarNavigation
             setIsReceiveModalOpen={setIsReceiveModalOpen}
             setIsPayModalOpen={setIsPayModalOpen}
             mode="sidebar"
@@ -7118,6 +7169,7 @@ ${errMsg}`);
             expandedGroups={expandedGroups}
             setExpandedGroups={setExpandedGroups}
           />
+</div>
                     {/* Main Content Area */}
           <div
             className={`flex-1 flex flex-col w-full min-w-0 min-h-0 transition-all duration-300 overflow-hidden print:overflow-visible print:bg-white print:h-auto ${isGmailTheme ? "bg-white md:rounded-3xl md:border md:border-slate-200/80 md:m-3 md:shadow-xs" : ""}`}
@@ -7127,7 +7179,7 @@ ${errMsg}`);
               className={`flex flex-col sticky top-0 z-[60] print:hidden ${isGmailTheme ? "bg-[#f6f8fc]" : "bg-white border-b border-gray-100 shadow-sm"}`}
             >
               <div
-                className={`flex flex-row items-center justify-between p-4 sticky top-0 ${
+                className={`hidden md:flex flex-row items-center justify-between p-4 sticky top-0 ${
                   isGmailTheme
                     ? "bg-[#f6f8fc] border-none"
                     : "bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-xs"
@@ -7137,7 +7189,7 @@ ${errMsg}`);
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setIsSidebarOpen(true)}
-                    className="md:hidden p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors cursor-pointer shadow-3xs border border-slate-100 bg-white"
+                    className="hidden p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors cursor-pointer shadow-3xs border border-slate-100 bg-white"
                   >
                     <Menu className="w-5 h-5" />
                   </button>
@@ -7292,7 +7344,8 @@ ${errMsg}`);
                 </div>
               </div>
 
-              <SidebarNavigation
+              <div className="hidden md:block">
+<SidebarNavigation
                 setIsReceiveModalOpen={setIsReceiveModalOpen}
                 setIsPayModalOpen={setIsPayModalOpen}
                 mode="horizontal"
@@ -7312,8 +7365,9 @@ ${errMsg}`);
                 expandedGroups={expandedGroups}
                 setExpandedGroups={setExpandedGroups}
               />
+</div>
             </div>
-            <main className="flex-1 overflow-y-auto min-h-0 p-4 md:p-8 bg-slate-50/50 print:overflow-visible print:bg-white print:p-0">
+            <main className="flex-1 overflow-y-auto min-h-0 p-4 pb-24 md:p-8 bg-slate-50/50 print:overflow-visible print:bg-white print:p-0">
               <div
                 className={`mx-auto transition-all duration-300 print:max-w-none print:w-full print:px-0 ${isFullWidth ? "max-w-full xl:px-14" : "max-w-6xl"}`}
               >
@@ -12722,7 +12776,7 @@ ${errMsg}`);
               )}
             </AnimatePresence>
             {/* System Version Footer */}
-            <footer className="w-full bg-white border-t border-gray-200 py-6 mt-auto shrink-0 no-print">
+            <footer className="hidden md:block w-full bg-white border-t border-gray-200 py-6 mt-auto shrink-0 no-print">
               <div className="max-w-6xl mx-auto px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div 
                   onClick={() => setIsChangelogModalOpen(true)}
