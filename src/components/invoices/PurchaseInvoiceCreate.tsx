@@ -346,8 +346,8 @@ import {
                       <option value="">-- لطفاً انبار را انتخاب کنید --</option>
                       {warehouses
                         .filter((w) => w.isActive !== false)
-                        .map((v) => (
-                          <option key={v.id || `key-${Math.random()}`} value={v.id}>
+                        .map((v, index) => (
+                          <option key={`${v.id}-${index}`} value={v.id}>
                             {v.name}
                           </option>
                         ))}

@@ -33,6 +33,7 @@ import PersonRolesManager from "./components/persons/PersonRolesManager";
 // { useState, useEffect, useMemo, useRef } from "react";
 import WarehouseDocCreate from './components/warehouses/WarehouseDocCreate';
 import SaleInvoiceCreate from './components/invoices/SaleInvoiceCreate';
+import CalculatorModal from "./components/modals/CalculatorModal";
 import SaleReturnInvoiceCreate from './components/invoices/SaleReturnInvoiceCreate';
 import PurchaseInvoiceCreate from './components/invoices/PurchaseInvoiceCreate';
 import PurchaseReturnInvoiceCreate from './components/invoices/PurchaseReturnInvoiceCreate';
@@ -383,6 +384,8 @@ export default function App() {
     | "crm_dashboard"
     | "person_ledger"
     | "inventory_report"
+    | "order_list"
+    | "kardex"
     | "checklist"
     | "database"
     | "users_manager"
@@ -493,6 +496,7 @@ export default function App() {
   };
   const [systemModule, setSystemModule] = useState<"sales" | "purchase" | "accounting" | "selector" | "crm" | "hr" | "reports_module" | "all" | "commerce" | "inventory" | "admin">("selector");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isChangelogModalOpen, setIsChangelogModalOpen] = useState(false);
   const [isFullWidth, setIsFullWidth] = useState<boolean>(false);
@@ -7185,7 +7189,15 @@ ${errMsg}`);
                 )}
 
                 <div className="flex items-center gap-3">
+                  
                   <button
+                    onClick={() => setIsCalculatorOpen(true)}
+                    className="p-2 border rounded-xl transition-all cursor-pointer shadow-3xs active:scale-95 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 bg-white border-slate-200"
+                    title="ماشین حساب"
+                  >
+                    <Calculator className="w-5 h-5" />
+                  </button>
+<button
                     onClick={() => setSystemModule("selector")}
                     className="px-3 py-2 border rounded-xl transition-all cursor-pointer font-black gap-2 flex items-center text-xs shadow-3xs active:scale-95 text-slate-600 hover:text-emerald-700 bg-white border-emerald-200"
                     title="تغییر ماژول کاری"
@@ -13130,6 +13142,9 @@ ${errMsg}`);
           </div>
         </div>
       )}
+
+      <CalculatorModal isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
     </>
   );
+
 }

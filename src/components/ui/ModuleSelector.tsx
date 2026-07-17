@@ -73,15 +73,15 @@ export default function ModuleSelector({
       else if (inv.type === "sale_return") { typeText = "مرجوعی فروش"; iconColor = "text-amber-600 bg-amber-50"; }
       else if (inv.type === "purchase_return") { typeText = "مرجوعی خرید"; iconColor = "text-rose-600 bg-rose-50"; }
       else if (inv.type?.includes("warehouse")) { typeText = "سند انبارداری"; iconColor = "text-indigo-600 bg-indigo-50"; }
-
+      
       activities.push({
-        id: `inv-${inv.id}`,
+        id: `inv-${inv.id || Math.random()}`,
         type: "invoice",
         category: inv.type,
         title: typeText,
         description: `ثبت سند شماره ${inv.invoiceNumber || ""} به مبلغ ${formatCurrency(inv.totalAmount || 0)} تومان`,
         date: inv.date,
-        sortVal: parseJalaliToNumber(inv.date),
+        sortVal: inv.createdAt || parseJalaliToNumber(inv.date),
         iconColor,
       });
     });
@@ -93,14 +93,13 @@ export default function ModuleSelector({
       if (p.role === "customer") roleText = "مشتری جدید";
       else if (p.role === "supplier") roleText = "تأمین‌کننده جدید";
       else if (p.role === "employee") roleText = "پرسنل جدید";
-
       activities.push({
-        id: `person-${p.id}`,
+        id: `person-${p.id || Math.random()}`,
         type: "person",
         title: roleText,
         description: `تعریف "${p.name}" با شماره ${p.phone || "بدون شماره"}`,
         date: p.registrationDate || "",
-        sortVal: parseJalaliToNumber(p.registrationDate || ""),
+        sortVal: p.createdAt || parseJalaliToNumber(p.registrationDate || ""),
         iconColor: "text-rose-500 bg-rose-50",
       });
     });
@@ -110,12 +109,12 @@ export default function ModuleSelector({
     transactions.slice(-10).forEach(t => {
       const isDeposit = t.type === "deposit";
       activities.push({
-        id: `tx-${t.id}`,
+        id: `tx-${t.id || Math.random()}`,
         type: "transaction",
         title: isDeposit ? "دریافت نقد/بانک" : "پرداخت نقد/بانک",
         description: `انتقال مبلغ ${formatCurrency(t.amount || 0)} تومان بابت ${t.description || "ثبت مالی"}`,
         date: t.date,
-        sortVal: parseJalaliToNumber(t.date),
+        sortVal: t.createdAt || parseJalaliToNumber(t.date),
         iconColor: isDeposit ? "text-teal-600 bg-teal-50" : "text-rose-600 bg-rose-50",
       });
     });
@@ -124,12 +123,12 @@ export default function ModuleSelector({
   if (Array.isArray(issuedChecks)) {
     issuedChecks.slice(-5).forEach(c => {
       activities.push({
-        id: `issued-check-${c.id}`,
+        id: `issued-check-${c.id || Math.random()}`,
         type: "check",
         title: "صدور چک بانکی",
         description: `شماره ${c.checkNumber || ""} به مبلغ ${formatCurrency(c.amount || 0)} تومان`,
         date: c.issueDate || "",
-        sortVal: parseJalaliToNumber(c.issueDate || ""),
+        sortVal: c.createdAt || parseJalaliToNumber(c.issueDate || ""),
         iconColor: "text-purple-600 bg-purple-50",
       });
     });
@@ -138,12 +137,12 @@ export default function ModuleSelector({
   if (Array.isArray(receivedChecks)) {
     receivedChecks.slice(-5).forEach(c => {
       activities.push({
-        id: `received-check-${c.id}`,
+        id: `received-check-${c.id || Math.random()}`,
         type: "check",
         title: "وصول/دریافت چک",
         description: `چک بانک ${c.bankName || ""} به مبلغ ${formatCurrency(c.amount || 0)} تومان`,
         date: c.receiveDate || "",
-        sortVal: parseJalaliToNumber(c.receiveDate || ""),
+        sortVal: c.createdAt || parseJalaliToNumber(c.receiveDate || ""),
         iconColor: "text-indigo-600 bg-indigo-50",
       });
     });

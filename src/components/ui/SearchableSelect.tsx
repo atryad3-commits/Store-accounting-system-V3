@@ -117,11 +117,11 @@ export default function SearchableSelect({
             <div className="overflow-y-auto w-full custom-scrollbar">
               {filteredOptions.length > 0 ? (
                 <ul className="py-1">
-                  {filteredOptions.map((opt) => {
+                  {filteredOptions.map((opt, index) => {
                     const isSelected = String(opt.value) === String(value);
                     return (
                       <li
-                        key={opt.value || `key-${Math.random()}`}
+                        key={`${opt.value}-${index}`}
                         onClick={() => {
                           onChange(opt.value);
                           setIsOpen(false);
