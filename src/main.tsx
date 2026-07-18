@@ -1,7 +1,16 @@
 window.addEventListener("error", (e) => { fetch("/api/data/system_logs/append", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ action: "FRONTEND_ERROR", entityType: "error", entityId: "1", oldData: e.message, newData: e.error?.stack }) }); });
 import {StrictMode, useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import App from './App.tsx';
+import App from './App.tsx'
+
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  if (args[0] && typeof args[0] === 'string' && args[0].includes('Encountered two children with the same key')) {
+    console.log("REACT KEY ERROR CAUGHT:", args);
+  }
+  originalConsoleError(...args);
+};
+;
 import './styles/index.css';
 import { AuthProvider } from './context/AuthContext';
 import InitialSetupWizard from './components/InitialSetupWizard';

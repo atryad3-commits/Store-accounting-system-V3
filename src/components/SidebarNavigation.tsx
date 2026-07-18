@@ -369,7 +369,7 @@ export default function SidebarNavigation({
 
       {/* Mobile Drawer Menu */}
       <div
-        className={`fixed inset-y-0 right-0 w-72 shadow-2xl z-40 transform transition-transform duration-300 md:hidden flex flex-col print:hidden ${isSidebarOpen ? "translate-x-0" : "translate-x-full"} ${
+        className={`fixed inset-y-0 right-0 w-72 shadow-2xl z-[101] transform transition-transform duration-300 md:hidden flex flex-col print:hidden ${isSidebarOpen ? "translate-x-0" : "translate-x-full"} ${
           isGmailTheme
             ? "bg-[#f6f8fc] text-[#444746]"
             : "bg-slate-900 text-slate-300"

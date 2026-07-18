@@ -1,27 +1,28 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { UserPlus, ArrowDownToLine, ArrowUpFromLine, Wallet, List, Package } from 'lucide-react';
+import { UserPlus, ArrowDownToLine, ArrowUpFromLine, Wallet, List, Package, Menu } from 'lucide-react';
 
 interface MobileRestrictedMenuProps {
   activeTab: string;
   setActiveTab: (tab: any) => void;
   setIsReceiveModalOpen?: (isOpen: boolean) => void;
   setIsPayModalOpen?: (isOpen: boolean) => void;
+  setIsSidebarOpen?: (isOpen: boolean) => void;
 }
 
-export default function MobileRestrictedMenu({ activeTab, setActiveTab, setIsReceiveModalOpen, setIsPayModalOpen }: MobileRestrictedMenuProps) {
-  const tabs = [
+export default function MobileRestrictedMenu({ activeTab, setActiveTab, setIsReceiveModalOpen, setIsPayModalOpen, setIsSidebarOpen }: MobileRestrictedMenuProps) {
+    const tabs = [
     {
       id: 'persons',
-      label: 'ثبت شخص',
+      label: 'اشخاص',
       icon: UserPlus,
       action: () => setActiveTab('persons')
     },
     {
-      id: 'list_receipts',
-      label: 'رسیدها',
-      icon: List,
-      action: () => setActiveTab('list_receive_receipt')
+      id: 'products',
+      label: 'کالاها',
+      icon: Package,
+      action: () => setActiveTab('products')
     },
     {
       id: 'receive',
@@ -42,16 +43,12 @@ export default function MobileRestrictedMenu({ activeTab, setActiveTab, setIsRec
       }
     },
     {
-      id: 'person_ledger',
-      label: 'کارت حساب',
-      icon: Wallet,
-      action: () => setActiveTab('person_ledger')
-    },
-    {
-      id: 'products',
-      label: 'کالاها',
-      icon: Package,
-      action: () => setActiveTab('products')
+      id: 'menu',
+      label: 'بیشتر',
+      icon: Menu,
+      action: () => {
+        if (setIsSidebarOpen) setIsSidebarOpen(true);
+      }
     }
   ];
 
@@ -66,7 +63,7 @@ export default function MobileRestrictedMenu({ activeTab, setActiveTab, setIsRec
           
           return (
             <button
-              key={tab.id}
+              key={`mobile-tab-${tab.id}`}
               onClick={tab.action}
               className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
                 isActive ? 'text-indigo-600' : 'text-gray-500 hover:text-gray-900'

@@ -425,21 +425,6 @@ export default function App() {
     | "product_last_prices"
   >("financial_report");
 
-  // Mobile routing restriction
-  useEffect(() => {
-    const checkMobileRoute = () => {
-      if (window.innerWidth < 768) {
-         const mobileAllowedTabs = ["persons", "create_receive_receipt", "create_pay_receipt", "list_receive_receipt", "list_pay_receipt", "person_ledger", "person_profile", "products", "product_categories"];
-         if (!mobileAllowedTabs.includes(activeTab)) {
-            setRawActiveTab("persons");
-         }
-      }
-    };
-    checkMobileRoute();
-    window.addEventListener('resize', checkMobileRoute);
-    return () => window.removeEventListener('resize', checkMobileRoute);
-  }, [activeTab]);
-
   useEffect(() => {
     const handlePopState = () => {
       const hash = window.location.hash.replace('#', '');
@@ -6625,7 +6610,7 @@ ${errMsg}`);
       
       
 
-      <MobileRestrictedMenu activeTab={activeTab} setActiveTab={setActiveTab} />
+      <MobileRestrictedMenu activeTab={activeTab} setActiveTab={setActiveTab} setIsSidebarOpen={setIsSidebarOpen} />
       {/* Confirm Action Modal */}{" "}
       {confirmState.isOpen && (
         <div className="fixed inset-0 bg-slate-900/40 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm">
@@ -7119,9 +7104,9 @@ ${errMsg}`);
               }}
             />
           )}
-          <div className="hidden md:block">
-<SidebarNavigation
-            mode="sidebar"
+          <div className="block">
+            <SidebarNavigation
+              mode="sidebar"
             user={user}
             signOut={signOut}
             activeTab={activeTab}
@@ -7313,8 +7298,8 @@ ${errMsg}`);
                 </div>
               </div>
 
-              <div className="hidden md:block">
-<SidebarNavigation
+              <div className="block">
+              <SidebarNavigation
                 mode="horizontal"
                 user={user}
                 signOut={signOut}
@@ -7797,9 +7782,9 @@ ${errMsg}`);
                                 ) : (
                                   [...smsMessages]
                                     .sort((a, b) => b.timestamp - a.timestamp)
-                                    .map((msg) => (
+                                    .map((msg, index) => (
                                       <tr
-                                        key={msg.id || `key-${Math.random()}`}
+                                        key={msg.id ? `msg-${msg.id}-${index}` : `msg-${Math.random()}`}
                                         className="hover:bg-gray-50/50 transition-colors"
                                       >
                                         <td
@@ -9103,9 +9088,9 @@ ${errMsg}`);
                                 label: "کاراکتر تصادفی",
                                 desc: "PRD-X7H2K",
                               },
-                            ].map((fmt) => (
+                            ].map((fmt, index) => (
                               <button
-                                key={fmt.id || `key-${Math.random()}`}
+                                key={fmt.id ? `fmt-${fmt.id}-${index}` : `fmt-${Math.random()}`}
                                 type="button"
                                 onClick={() => setBarcodeFormat(fmt.id)}
                                 className={`p-3 rounded-2xl border text-right transition-all cursor-pointer flex flex-col gap-1 ${
@@ -9441,8 +9426,8 @@ ${errMsg}`);
                                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-colors text-gray-900 bg-white"
                                 >
                                   <option value="">بدون گروه (عمومی)</option>
-                                  {productCategories.map((cat) => (
-                                    <option key={cat.id || `cat-${Math.random()}`} value={cat.id}>
+                                  {productCategories.map((cat, index) => (
+                                    <option key={cat.id ? `cat-${cat.id}-${index}` : `cat-${Math.random()}`} value={cat.id}>
                                       {cat.name}
                                     </option>
                                   ))}
@@ -9703,8 +9688,8 @@ ${errMsg}`);
                                     </option>
                                     {warehouses
                                       .filter((w) => w.isActive)
-                                      .map((wh) => (
-                                        <option key={wh.id || `wh-${Math.random()}`} value={wh.id}>
+                                      .map((wh, index) => (
+                                        <option key={wh.id ? `wh-${wh.id}-${index}` : `wh-${Math.random()}`} value={wh.id}>
                                           {wh.name}
                                         </option>
                                       ))}
