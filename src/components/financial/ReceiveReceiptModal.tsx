@@ -131,7 +131,7 @@ const isReceive = true;
           : "bg-rose-100 text-rose-800";
 
         return (
-          <div className="w-full font-sans pb-24 md:pb-6" dir="rtl">
+          <div className="w-full font-sans" dir="rtl">
 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 w-full flex flex-col overflow-hidden relative">
               {/* Header */}
               <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-slate-100 bg-emerald-50/50">
@@ -224,17 +224,10 @@ const isReceive = true;
               </div>
             )}
 
-            <div
-              className={`bg-white rounded-2xl p-6 shadow-sm border ${themeBorder} ${themeLightBg}`}
-            >
-              <h2 className="text-xl font-extrabold text-slate-900 mb-6 flex items-center gap-2 border-b border-slate-200 pb-4">
-                <Wallet className={`w-6 h-6 ${themeText}`} />
-                {isReceive
-                  ? "ثبت سند رسید دریافت رسمی"
-                  : "ثبت سند رسید پرداخت رسمی"}
-              </h2>
+            <div className={`bg-white rounded-2xl p-4 md:p-6 shadow-sm border ${themeBorder} ${themeLightBg}`}>
+              
 
-              <div className="flex gap-2 max-w-[400px] mb-6 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+              <div className="flex flex-col sm:flex-row gap-2 max-w-[400px] mb-6 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
                 <button
                   type="button"
                   onClick={() => setReceiptMethod("cash")}
@@ -684,18 +677,7 @@ const isReceive = true;
                     />
                   </div>
                   
-                  <div className="md:col-span-2 lg:col-span-3">
-                    <label className="block text-sm font-bold text-slate-700 mb-1">
-                      یادداشت متنی کوتاه / کد پیگیری
-                    </label>
-                    <input
-                      type="text"
-                      value={receiptNote}
-                      onChange={(e) => setReceiptNote(e.target.value)}
-                      className={`w-full p-2.5 border border-slate-200 bg-white rounded-xl focus:ring-2 ${themeRing} text-sm font-bold text-slate-800 outline-none transition-shadow`}
-                      placeholder="کد پیگیری بانکی، یادداشت کوتاه و ..."
-                    />
-                  </div>
+                  
 
                   {receiptPersonId &&
                     (() => {
@@ -716,7 +698,7 @@ const isReceive = true;
                       );
                       if (personInvoices.length === 0) return null;
                       return (
-                        <div className="md:col-span-2 lg:col-span-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-sm mt-2">
+                        <div className="md:col-span-2 lg:col-span-4 bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-sm mt-2">
                           <h3 className="font-extrabold text-sm text-slate-700 mb-3 flex items-center gap-2">
                             <CheckSquare className="w-4 h-4 text-indigo-500" />{" "}
                             تخصیص به فاکتورهای باز (اختیاری)
@@ -837,11 +819,11 @@ const isReceive = true;
                     })()}
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+                <div className="flex flex-col md:flex-row justify-end gap-3 pt-4 border-t border-slate-200">
                   <button
                     type="submit"
                     disabled={submittingReceipt}
-                    className={`px-8 py-3 ${themeBg} text-white rounded-xl font-bold flex items-center gap-2 transition-colors border-none cursor-pointer shadow-sm`}
+                    className={`px-8 py-3 ${themeBg} text-white rounded-xl font-bold flex items-center justify-center w-full md:w-auto gap-2 transition-colors border-none cursor-pointer shadow-sm`}
                   >
                     {submittingReceipt ? (
                       <RefreshCw className="w-5 h-5 animate-spin" />
