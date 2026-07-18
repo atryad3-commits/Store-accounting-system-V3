@@ -11,7 +11,7 @@ export default function ProductCardModal({ product, warehouses = [], currency = 
   const [loading, setLoading] = useState(true);
   const [calculatedStock, setCalculatedStock] = useState<number>(0);
   const [stockPerWarehouse, setStockPerWarehouse] = useState<{ [key: string]: number }>({});
-  const [activeTab, setActiveTab] = useState<'info' | 'financial' | 'warehouse' | 'price_chart' | 'persons'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'sales' | 'purchases' | 'warehouse' | 'price_chart' | 'persons'>('info');
   const [priceHistory, setPriceHistory] = useState<any[]>([]);
   const [currentPurchasePrice, setCurrentPurchasePrice] = useState(product.purchasePrice || 0);
   const [currentSalePrice, setCurrentSalePrice] = useState(product.price || 0);
@@ -68,21 +68,22 @@ const fetchHistory = async () => {
           if (inv.items) {
              const items = inv.items.filter((i: any) => i.productId?.toString() === product.id?.toString());
              items.forEach((item: any) => {
+                let qty = Number(item.quantity) || 0;
+                let uPrice = item.unitPrice;
+                if (item.isSecondaryUnit && product.unitRatio && product.unitRatio > 0) {
+                   qty = qty * product.unitRatio;
+                   uPrice = Number((Number(uPrice) / product.unitRatio).toFixed(4));
+                }
                 prodHistory.push({
-                   type: inv.type, 
-                   date: inv.jalaliDate || new Date(inv.date || inv.createdAt).toLocaleDateString('fa-IR'),
+                   type: inv.type,
+                   date: inv.jalaliDate || new Date(inv.date || inv.createdAt).toLocaleDateString("fa-IR"),
                    invoiceNumber: inv.invoiceNumber,
-                   quantity: item.quantity,
-                   isSecondaryUnit: item.isSecondaryUnit,
-                   unitPrice: (item.isSecondaryUnit && product.unitRatio && product.unitRatio > 0) ? Number((Number(item.unitPrice) / product.unitRatio).toFixed(4)) : item.unitPrice,
-                   personName: persons?.find((p: any) => p.id?.toString() === (inv.customerId || inv.personId)?.toString())?.name || inv.customerName || inv.personName || '---',
+                   quantity: qty,
+                   isSecondaryUnit: false,
+                   unitPrice: uPrice,
+                   personName: persons?.find((p: any) => p.id?.toString() === (inv.customerId || inv.personId)?.toString())?.name || inv.customerName || inv.personName || "---",
                    warehouseId: item.warehouseId || inv.warehouseId
                 });
-
-                let qty = Number(item.quantity) || 0;
-                if (item.isSecondaryUnit && product.unitRatio) {
-                   qty = qty * product.unitRatio;
-                }
                 
                 const whId = (item.warehouseId || inv.warehouseId || product.warehouseId)?.toString() || 'unknown';
 
@@ -202,11 +203,18 @@ const fetchHistory = async () => {
                {activeTab === 'info' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 rounded-t-full"></span>}
             </button>
             <button
-               onClick={() => setActiveTab('financial')}
-               className={`pb-3 font-bold text-sm whitespace-nowrap transition-colors relative ${activeTab === 'financial' ? 'text-indigo-600' : 'text-gray-500 hover:text-indigo-500'}`}
+               onClick={() => setActiveTab('sales')}
+               className={`pb-3 font-bold text-sm whitespace-nowrap transition-colors relative ${activeTab === 'sales' ? 'text-indigo-600' : 'text-gray-500 hover:text-indigo-500'}`}
             >
-               فاکتورهای خرید و فروش
-               {activeTab === 'financial' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 rounded-t-full"></span>}
+               فاکتورهای فروش
+               {activeTab === 'sales' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 rounded-t-full"></span>}
+            </button>
+            <button
+               onClick={() => setActiveTab('purchases')}
+               className={`pb-3 font-bold text-sm whitespace-nowrap transition-colors relative ${activeTab === 'purchases' ? 'text-indigo-600' : 'text-gray-500 hover:text-indigo-500'}`}
+            >
+               فاکتورهای خرید
+               {activeTab === 'purchases' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 rounded-t-full"></span>}
             </button>
             <button
                onClick={() => setActiveTab('warehouse')}
@@ -370,54 +378,87 @@ const fetchHistory = async () => {
               </motion.div>
             )}
 
-            {activeTab === 'financial' && (
+            {activeTab === 'sales' && (
               <motion.div initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}}>
                 {loading ? (
                    <div className="text-center py-10 text-gray-400 font-bold animate-pulse">در حال استخراج سوابق ...</div>
-                ) : history.filter(h => h.type === 'sale' || h.type === 'purchase' || h.type === 'opening_balance').length === 0 ? (
-                   <div className="text-center py-10 text-gray-400 bg-gray-50 rounded-xl border border-gray-100">فاکتوری برای این کالا ثبت نشده است.</div>
+                ) : history.filter(h => h.type === 'sale').length === 0 ? (
+                   <div className="text-center py-10 text-gray-400 bg-gray-50 rounded-xl border border-gray-100">فاکتور فروشی برای این کالا ثبت نشده است.</div>
                 ) : (
                    <div className="overflow-x-auto border border-gray-100 rounded-xl shadow-sm">
                      <table className="w-full text-right text-sm">
                        <thead className="bg-gray-50 text-gray-600 border-b border-gray-100">
                          <tr>
-                           <th className="px-4 py-3 font-semibold text-xs whitespace-nowrap">نوع تراکنش</th>
                            <th className="px-4 py-3 font-semibold text-xs whitespace-nowrap">تاریخ</th>
                            <th className="px-4 py-3 font-semibold text-xs whitespace-nowrap">شماره سند</th>
-                           <th className="px-4 py-3 font-semibold text-xs">شخص / مشتری</th>
+                           <th className="px-4 py-3 font-semibold text-xs">مشتری</th>
                            <th className="px-4 py-3 font-semibold text-xs">انبار</th>
-                           <th className="px-4 py-3 font-semibold text-xs">واحد</th>
-                           <th className="px-4 py-3 font-semibold text-xs whitespace-nowrap">مقدار</th>
+                           <th className="px-4 py-3 font-semibold text-xs whitespace-nowrap">تعداد ({product.unit})</th>
                            <th className="px-4 py-3 font-semibold text-xs whitespace-nowrap">فی ({currency})</th>
+                           <th className="px-4 py-3 font-semibold text-xs whitespace-nowrap">مبلغ کل ({currency})</th>
                          </tr>
                        </thead>
                        <tbody className="divide-y divide-gray-50 bg-white">
-                         {history.filter(h => h.type === 'sale' || h.type === 'purchase' || h.type === 'opening_balance').map((h, i) => (
+                         {history.filter(h => h.type === 'sale').map((h, i) => (
                            <tr key={i} className="hover:bg-gray-50 transition-colors">
-                             <td className="px-4 py-3 font-bold whitespace-nowrap">
-                                {h.type === 'sale' ? (
-                                   <span className="text-emerald-600 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> فروش</span>
-                                ) : h.type === 'purchase' ? (
-                                   <span className="text-rose-600 flex items-center gap-1"><TrendingDown className="w-3 h-3" /> خرید</span>
-                                ) : (
-                                   <span className="text-amber-600 flex items-center gap-1"><Package className="w-3 h-3" /> موجودی اول دوره</span>
-                                )}
-                             </td>
                              <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{h.date}</td>
                              <td className="px-4 py-3 text-gray-500 text-xs font-mono">{h.invoiceNumber || '---'}</td>
                              <td className="px-4 py-3 font-bold text-gray-800 text-xs truncate max-w-[150px]">{h.personName || '---'}</td>
                              <td className="px-4 py-3 text-xs text-gray-600">
                                 {warehouses?.find(w => String(w.id) === String(h.warehouseId))?.name || '---'}
                              </td>
-                             <td className="px-4 py-3 text-xs font-medium text-gray-500">
-                                {h.isSecondaryUnit ? product.secondaryUnit : product.unit}
-                             </td>
                              <td className="px-4 py-3 font-bold font-mono">
-                                <span className={h.type === 'sale' ? 'text-rose-600' : 'text-emerald-600'} dir="ltr">
-                                   {h.type === 'sale' ? '-' : '+'}{formatNum(h.quantity)}
+                                <span className="text-emerald-600" dir="ltr">
+                                   {formatNum(h.quantity)}
                                 </span>
                              </td>
                              <td className="px-4 py-3 font-black text-indigo-700">{Number(h.unitPrice).toLocaleString()}</td>
+                             <td className="px-4 py-3 font-black text-indigo-700">{(Number(h.unitPrice) * Number(h.quantity)).toLocaleString()}</td>
+                           </tr>
+                         ))}
+                       </tbody>
+                     </table>
+                   </div>
+                )}
+              </motion.div>
+            )}
+
+            {activeTab === 'purchases' && (
+              <motion.div initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}}>
+                {loading ? (
+                   <div className="text-center py-10 text-gray-400 font-bold animate-pulse">در حال استخراج سوابق ...</div>
+                ) : history.filter(h => h.type === 'purchase').length === 0 ? (
+                   <div className="text-center py-10 text-gray-400 bg-gray-50 rounded-xl border border-gray-100">فاکتور خریدی برای این کالا ثبت نشده است.</div>
+                ) : (
+                   <div className="overflow-x-auto border border-gray-100 rounded-xl shadow-sm">
+                     <table className="w-full text-right text-sm">
+                       <thead className="bg-gray-50 text-gray-600 border-b border-gray-100">
+                         <tr>
+                           <th className="px-4 py-3 font-semibold text-xs whitespace-nowrap">تاریخ</th>
+                           <th className="px-4 py-3 font-semibold text-xs whitespace-nowrap">شماره سند</th>
+                           <th className="px-4 py-3 font-semibold text-xs">تامین‌کننده</th>
+                           <th className="px-4 py-3 font-semibold text-xs">انبار</th>
+                           <th className="px-4 py-3 font-semibold text-xs whitespace-nowrap">تعداد ({product.unit})</th>
+                           <th className="px-4 py-3 font-semibold text-xs whitespace-nowrap">فی ({currency})</th>
+                           <th className="px-4 py-3 font-semibold text-xs whitespace-nowrap">مبلغ کل ({currency})</th>
+                         </tr>
+                       </thead>
+                       <tbody className="divide-y divide-gray-50 bg-white">
+                         {history.filter(h => h.type === 'purchase').map((h, i) => (
+                           <tr key={i} className="hover:bg-gray-50 transition-colors">
+                             <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{h.date}</td>
+                             <td className="px-4 py-3 text-gray-500 text-xs font-mono">{h.invoiceNumber || '---'}</td>
+                             <td className="px-4 py-3 font-bold text-gray-800 text-xs truncate max-w-[150px]">{h.personName || '---'}</td>
+                             <td className="px-4 py-3 text-xs text-gray-600">
+                                {warehouses?.find(w => String(w.id) === String(h.warehouseId))?.name || '---'}
+                             </td>
+                             <td className="px-4 py-3 font-bold font-mono">
+                                <span className="text-rose-600" dir="ltr">
+                                   {formatNum(h.quantity)}
+                                </span>
+                             </td>
+                             <td className="px-4 py-3 font-black text-indigo-700">{Number(h.unitPrice).toLocaleString()}</td>
+                             <td className="px-4 py-3 font-black text-indigo-700">{(Number(h.unitPrice) * Number(h.quantity)).toLocaleString()}</td>
                            </tr>
                          ))}
                        </tbody>

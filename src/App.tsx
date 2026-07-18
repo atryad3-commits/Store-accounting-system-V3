@@ -5223,10 +5223,14 @@ description: receiptDescription,
             })
             .map((it: any) => {
               const prod = products.find((p) => p.id === it.productId);
+              let basePurchasePrice = Number(it.unitPrice) || 0;
+              if (it.isSecondaryUnit && prod?.unitRatio && prod.unitRatio > 0) {
+                 basePurchasePrice = Number((basePurchasePrice / prod.unitRatio).toFixed(4));
+              }
               return {
                 productId: it.productId,
                 productName: it.productName,
-                purchasePrice: Number(it.unitPrice) || 0,
+                purchasePrice: basePurchasePrice,
                 marginPercent: 0,
                 salePrice: prod ? Number(prod.price) : 0,
               };

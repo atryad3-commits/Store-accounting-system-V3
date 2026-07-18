@@ -107,14 +107,14 @@ export default function PricingWizardModal(props: any) {
                       <th className="p-4 font-extrabold text-slate-700">
                         نام کالا / خدمات
                       </th>
-                      <th className="p-4 font-extrabold text-slate-700 w-32 border-r border-slate-100 text-center">
-                        قیمت خرید ({storeSettings.currency})
+                      <th className="p-4 font-extrabold text-slate-700 w-32 border-r border-slate-100 text-center text-xs">
+                        قیمت خرید واحد اصلی<br/><span className="text-[10px] text-slate-400 font-normal">({storeSettings.currency})</span>
                       </th>
                       <th className="p-4 font-extrabold text-slate-700 w-32 border-r border-slate-100 text-center">
                         حاشیه سود (٪)
                       </th>
-                      <th className="p-4 font-extrabold text-slate-700 w-44 border-r border-slate-100 text-center">
-                        قیمت فروش ({storeSettings.currency})
+                      <th className="p-4 font-extrabold text-slate-700 w-44 border-r border-slate-100 text-center text-xs">
+                        قیمت فروش واحد اصلی<br/><span className="text-[10px] text-slate-400 font-normal">({storeSettings.currency})</span>
                       </th>
                     </tr>
                   </thead>
@@ -127,8 +127,11 @@ export default function PricingWizardModal(props: any) {
                         <td className="p-4 text-center font-sans font-bold text-slate-500 text-xs text-center border-l border-slate-100/50">
                           {toPersianDigits(idx + 1)}
                         </td>
-                        <td className="p-4 font-bold text-slate-800">
-                          {item.productName}
+                        <td className="p-4 font-bold text-slate-800 flex flex-col gap-1">
+                          <span>{item.productName}</span>
+                          <span className="text-[10px] text-slate-500 font-normal">
+                            واحد اصلی: {products.find((p: any) => p.id === item.productId)?.unit || '---'}
+                          </span>
                         </td>
                         <td className="p-3 border-r border-slate-100 text-center align-middle">
                           <div className="font-sans font-black text-slate-700 text-sm bg-slate-50 border border-slate-200/60 rounded-xl px-2 py-1.5 inline-block">
