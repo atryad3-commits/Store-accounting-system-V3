@@ -293,7 +293,7 @@ export default function ProductCategoriesView({
       />
 
       {/* Header Banner */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-150 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-150 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
             <List className="w-6 h-6 text-indigo-600" />

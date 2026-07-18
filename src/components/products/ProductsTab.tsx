@@ -90,7 +90,7 @@ export default function ProductsTab(props: any) {
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
                   >
-                    <div className="bg-gradient-to-l from-indigo-50 to-white px-8 py-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="bg-gradient-to-l from-indigo-50 to-white p-4 md:px-8 md:py-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div>
                         <h1 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
                           <Package className="w-6 h-6 text-indigo-600" />

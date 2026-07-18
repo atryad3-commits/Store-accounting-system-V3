@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { UserPlus, ArrowDownToLine, ArrowUpFromLine, Wallet, List } from 'lucide-react';
+import { UserPlus, ArrowDownToLine, ArrowUpFromLine, Wallet, List, Package } from 'lucide-react';
 
 interface MobileRestrictedMenuProps {
   activeTab: string;
@@ -46,12 +46,18 @@ export default function MobileRestrictedMenu({ activeTab, setActiveTab, setIsRec
       label: 'کارت حساب',
       icon: Wallet,
       action: () => setActiveTab('person_ledger')
+    },
+    {
+      id: 'products',
+      label: 'کالاها',
+      icon: Package,
+      action: () => setActiveTab('products')
     }
   ];
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-4px_15px_rgba(0,0,0,0.05)] z-[100] pb-safe">
-      <div className="flex justify-around items-center h-16 px-2">
+      <div className="flex justify-around items-center h-16 px-1">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id || 
                            (tab.id === 'receive' && activeTab === 'create_receive_receipt') ||

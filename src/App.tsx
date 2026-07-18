@@ -429,7 +429,7 @@ export default function App() {
   useEffect(() => {
     const checkMobileRoute = () => {
       if (window.innerWidth < 768) {
-         const mobileAllowedTabs = ["persons", "create_receive_receipt", "create_pay_receipt", "list_receive_receipt", "list_pay_receipt", "person_ledger", "person_profile"];
+         const mobileAllowedTabs = ["persons", "create_receive_receipt", "create_pay_receipt", "list_receive_receipt", "list_pay_receipt", "person_ledger", "person_profile", "products", "product_categories"];
          if (!mobileAllowedTabs.includes(activeTab)) {
             setRawActiveTab("persons");
          }
@@ -9330,7 +9330,7 @@ ${errMsg}`);
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-full max-w-2xl max-h-[90vh] flex flex-col"
+                    className="bg-white md:rounded-2xl shadow-xl md:border border-gray-100 overflow-hidden w-full max-w-2xl h-full md:h-auto md:max-h-[90vh] flex flex-col"
                   >
                     <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                       <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -10878,7 +10878,7 @@ ${errMsg}`);
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-full max-w-2xl max-h-[90vh] flex flex-col"
+                    className="bg-white md:rounded-2xl shadow-xl md:border border-gray-100 overflow-hidden w-full max-w-2xl h-full md:h-auto md:max-h-[90vh] flex flex-col"
                   >
                     <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                       <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
