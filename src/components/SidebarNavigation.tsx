@@ -27,8 +27,6 @@ interface SidebarNavigationProps {
   setIsComposeOpen: (open: boolean) => void;
   expandedGroups: { [key: string]: boolean };
   setExpandedGroups: React.Dispatch<React.SetStateAction<{ [key: string]: boolean }>>;
-  setIsReceiveModalOpen?: (v: boolean) => void;
-  setIsPayModalOpen?: (v: boolean) => void;
 }
 
 export default function SidebarNavigation({
@@ -48,8 +46,6 @@ export default function SidebarNavigation({
   setIsComposeOpen,
   expandedGroups,
   setExpandedGroups,
-  setIsReceiveModalOpen,
-  setIsPayModalOpen,
 }: SidebarNavigationProps) {
   const [menuSearchQuery, setMenuSearchQuery] = useState("");
 

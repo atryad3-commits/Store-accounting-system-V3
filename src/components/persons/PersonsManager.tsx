@@ -1,11 +1,19 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion"; // Note: might need to adjust imports
+import { motion, AnimatePresence } from "motion/react";
 import { User, Search, Filter, Plus, GripHorizontal, List, Users, Edit2, FileText, ChevronUp, ChevronDown, CheckCircle, Database, Phone, MapPin, Activity, Ban, Banknote, History, Printer, ShoppingCart, ArrowDownToLine, ArrowUpFromLine, Info, Trash2, RefreshCw, Key, ArrowRightLeft, LayoutGrid, Table, Building, BookOpen, Settings } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Select from "react-select";
 
 export default function PersonsManager(props: any) {
   const [openPersonActionsId, setOpenPersonActionsId] = useState<any>(null);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const { 
     filteredPersons,
     personPageSize,
@@ -74,8 +82,6 @@ export default function PersonsManager(props: any) {
     confirmAction,
     setPersonPageSize,
     setActiveTab,
-    setIsReceiveModalOpen,
-    setIsPayModalOpen,
   } = props;
 
                     const totalPages = Math.ceil(
@@ -137,6 +143,7 @@ export default function PersonsManager(props: any) {
                       return items;
                     };
 
+  const effectiveViewMode = isMobile ? "list" : personsViewMode;
   return (
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -297,7 +304,8 @@ export default function PersonsManager(props: any) {
                               </button>
 
                               {personGroups.slice(0, 3).map((g, index) => {
-              return (
+              const effectiveViewMode = isMobile ? "list" : personsViewMode;
+  return (
                                   <button
                                     key={g.id ? `id-${g.id}` : `idx-${index}`}
                                     onClick={() => setSelectedPersonGroup(g.id)}
@@ -334,7 +342,8 @@ export default function PersonsManager(props: any) {
                                     بیشتر...
                                   </option>
                                   {personGroups.slice(3).map((g, index) => {
-                  return (
+                  const effectiveViewMode = isMobile ? "list" : personsViewMode;
+  return (
                                       <option key={g.id ? `id-${g.id}` : `idx-${index}`} value={g.id}>
                                         {g.name}
                                       </option>
@@ -346,7 +355,7 @@ export default function PersonsManager(props: any) {
 
                             <div className="h-8 w-px bg-slate-200 hidden xl:block" />
 
-                            <div className="flex bg-slate-100/70 p-1.5 rounded-2xl">
+                            <div className="hidden md:flex bg-slate-100/70 p-1.5 rounded-2xl">
                               <button
                                 onClick={() => setPersonsViewMode("list")}
                                 className={`p-1.5 rounded-xl transition-all ${personsViewMode === "list" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"}`}
@@ -356,7 +365,7 @@ export default function PersonsManager(props: any) {
                               </button>
                               <button
                                 onClick={() => setPersonsViewMode("table")}
-                                className={`p-1.5 rounded-xl transition-all ${personsViewMode === "table" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"}`}
+                                className={`p-1.5 rounded-xl transition-all ${effectiveViewMode === "table" ? "bg-white text-indigo-700 shadow-sm" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"}`}
                                 title="نمایش جدولی"
                               >
                                 <Table className="w-4 h-4" />
@@ -379,7 +388,7 @@ export default function PersonsManager(props: any) {
                                 جدیدی ایجاد نمایید.
                               </p>
                             </div>
-                          ) : personsViewMode === "list" ? (
+                          ) : effectiveViewMode === "list" ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
                               {paginatedPersons.map((p, index) => {
                                 const bal =
@@ -387,7 +396,8 @@ export default function PersonsManager(props: any) {
                                 const isDebtor = bal > 0;
                                 const isCreditor = bal < 0;
 
-              return (
+              const effectiveViewMode = isMobile ? "list" : personsViewMode;
+  return (
                                   <motion.div
   initial={{ opacity: 0, y: 10 }}
   animate={{ opacity: 1, y: 0 }}
@@ -461,7 +471,8 @@ export default function PersonsManager(props: any) {
           else if (g.color === "rose") { bg = "bg-rose-50"; text = "text-rose-700"; }
           else if (g.color === "purple") { bg = "bg-purple-50"; text = "text-purple-700"; }
           else if (g.color === "cyan") { bg = "bg-cyan-50"; text = "text-cyan-700"; }
-          return (
+          const effectiveViewMode = isMobile ? "list" : personsViewMode;
+  return (
             <span className={`text-[10px] font-black px-2 py-1 rounded-lg leading-none ${bg} ${text}`}>
               {g.name}
             </span>
@@ -637,7 +648,8 @@ export default function PersonsManager(props: any) {
                                       const isDebtor = bal > 0;
                                       const isCreditor = bal < 0;
 
-                    return (
+                    const effectiveViewMode = isMobile ? "list" : personsViewMode;
+  return (
                                         <tr
                                           key={p.id ? `id-${p.id}` : `idx-${index}`}
                                           onClick={() => {
@@ -729,7 +741,8 @@ export default function PersonsManager(props: any) {
                                                     (grp) => grp.id === p.group,
                                                   );
                                                   if (!g) return null;
-                                return (
+                                const effectiveViewMode = isMobile ? "list" : personsViewMode;
+  return (
                                                     <span className="text-[10px] font-bold text-slate-500">
                                                       {g.name}
                                                     </span>
@@ -1059,7 +1072,8 @@ setIsPersonExtraModalOpen(
 
                               {getPaginationItems().map((pg, idx) => {
                                 if (pg === "...") {
-                return (
+                const effectiveViewMode = isMobile ? "list" : personsViewMode;
+  return (
                                     <span
                                       key={`ellipsis-${idx}`}
                                       className="px-2 text-slate-400 font-black tracking-widest flex items-end pb-1"
@@ -1069,7 +1083,8 @@ setIsPersonExtraModalOpen(
                                   );
                                 }
                                 const isCurrent = pg === safeCurrentPage;
-              return (
+              const effectiveViewMode = isMobile ? "list" : personsViewMode;
+  return (
                                   <button
                                     key={pg}
                                     onClick={() =>

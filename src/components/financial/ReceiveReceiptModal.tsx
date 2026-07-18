@@ -131,10 +131,10 @@ const isReceive = true;
           : "bg-rose-100 text-rose-800";
 
         return (
-          <div className="w-full font-sans" dir="rtl">
+          <div className="w-full font-sans pb-24 md:pb-6" dir="rtl">
 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 w-full flex flex-col overflow-hidden relative">
               {/* Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-emerald-50/50">
+              <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-slate-100 bg-emerald-50/50">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
                     <ArrowDownLeft className="w-5 h-5" />
@@ -147,7 +147,7 @@ const isReceive = true;
                 
               </div>
               
-              <div className="p-6 space-y-6">
+              <div className="p-4 md:p-6 space-y-6">
 
             {receiptHasDraft && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-center text-amber-800 shadow-sm col-span-full w-full">

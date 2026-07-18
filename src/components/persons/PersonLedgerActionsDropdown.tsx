@@ -8,8 +8,6 @@ function PersonLedgerActionsDropdown({
   clearDraft,
   ledgerPersonId,
   setActiveTab,
-  setIsReceiveModalOpen,
-  setIsPayModalOpen,
   setCustomerId,
   setReceiptPersonId,
   persons,

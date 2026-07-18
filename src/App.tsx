@@ -25,7 +25,7 @@ import PersonLedger from "./components/persons/PersonLedger";
 import SettingsTab from "./components/admin/SettingsTab";
 import SidebarNavigation from "./components/SidebarNavigation";
 import MobileRestrictedMenu from "./components/MobileRestrictedMenu";
-import MinimalMobileReceiptModal from "./components/modals/MinimalMobileReceiptModal";
+import MinimalMobilePersonModal from "./components/modals/MinimalMobilePersonModal";
 
 import WarehouseManager from './components/warehouses/WarehouseManager';
 
@@ -429,7 +429,7 @@ export default function App() {
   useEffect(() => {
     const checkMobileRoute = () => {
       if (window.innerWidth < 768) {
-         const mobileAllowedTabs = ["persons", "create_receive_receipt", "create_pay_receipt", "person_ledger", "person_profile"];
+         const mobileAllowedTabs = ["persons", "create_receive_receipt", "create_pay_receipt", "list_receive_receipt", "list_pay_receipt", "person_ledger", "person_profile"];
          if (!mobileAllowedTabs.includes(activeTab)) {
             setRawActiveTab("persons");
          }
@@ -779,8 +779,6 @@ export default function App() {
   };
 
   // Receipts & Payments Form State
-  const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
-  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [receiptNumber, setReceiptNumber] = useState("");
   const [receiptPersonId, setReceiptPersonId] = useState<string | number | "">(
     "",
@@ -1052,10 +1050,11 @@ export default function App() {
 
   // Auto-save effect for receipt
   useEffect(() => {
-    if (isReceiveModalOpen || isPayModalOpen) {
+    const isReceiptOpen = activeTab === "create_receive_receipt" || activeTab === "create_pay_receipt";
+    if (isReceiptOpen) {
       if (receiptPersonId || receiptAmount) {
          if (!receiptNumber) {
-             const docType = isReceiveModalOpen ? "receive_receipt" : "pay_receipt";
+             const docType = activeTab === "create_receive_receipt" ? "receive_receipt" : "pay_receipt";
              generateDocNumber(docType).then(num => {
                  setReceiptNumber(num);
                  updateDocCounter(docType, num);
@@ -2502,7 +2501,8 @@ export default function App() {
 
       // Auto-select the newly created person in active creation forms
       if (!isEdit && addedPerson?.id) {
-        if (isReceiveModalOpen || isPayModalOpen) {
+        const isReceiptOpen = activeTab === "create_receive_receipt" || activeTab === "create_pay_receipt";
+        if (isReceiptOpen) {
           setReceiptPersonId(addedPerson.id.toString());
         } else if (
           activeTab === "create_sale" || 
@@ -2984,8 +2984,6 @@ description: receiptDescription,
       }
     }
 
-    setIsReceiveModalOpen(false);
-    setIsPayModalOpen(false);
     setPreviewReceiptData(basePayload);
   };
 
@@ -6390,7 +6388,7 @@ ${errMsg}`);
         return (
           <ReceiveReceiptModal formatNumber={formatNumber}
             isOpen={true}
-            onClose={() => setRawActiveTab("debts_credits")}
+            onClose={() => setRawActiveTab("list_receive_receipt")}
             receiptHasDraft={receiptHasDraft}
             restoreReceiptDraft={restoreReceiptDraft}
             discardReceiptDraft={discardReceiptDraft}
@@ -6445,7 +6443,7 @@ ${errMsg}`);
         return (
           <PayReceiptModal formatNumber={formatNumber}
             isOpen={true}
-            onClose={() => setRawActiveTab("debts_credits")}
+            onClose={() => setRawActiveTab("list_pay_receipt")}
             receiptHasDraft={receiptHasDraft}
             restoreReceiptDraft={restoreReceiptDraft}
             discardReceiptDraft={discardReceiptDraft}
@@ -6532,7 +6530,7 @@ ${errMsg}`);
       case "list_warehouse_docs": {
         return (
           <InvoicesList
-             setIsReceiveModalOpen={setIsReceiveModalOpen} setIsPayModalOpen={setIsPayModalOpen} invoices={invoices} invoiceSearchQuery={invoiceSearchQuery} setInvoiceSearchQuery={setInvoiceSearchQuery} persons={persons} activeTab={activeTab} setActiveTab={setActiveTab} purchaseFilter={purchaseFilter} setPurchaseFilter={setPurchaseFilter} formatCurrency={formatCurrency} getPersonDisplayName={getPersonDisplayName} formatDateDisplay={formatDateDisplay}  numToPersianWords={numToPersianWords} setInvoiceWarehouseId={setInvoiceWarehouseId} warehouses={warehouses} setCustomerId={setCustomerId}  getRoleName={getRoleName} setEditingInvoiceId={setEditingInvoiceId} handleDeleteInvoice={handleDeleteInvoice}     storeSettings={storeSettings} invoiceCurrentPage={invoiceCurrentPage} setInvoiceCurrentPage={setInvoiceCurrentPage} invoicePageSize={invoicePageSize} setInvoicePageSize={setInvoicePageSize} toPersianDigits={toPersianDigits} listFilter={listFilter} setListFilter={setListFilter} invoiceGroupMode={invoiceGroupMode} setInvoiceGroupMode={setInvoiceGroupMode} List={List} clearDraft={clearDraft} setInvoiceType={setInvoiceType} setWarehouseOperationType={setWarehouseOperationType} Calendar={Calendar} renderPersonLink={renderPersonLink} products={products} setPricingWizardItems={setPricingWizardItems} setPricingWizardInvoice={setPricingWizardInvoice} setSuccessMsg={setSuccessMsg} setReceiptPersonId={setReceiptPersonId} setViewingInvoice={setViewingInvoice} handleEditInvoiceAction={handleEditInvoiceAction} handleVoidInvoice={handleVoidInvoice}
+             invoices={invoices} invoiceSearchQuery={invoiceSearchQuery} setInvoiceSearchQuery={setInvoiceSearchQuery} persons={persons} activeTab={activeTab} setActiveTab={setActiveTab} purchaseFilter={purchaseFilter} setPurchaseFilter={setPurchaseFilter} formatCurrency={formatCurrency} getPersonDisplayName={getPersonDisplayName} formatDateDisplay={formatDateDisplay}  numToPersianWords={numToPersianWords} setInvoiceWarehouseId={setInvoiceWarehouseId} warehouses={warehouses} setCustomerId={setCustomerId}  getRoleName={getRoleName} setEditingInvoiceId={setEditingInvoiceId} handleDeleteInvoice={handleDeleteInvoice}     storeSettings={storeSettings} invoiceCurrentPage={invoiceCurrentPage} setInvoiceCurrentPage={setInvoiceCurrentPage} invoicePageSize={invoicePageSize} setInvoicePageSize={setInvoicePageSize} toPersianDigits={toPersianDigits} listFilter={listFilter} setListFilter={setListFilter} invoiceGroupMode={invoiceGroupMode} setInvoiceGroupMode={setInvoiceGroupMode} List={List} clearDraft={clearDraft} setInvoiceType={setInvoiceType} setWarehouseOperationType={setWarehouseOperationType} Calendar={Calendar} renderPersonLink={renderPersonLink} products={products} setPricingWizardItems={setPricingWizardItems} setPricingWizardInvoice={setPricingWizardInvoice} setSuccessMsg={setSuccessMsg} setReceiptPersonId={setReceiptPersonId} setViewingInvoice={setViewingInvoice} handleEditInvoiceAction={handleEditInvoiceAction} handleVoidInvoice={handleVoidInvoice}
           />
         );
       }
@@ -6540,8 +6538,6 @@ ${errMsg}`);
       case "list_pay_receipt": {
         return (
           <ReceiptsList
-             setIsReceiveModalOpen={setIsReceiveModalOpen}
-             setIsPayModalOpen={setIsPayModalOpen}
              transactions={transactions} activeTab={activeTab} persons={persons} getPersonDisplayName={getPersonDisplayName} formatCurrency={formatCurrency} formatDateDisplay={formatDateDisplay}  renderPersonLink={renderPersonLink} storeSettings={storeSettings} List={List} setActiveTab={setActiveTab} invoiceSearchQuery={invoiceSearchQuery} setInvoiceSearchQuery={setInvoiceSearchQuery} toPersianDigits={toPersianDigits} accounts={accounts} cashboxes={cashboxes} formatNumber={formatNumber} numToPersianWords={numToPersianWords} openPayslip={openPayslip} setPrintingTransaction={setPrintingTransaction} setEditingReceipt={setEditingReceipt} setIsEditReceiptModalOpen={setIsEditReceiptModalOpen} confirmAction={confirmAction} deleteTransaction={deleteTransaction} fetchTransactions={fetchTransactions} setPreviewReceiptData={setPreviewReceiptData}
           />
         );
@@ -6627,34 +6623,9 @@ ${errMsg}`);
         )}
       </AnimatePresence>
       
-      <MinimalMobileReceiptModal 
-        isOpen={isReceiveModalOpen || isPayModalOpen}
-        onClose={() => {
-          setIsReceiveModalOpen(false);
-          setIsPayModalOpen(false);
-        }}
-        type={isReceiveModalOpen ? 'receive' : 'pay'}
-        persons={persons}
-        receiptPersonId={receiptPersonId}
-        setReceiptPersonId={setReceiptPersonId}
-        receiptAmount={receiptAmount}
-        setReceiptAmount={setReceiptAmount}
-        receiptNote={receiptNote}
-        setReceiptNote={setReceiptNote}
-        receiptMethod={receiptMethod}
-        setReceiptMethod={setReceiptMethod}
-        handleSubmitReceipt={handleSubmitReceipt}
-        accounts={accounts}
-        cashboxes={cashboxes}
-        receiptResourceType={receiptResourceType}
-        setReceiptResourceType={setReceiptResourceType}
-        receiptResourceId={receiptResourceId}
-        setReceiptResourceId={setReceiptResourceId}
-        formatNumber={formatNumber}
-        submittingReceipt={submittingReceipt}
-      />
+      
 
-      <MobileRestrictedMenu activeTab={activeTab} setActiveTab={setActiveTab} setIsReceiveModalOpen={setIsReceiveModalOpen} setIsPayModalOpen={setIsPayModalOpen} />
+      <MobileRestrictedMenu activeTab={activeTab} setActiveTab={setActiveTab} />
       {/* Confirm Action Modal */}{" "}
       {confirmState.isOpen && (
         <div className="fixed inset-0 bg-slate-900/40 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm">
@@ -7150,8 +7121,6 @@ ${errMsg}`);
           )}
           <div className="hidden md:block">
 <SidebarNavigation
-            setIsReceiveModalOpen={setIsReceiveModalOpen}
-            setIsPayModalOpen={setIsPayModalOpen}
             mode="sidebar"
             user={user}
             signOut={signOut}
@@ -7346,8 +7315,6 @@ ${errMsg}`);
 
               <div className="hidden md:block">
 <SidebarNavigation
-                setIsReceiveModalOpen={setIsReceiveModalOpen}
-                setIsPayModalOpen={setIsPayModalOpen}
                 mode="horizontal"
                 user={user}
                 signOut={signOut}
@@ -10191,7 +10158,31 @@ ${errMsg}`);
   </div>
 )}
               <PersonIOModal isOpen={isPersonIOModalOpen} onClose={() => setIsPersonIOModalOpen(false)} action={personIOAction} setAction={setPersonIOAction} persons={persons} storeSettings={storeSettings} addPerson={addPerson} showNotification={showNotification} confirmAction={confirmAction} getRoleName={getRoleName} fetchPersons={fetchPersons} />
-              {isPersonModalOpen && (
+              <MinimalMobilePersonModal
+                isOpen={isPersonModalOpen && window.innerWidth < 768}
+                onClose={() => {
+                  setIsPersonModalOpen(false);
+                  setEditingPersonId(null);
+                  
+                }}
+                newPersonType={newPersonType}
+                setNewPersonType={setNewPersonType}
+                newPersonFirstName={newPersonFirstName}
+                setNewPersonFirstName={setNewPersonFirstName}
+                newPersonLastName={newPersonLastName}
+                setNewPersonLastName={setNewPersonLastName}
+                newPersonCompanyName={newPersonCompanyName}
+                setNewPersonCompanyName={setNewPersonCompanyName}
+                newPersonPhone={newPersonPhone}
+                setNewPersonPhone={setNewPersonPhone}
+                newPersonRole={newPersonRole}
+                setNewPersonRole={setNewPersonRole}
+                handleSubmitPerson={handleSubmitPerson}
+                submittingPerson={submittingPerson}
+                personRoles={personRoles}
+              />
+              
+              {isPersonModalOpen && window.innerWidth >= 768 && (
                 <div key="isPersonModalOpen-modal"
                   className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm"
                   dir="rtl"

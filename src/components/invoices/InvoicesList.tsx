@@ -6,8 +6,6 @@ const { Tag, Wallet, Ban, ChevronDown, Search, Plus, Filter, FileText, Download,
 export default function InvoicesList(props: any) {
   const {
     invoices, invoiceSearchQuery, setInvoiceSearchQuery, persons, activeTab, setActiveTab,
-    setIsReceiveModalOpen,
-    setIsPayModalOpen,
     purchaseFilter, setPurchaseFilter, formatCurrency, getPersonDisplayName, formatDateDisplay,
     calculateInvoiceTotal, numToPersianWords, setInvoiceWarehouseId, warehouses, setCustomerId,
     handlePrintInvoice, getRoleName, setEditingInvoiceId, handleDeleteInvoice, handleConvertProformaToSale,

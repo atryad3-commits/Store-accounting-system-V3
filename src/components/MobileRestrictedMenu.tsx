@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { UserPlus, ArrowDownToLine, ArrowUpFromLine, Wallet } from 'lucide-react';
+import { UserPlus, ArrowDownToLine, ArrowUpFromLine, Wallet, List } from 'lucide-react';
 
 interface MobileRestrictedMenuProps {
   activeTab: string;
@@ -16,6 +16,12 @@ export default function MobileRestrictedMenu({ activeTab, setActiveTab, setIsRec
       label: 'ثبت شخص',
       icon: UserPlus,
       action: () => setActiveTab('persons')
+    },
+    {
+      id: 'list_receipts',
+      label: 'رسیدها',
+      icon: List,
+      action: () => setActiveTab('list_receive_receipt')
     },
     {
       id: 'receive',
@@ -49,7 +55,8 @@ export default function MobileRestrictedMenu({ activeTab, setActiveTab, setIsRec
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id || 
                            (tab.id === 'receive' && activeTab === 'create_receive_receipt') ||
-                           (tab.id === 'pay' && activeTab === 'create_pay_receipt');
+                           (tab.id === 'pay' && activeTab === 'create_pay_receipt') ||
+                           (tab.id === 'list_receipts' && (activeTab === 'list_receive_receipt' || activeTab === 'list_pay_receipt'));
           
           return (
             <button
