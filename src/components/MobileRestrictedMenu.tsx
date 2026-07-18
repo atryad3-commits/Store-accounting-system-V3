@@ -1,54 +1,59 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { UserPlus, ArrowDownToLine, ArrowUpFromLine, Wallet, List, Package, Menu } from 'lucide-react';
+import { UserPlus, ArrowDownToLine, ArrowUpFromLine, PackagePlus, ClipboardList } from 'lucide-react';
 
 interface MobileRestrictedMenuProps {
   activeTab: string;
   setActiveTab: (tab: any) => void;
-  setIsReceiveModalOpen?: (isOpen: boolean) => void;
-  setIsPayModalOpen?: (isOpen: boolean) => void;
-  setIsSidebarOpen?: (isOpen: boolean) => void;
+  setIsPersonModalOpen?: (isOpen: boolean) => void;
+  setIsProductModalOpen?: (isOpen: boolean) => void;
 }
 
-export default function MobileRestrictedMenu({ activeTab, setActiveTab, setIsReceiveModalOpen, setIsPayModalOpen, setIsSidebarOpen }: MobileRestrictedMenuProps) {
-    const tabs = [
+export default function MobileRestrictedMenu({ 
+  activeTab, 
+  setActiveTab, 
+  setIsPersonModalOpen, 
+  setIsProductModalOpen 
+}: MobileRestrictedMenuProps) {
+  
+  const tabs = [
     {
-      id: 'persons',
-      label: 'اشخاص',
+      id: 'add_person',
+      label: 'افزودن شخص',
       icon: UserPlus,
-      action: () => setActiveTab('persons')
-    },
-    {
-      id: 'products',
-      label: 'کالاها',
-      icon: Package,
-      action: () => setActiveTab('products')
+      action: () => {
+        if (setIsPersonModalOpen) setIsPersonModalOpen(true);
+      }
     },
     {
       id: 'receive',
-      label: 'دریافت',
+      label: 'رسید دریافت',
       icon: ArrowDownToLine,
       action: () => {
-        if (setIsReceiveModalOpen) setIsReceiveModalOpen(true);
-        else setActiveTab('create_receive_receipt');
+        setActiveTab('create_receive_receipt');
       }
     },
     {
       id: 'pay',
-      label: 'پرداخت',
+      label: 'رسید پرداخت',
       icon: ArrowUpFromLine,
       action: () => {
-        if (setIsPayModalOpen) setIsPayModalOpen(true);
-        else setActiveTab('create_pay_receipt');
+        setActiveTab('create_pay_receipt');
       }
     },
     {
-      id: 'menu',
-      label: 'بیشتر',
-      icon: Menu,
+      id: 'add_product',
+      label: 'تعریف کالا',
+      icon: PackagePlus,
       action: () => {
-        if (setIsSidebarOpen) setIsSidebarOpen(true);
+        if (setIsProductModalOpen) setIsProductModalOpen(true);
       }
+    },
+    {
+      id: 'stocktaking',
+      label: 'انبارگردانی',
+      icon: ClipboardList,
+      action: () => setActiveTab('stocktaking')
     }
   ];
 
@@ -59,7 +64,7 @@ export default function MobileRestrictedMenu({ activeTab, setActiveTab, setIsRec
           const isActive = activeTab === tab.id || 
                            (tab.id === 'receive' && activeTab === 'create_receive_receipt') ||
                            (tab.id === 'pay' && activeTab === 'create_pay_receipt') ||
-                           (tab.id === 'list_receipts' && (activeTab === 'list_receive_receipt' || activeTab === 'list_pay_receipt'));
+                           (tab.id === 'stocktaking' && activeTab === 'stocktaking');
           
           return (
             <button

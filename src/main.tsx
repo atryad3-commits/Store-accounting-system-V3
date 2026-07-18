@@ -11,6 +11,8 @@ console.error = (...args) => {
   originalConsoleError(...args);
 };
 ;
+import 'vazirmatn/Vazirmatn-font-face.css';
+import '@fontsource/jetbrains-mono';
 import './styles/index.css';
 import { AuthProvider } from './context/AuthContext';
 import InitialSetupWizard from './components/InitialSetupWizard';

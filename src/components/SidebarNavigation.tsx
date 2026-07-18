@@ -194,7 +194,7 @@ export default function SidebarNavigation({
   const renderHorizontalMenu = () => {
     return (
       <div
-        className="flex items-center gap-1.5 px-6 py-2.5 flex-wrap bg-white sticky top-0 z-40 select-none shadow-sm"
+        className="hidden md:flex items-center gap-1.5 px-6 py-2.5 flex-wrap bg-white sticky top-0 z-40 select-none shadow-sm"
         dir="rtl"
       >
         {filteredSidebarGroups.map((group, groupIdx) => {
@@ -267,14 +267,6 @@ export default function SidebarNavigation({
 
   return (
     <>
-      {/* Sidebar Mobile Overlay */}
-      {isSidebarOpen && (
-        <div key="isSidebarOpen-modal"
-          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] md:hidden transition-opacity print:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
       {/* Desktop Sidebar */}
       {menuLayout === "vertical" && (
         <aside
@@ -367,51 +359,6 @@ export default function SidebarNavigation({
         </aside>
       )}
 
-      {/* Mobile Drawer Menu */}
-      <div
-        className={`fixed inset-y-0 right-0 w-72 shadow-2xl z-[101] transform transition-transform duration-300 md:hidden flex flex-col print:hidden ${isSidebarOpen ? "translate-x-0" : "translate-x-full"} ${
-          isGmailTheme
-            ? "bg-[#f6f8fc] text-[#444746]"
-            : "bg-slate-900 text-slate-300"
-        }`}
-      >
-        <div
-          className={`p-4 flex items-center justify-between border-b ${isGmailTheme ? "border-slate-200" : "border-slate-800"}`}
-        >
-          <div
-            className={`flex items-center gap-2 font-bold ${isGmailTheme ? "text-slate-800" : "text-white"}`}
-          >
-            <Shield
-              className={`w-5 h-5 ${isGmailTheme ? "text-[#b3261e]" : "text-indigo-500"}`}
-            />
-            <span>منوی سیستم</span>
-          </div>
-          <button
-            onClick={() => setIsSidebarOpen(false)}
-            className={`p-1 rounded-lg ${isGmailTheme ? "hover:bg-slate-200/50 text-slate-500" : "hover:bg-slate-800 text-slate-400"}`}
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {renderSidebarGroups()}
-        </div>
-        <div
-          className={`p-4 border-t ${isGmailTheme ? "border-slate-200 bg-white/40" : "border-slate-800"}`}
-        >
-          <button
-            onClick={signOut}
-            className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-colors ${
-              isGmailTheme
-                ? "text-[#b3261e] hover:bg-rose-50 border border-rose-100"
-                : "text-rose-400 hover:text-white bg-slate-800/50 hover:bg-rose-500/20"
-            }`}
-          >
-            <LogOut className="w-5 h-5" />
-            خروج از حساب
-          </button>
-        </div>
-      </div>
-    </>
+      </>
   );
 }

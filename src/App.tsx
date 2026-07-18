@@ -6610,7 +6610,7 @@ ${errMsg}`);
       
       
 
-      <MobileRestrictedMenu activeTab={activeTab} setActiveTab={setActiveTab} setIsSidebarOpen={setIsSidebarOpen} />
+      <MobileRestrictedMenu activeTab={activeTab} setActiveTab={setActiveTab} setIsPersonModalOpen={setIsPersonModalOpen} setIsProductModalOpen={setIsProductModalOpen} />
       {/* Confirm Action Modal */}{" "}
       {confirmState.isOpen && (
         <div className="fixed inset-0 bg-slate-900/40 z-[99999] flex items-center justify-center p-4 backdrop-blur-sm">
@@ -8433,7 +8433,20 @@ ${errMsg}`);
                   "accounting_auto_sync",
                   "accounting_verification",
                   "accounting_opening_balances",
-                ].includes(activeTab) && renderTabContent()}
+                ].includes(activeTab) && (
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeTab}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      transition={{ duration: 0.2 }}
+                      className="h-full flex flex-col"
+                    >
+                      {renderTabContent()}
+                    </motion.div>
+                  </AnimatePresence>
+                )}
               </div>
             </main>
 
