@@ -375,7 +375,15 @@ export type ProductInventoryHistory = {
   timestamp: number;
 };
 
+
+export interface NoteHistory {
+  date: string;
+  action: string;
+  details?: string;
+}
+
 export interface PersonalNote {
+
   id: string;
   title: string;
   content: string;
@@ -385,4 +393,10 @@ export interface PersonalNote {
   tags?: string[];
   createdAt: string;
   updatedAt: string;
+  linkedPersons?: string[];
+  linkedDocs?: string[];
+  images?: string[];
+  reminderDate?: string;
+  history?: NoteHistory[];
+
 }

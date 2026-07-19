@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import re
+
+code = """import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Pin, Palette, Archive, Trash2, Search, X, Plus, CheckSquare, 
@@ -659,3 +661,8 @@ export function PersonalNotesManager({ storeSettings }: any) {
     </div>
   );
 }
+"""
+
+with open("src/components/notes/PersonalNotesManager.tsx", "w", encoding="utf-8") as f:
+    f.write(code)
+

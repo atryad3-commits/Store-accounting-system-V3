@@ -25,6 +25,7 @@ import DatePicker from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Cell, CartesianGrid } from 'recharts';
+import { DashboardPersonalNotesWidget } from "../notes/DashboardPersonalNotesWidget";
 
 function toPersianDigits(str: string | number) {
   if (str === null || str === undefined) return "";
@@ -478,26 +479,11 @@ export default function FinancialDashboard({
         );
       }
       case 'personal_notes': {
-        const key = `personal_notes_${currentUser?.id || 'guest'}`;
-        const currentNote = localStorage.getItem(key) || "";
         return (
-          <div className="bg-white rounded-2xl p-6 h-full flex flex-col">
-            <h3 className="text-base font-extrabold text-gray-900 border-b border-gray-100 pb-3 mb-4 flex items-center gap-2">
-               <FileText className="w-5 h-5 text-indigo-500" /> یادداشت‌های شخصی
-            </h3>
-            <div className="flex-1 min-h-[150px]">
-               <textarea
-                 className="w-full h-full p-4 bg-indigo-50/30 border border-indigo-100 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none leading-relaxed transition-all placeholder:text-gray-400"
-                 placeholder="یادداشت‌های روزانه و شخصی خود را اینجا بنویسید... (این یادداشت‌ها فقط برای شما قابل مشاهده است)"
-                 defaultValue={currentNote}
-                 onChange={(e) => {
-                    localStorage.setItem(key, e.target.value);
-                 }}
-               />
-            </div>
-          </div>
+          <DashboardPersonalNotesWidget setActiveTab={setActiveTab} />
         );
       }
+
       default:
         return <div className="p-4 text-gray-500">محتوای ویجت تعریف نشده است</div>;
     }
