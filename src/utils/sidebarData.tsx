@@ -35,7 +35,7 @@ export const allSidebarGroups: SidebarGroup[] = [
     label: "فضای کاری شخصی",
     icon: <Activity className="w-5 h-5" />,
     items: [
-      { id: "personal_notes", label: "یادداشت‌های شخصی", roles: ["admin", "accountant", "manager", "cashier"] },
+      { id: "personal_notes", label: "یادداشت‌های شخصی", roles: ["admin", "accountant", "manager", "cashier", "viewer"] },
     ],
   },
 
@@ -242,10 +242,10 @@ export function getFilteredSidebarGroups(
           "persons",
           "receipts_payments",
           "reports",
-        ].includes(g.id);
+        ].includes(g.id) || g.id === "personal_workspace";
       }
       if (systemModule === "inventory") {
-        return ["products_management", "warehousing", "reports"].includes(g.id);
+        return ["products_management", "warehousing", "reports"].includes(g.id) || g.id === "personal_workspace";
       }
       if (systemModule === "accounting") {
         return [
@@ -257,19 +257,19 @@ export function getFilteredSidebarGroups(
           "salary",
           "persons",
           "reports",
-        ].includes(g.id);
+        ].includes(g.id) || g.id === "personal_workspace";
       }
       if (systemModule === "admin") {
-        return ["admin", "reports"].includes(g.id);
+        return ["admin", "reports"].includes(g.id) || g.id === "personal_workspace";
       }
       if (systemModule === "crm") {
-        return ["persons", "sales_operations", "sms_panel", "reports"].includes(g.id);
+        return ["persons", "sales_operations", "sms_panel", "reports"].includes(g.id) || g.id === "personal_workspace";
       }
       if (systemModule === "hr") {
-        return ["salary", "persons", "reports"].includes(g.id);
+        return ["salary", "persons", "reports"].includes(g.id) || g.id === "personal_workspace";
       }
       if (systemModule === "reports_module") {
-        return ["reports"].includes(g.id);
+        return ["reports"].includes(g.id) || g.id === "personal_workspace";
       }
       return true;
     })

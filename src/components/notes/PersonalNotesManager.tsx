@@ -128,15 +128,21 @@ export function PersonalNotesManager({ storeSettings }: any) {
   };
 
   const handleCloseEditModal = () => {
-    if (editingNote) {
-      handleUpdateNote(editingNote.id, {
-        title: editingNote.title,
-        content: editingNote.content,
-        color: editingNote.color
-      });
-      setEditingNote(null);
-    }
+    setEditingNote(null);
   };
+
+  useEffect(() => {
+    if (editingNote) {
+      const timeoutId = setTimeout(() => {
+        handleUpdateNote(editingNote.id, {
+          title: editingNote.title,
+          content: editingNote.content,
+          color: editingNote.color
+        });
+      }, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [editingNote?.title, editingNote?.content, editingNote?.color]);
 
   const getColorClass = (colorId?: string) => {
     const color = NOTE_COLORS.find(c => c.id === (colorId || 'default')) || NOTE_COLORS[0];
@@ -281,7 +287,7 @@ export function PersonalNotesManager({ storeSettings }: any) {
                               onClick={handleSaveNewNote}
                               className="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors"
                           >
-                              بستن و ذخیره
+                              بستن
                           </button>
                       </div>
                   )}
@@ -374,7 +380,7 @@ export function PersonalNotesManager({ storeSettings }: any) {
                               onClick={handleCloseEditModal}
                               className="px-6 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-bold transition-all shadow-md"
                           >
-                              ذخیره و بستن
+                              بستن
                           </button>
                       </div>
                   </motion.div>
