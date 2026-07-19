@@ -3244,3 +3244,33 @@ export const getInventoryTransactions = async (productId?: string | number, ware
 };
 
 export const getProductInventoryHistory = getInventoryTransactions;
+
+export const getPersonalNotes = async (): Promise<any[]> => {
+  return getLocalData('personal_notes', []);
+};
+
+export const savePersonalNotes = async (notes: any[]): Promise<void> => {
+  return saveLocalData('personal_notes', notes);
+};
+
+export const appendPersonalNote = async (note: any): Promise<any> => {
+  return fetch('/api/data/personal_notes/append', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(note)
+  }).then(res => res.json());
+};
+
+export const updatePersonalNote = async (id: string, updates: any): Promise<any> => {
+  return fetch(`/api/data/personal_notes/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates)
+  }).then(res => res.json());
+};
+
+export const deletePersonalNote = async (id: string): Promise<any> => {
+  const notes = await getPersonalNotes();
+  const filtered = notes.filter((n: any) => String(n.id) !== String(id));
+  return savePersonalNotes(filtered);
+};

@@ -16,6 +16,7 @@ import {
 import ProductCategoryModal from "../modals/ProductCategoryModal";
 
 interface ProductCategoriesViewProps {
+  storeSettings?: any;
   productCategories: any[];
   products: any[];
   recalculating: boolean;

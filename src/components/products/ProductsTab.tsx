@@ -84,6 +84,20 @@ export default function ProductsTab(props: any) {
     Copy, Barcode, Eye, FileText, Image
   } = lucide;
 
+  const [openDropdownId, setOpenDropdownId] = useState<string | number | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (openDropdownId !== null) {
+        setOpenDropdownId(null);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [openDropdownId]);
+
   return (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -613,10 +627,16 @@ export default function ProductsTab(props: any) {
                                         </div>
                                       </td>
                                       <td className="py-4 px-6">
-                                        <div className="flex flex-col gap-1.5">
-                                          <span className="font-extrabold text-gray-800">
+                                        <div className="flex flex-col gap-1.5 items-start">
+                                          <button
+                                            onClick={() => {
+                                              setViewingProduct(p);
+                                              setActiveTab("product_view");
+                                            }}
+                                            className="font-extrabold text-indigo-700 hover:text-indigo-900 text-right transition-colors hover:underline text-sm"
+                                          >
                                             {p.name}
-                                          </span>
+                                          </button>
                                         </div>
                                       </td>
                                       <td className="py-4 px-6">
@@ -688,11 +708,17 @@ export default function ProductsTab(props: any) {
                                         {formatNumber(p.price)}
                                       </td>
                                       <td className="py-4 px-6 text-center">
-                                        <div className="relative inline-block text-left group">
-                                          <button className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all flex items-center justify-center w-8 h-8">
+                                        <div className="relative inline-block text-left">
+                                          <button 
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setOpenDropdownId(openDropdownId === p.id ? null : p.id);
+                                            }}
+                                            className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all flex items-center justify-center w-8 h-8"
+                                          >
                                             <MoreVertical className="w-4 h-4" />
                                           </button>
-                                          <div className="absolute left-4 mt-2 w-48 origin-top-left rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                                          <div className={`absolute left-4 mt-2 w-48 origin-top-left rounded-xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition-all z-50 ${openDropdownId === p.id ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
                                             <div className="py-1">
                                               <button
                                                 onClick={() => {

@@ -374,3 +374,15 @@ export type ProductInventoryHistory = {
   balanceAfter: number;
   timestamp: number;
 };
+
+export interface PersonalNote {
+  id: string;
+  title: string;
+  content: string;
+  color?: string;
+  isPinned?: boolean;
+  isArchived?: boolean;
+  tags?: string[];
+  createdAt: string;
+  updatedAt: string;
+}

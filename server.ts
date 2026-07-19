@@ -37,7 +37,7 @@ const KNOWN_TABLES = [
   'wastes', 'waste_items',
   'receipt_transactions', 'payment_transactions',
   'issued_checks', 'received_checks', 'payslips'
-, 'InventoryTransactions'];
+, 'InventoryTransactions', 'personal_notes'];
 
 
 const tableSchemas = new Map<string, Set<string>>();

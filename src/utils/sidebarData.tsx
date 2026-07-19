@@ -31,6 +31,15 @@ export interface SidebarGroup {
 
 export const allSidebarGroups: SidebarGroup[] = [
   {
+    id: "personal_workspace",
+    label: "فضای کاری شخصی",
+    icon: <Activity className="w-5 h-5" />,
+    items: [
+      { id: "personal_notes", label: "یادداشت‌های شخصی", roles: ["admin", "accountant", "manager", "cashier"] },
+    ],
+  },
+
+  {
     id: "sales_operations",
     label: "عملیات فروش",
     icon: <ShoppingCart className="w-5 h-5" />,
