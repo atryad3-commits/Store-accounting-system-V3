@@ -325,7 +325,14 @@ import { useAppController } from "./hooks/useAppController";
 
 export default function App() {
 
-      const appState = useAppController();
+        const [invoicePrintFormat, setInvoicePrintFormat] = useState<'a4' | 'a5' | 'pos80'>('a4');
+  
+  const INVOICE_PRINT_FORMATS = {
+    a4: { name: 'کاغذ A4', css: `@page { size: A4 portrait; margin: 5mm; } .print-section { width: 210mm !important; }` },
+    a5: { name: 'کاغذ A5', css: `@page { size: A5 portrait; margin: 5mm; } .print-section { width: 148mm !important; font-size: 0.85em; }` },
+    pos80: { name: 'فیش پرینتر (80mm)', css: `@page { size: 80mm auto; margin: 1mm; } .print-section { width: 78mm !important; padding: 2mm !important; font-size: 0.75em; } .print-section table { font-size: 0.85em; }` }
+  };
+const appState = useAppController();
       const {
         isFastStocktaking, activeFinancialYear,
         hasCheckedFinancialYears,
@@ -1607,31 +1614,15 @@ if (requiresInitSetup && user) {
                     className={`mx-auto transition-all duration-300 print:max-w-none print:w-full print:px-0 ${isFullWidth ? "max-w-full xl:px-14" : "max-w-6xl"}`}
                   >
                     {activeTab === "products" ? (
-                      <ProductsTab 
-                        products={products}
-                        setProducts={setProducts}
-                        
-                        
+                      <ProductsTab
+                        {...appState}
                         formatCurrency={formatCurrency}
                         toPersianDigits={toPersianDigits}
-                        fetchProducts={fetchProducts}
-                        confirmAction={confirmAction}
-                    
-                        customAlert={customAlert}
-                        showNotification={showNotification}
-                        handleExportProductsData={handleExportProductsData}
-                        handleDownloadProductsTemplate={handleDownloadProductsTemplate}
-                        handleImportProductsData={handleImportProductsData}
-                        handleDuplicateProduct={handleDuplicateProduct}
-                        handleFastBarcodeScan={handleFastBarcodeScan}
-                        handleToggleProductActive={handleToggleProductActive}
-                        
                         numToPersianWords={numToPersianWords}
                         DatePicker={DatePicker}
                         persian={persian}
                         persian_fa={persian_fa}
-                        storeSettings={storeSettings}
-                        user={user}
+                        AIProductSearchModal={AIProductSearchModal}
                       />
                     ) : activeTab === "person_opening_balances" ? (
                       <PersonOpeningBalances 
@@ -3331,6 +3322,15 @@ if (requiresInitSetup && user) {
                             برگه رسمی فاکتور سیستم
                           </h3>
                           <div className="flex items-center gap-2">
+                            <select
+                              value={invoicePrintFormat}
+                              onChange={(e) => setInvoicePrintFormat(e.target.value as any)}
+                              className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold text-gray-700 outline-none"
+                            >
+                              <option value="a4">کاغذ A4</option>
+                              <option value="a5">کاغذ A5</option>
+                              <option value="pos80">لیبل پرینتر</option>
+                            </select>
                             <button
                               type="button"
                               onClick={() => {
@@ -3353,6 +3353,11 @@ if (requiresInitSetup && user) {
 
                         {/* Printable Area */}
                         <div className="p-6 md:p-8 overflow-y-auto flex-1 text-gray-800 text-sm print:overflow-visible print:px-8 print:py-12 bg-gray-50/50 print:bg-white flex justify-center">
+                          <style>{`
+                            @media print {
+                              ${INVOICE_PRINT_FORMATS[invoicePrintFormat].css}
+                            }
+                          `}</style>
                           {viewingInvoice.type?.includes("warehouse") ? (
                             <div
                               className={

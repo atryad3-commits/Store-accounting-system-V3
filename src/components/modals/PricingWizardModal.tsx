@@ -1,3 +1,4 @@
+import Barcode from "react-barcode";
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import * as lucide from 'lucide-react';
@@ -12,6 +13,38 @@ export default function PricingWizardModal(props: any) {
   } = props;
   
   const [pricingPrintMode, setPricingPrintMode] = useState<"list" | "labels">("list");
+  const [printFormatId, setPrintFormatId] = useState('a4');
+  const [labelTitleFontSize, setLabelTitleFontSize] = useState(11);
+  const [labelPriceFontSize, setLabelPriceFontSize] = useState(12);
+  const [labelShowTitle, setLabelShowTitle] = useState(true);
+  const [labelShowPrice, setLabelShowPrice] = useState(true);
+  const [labelBarcodeScale, setLabelBarcodeScale] = useState(90);
+
+  const PRINT_FORMATS = [
+    { 
+      id: 'a4', 
+      name: 'برگه A4 (۴ ستونه)', 
+      css: `@page { size: A4; margin: 10mm; } .print-labels-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2mm; } .label-item { height: 35mm; }`
+    },
+    { 
+      id: 'a5', 
+      name: 'برگه A5 (۲ ستونه)', 
+      css: `@page { size: A5; margin: 5mm; } .print-labels-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2mm; } .label-item { height: 32mm; }`
+    },
+    { 
+      id: 'label_50x30', 
+      name: 'لیبل پرینتر (۵۰x۳۰ میلی‌متر)', 
+      css: `@page { size: 50mm 30mm; margin: 0; } .print-labels-container { display: block; } .label-item { width: 48mm; height: 28mm; margin: 1mm auto; page-break-after: always; border: none !important; }`
+    },
+    { 
+      id: 'label_80x40', 
+      name: 'لیبل پرینتر (۸۰x۴۰ میلی‌متر)', 
+      css: `@page { size: 80mm 40mm; margin: 0; } .print-labels-container { display: block; } .label-item { width: 78mm; height: 38mm; margin: 1mm auto; page-break-after: always; border: none !important; }`
+    },
+  ];
+  
+  const selectedFormat = PRINT_FORMATS.find(f => f.id === printFormatId) || PRINT_FORMATS[0];
+
   const [bulkProfitMargin, setBulkProfitMargin] = useState<number>(0);
   
 
@@ -29,7 +62,19 @@ export default function PricingWizardModal(props: any) {
             dir="rtl"
           >
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-slate-600">فرمت لیبل:</span>
+                  <select
+                    value={printFormatId}
+                    onChange={(e) => setPrintFormatId(e.target.value)}
+                    className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-bold text-slate-700 outline-none focus:border-indigo-500 transition-colors cursor-pointer"
+                  >
+                    {PRINT_FORMATS.map(f => (
+                      <option key={f.id} value={f.id}>{f.name}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-inner">
                   <Tag className="w-5 h-5" />
                 </div>
@@ -351,46 +396,55 @@ export default function PricingWizardModal(props: any) {
                   return (
                     <div
                       key={idx}
-                      className="border-[5px] border-slate-900 p-3 rounded-3xl flex flex-col justify-between text-center w-[95mm] h-[65mm] break-inside-avoid relative overflow-hidden bg-white shadow-sm"
+                      className="border border-slate-900 p-2 bg-white flex flex-col justify-center items-center overflow-hidden rounded-lg box-border"
+                      style={{ 
+                        width: printFormatId.includes('50x30') ? '48mm' : (printFormatId.includes('80x40') ? '78mm' : '95mm'),
+                        height: printFormatId.includes('50x30') ? '28mm' : (printFormatId.includes('80x40') ? '38mm' : '65mm'),
+                        margin: printFormatId.includes('label_') ? '1mm auto' : '0',
+                        pageBreakAfter: printFormatId.includes('label_') ? 'always' : 'auto',
+                        border: printFormatId.includes('label_') ? 'none' : '5px solid #0f172a',
+                        borderRadius: printFormatId.includes('label_') ? '0' : '1.5rem',
+                      }}
                     >
-                      <div className="w-full flex justify-between items-start px-2 mb-1 shrink-0">
-                        <span className="text-xs font-bold text-slate-400 font-mono tracking-wider">
-                          بارکد: {prod?.barcode || "---"}
-                        </span>
-                        <span className="text-xs font-bold text-slate-400 font-mono tracking-wider">
-                          کد: {prod?.code || "---"}
-                        </span>
-                      </div>
-                      <div className="flex flex-col items-center w-full min-h-0 flex-1 justify-center py-1">
-                        <span className="text-sm font-extrabold text-slate-500 mb-1 truncate w-full px-2">
-                          {storeSettings?.storeName || "پلتفرم فروشگاهی"}
-                        </span>
-                        <span
-                          className="text-xl md:text-2xl font-black text-slate-900 leading-snug px-2 w-full overflow-hidden"
-                          style={{
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                          }}
+                      {labelShowTitle && (
+                        <div 
+                          className="font-bold text-black mb-1 truncate px-1 w-full text-center leading-tight"
+                          style={{ fontSize: `${labelTitleFontSize}px` }}
                         >
                           {item.productName}
-                        </span>
-                      </div>
-                      <div className="mt-auto pt-2 w-full flex flex-col items-center border-t-2 border-slate-200 shrink-0 bg-white">
-                        <div className="flex items-end justify-center gap-2 mt-1">
-                          <span
-                            className="text-[32px] md:text-[38px] font-black text-slate-900 tracking-tight leading-none"
-                            dir="ltr"
-                          >
-                            {item.salePrice
-                              ? toPersianDigits(formatNumber(item.salePrice))
-                              : "---"}
-                          </span>
-                          <span className="text-lg font-bold text-slate-600 mb-1">
-                            {storeSettings?.currency || "تومان"}
-                          </span>
                         </div>
+                      )}
+                      
+                      <div 
+                        className="flex justify-center text-center items-center overflow-hidden origin-top"
+                        style={{ transform: `scale(${labelBarcodeScale / 100})`, marginTop: labelShowTitle ? '0' : '4px', marginBottom: labelShowPrice ? '0' : '4px' }}
+                      >
+                        {prod?.barcode ? (
+                          <Barcode
+                            value={prod.barcode}
+                            format="CODE128"
+                            width={1.5}
+                            height={35}
+                            fontSize={11}
+                            textMargin={1}
+                            margin={0}
+                            background="#ffffff"
+                            lineColor="#000000"
+                            displayValue={true}
+                          />
+                        ) : (
+                          <div className="text-[10px]">بدون بارکد</div>
+                        )}
                       </div>
+
+                      {labelShowPrice && (
+                        <div 
+                          className="font-black text-black w-full text-center mt-1"
+                          style={{ fontSize: `${labelPriceFontSize}px` }}
+                        >
+                          {item.salePrice ? toPersianDigits(formatNumber(item.salePrice)) : "---"} {storeSettings?.currency || "تومان"}
+                        </div>
+                      )}
                     </div>
                   );
                 })}

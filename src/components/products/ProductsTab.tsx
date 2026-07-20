@@ -20,10 +20,7 @@ export default function ProductsTab(props: any) {
     setProductFormTab,
     setIsProductModalOpen,
     successMsg,
-    CheckCircle,
-    BarcodeIcon,
     setIsGenerateBarcodesModalOpen,
-    Tag,
     productCategories,
     setActiveTab,
     productSearchTerm,
@@ -39,11 +36,8 @@ export default function ProductsTab(props: any) {
     setViewingProduct,
     setPriceChangeProduct,
     handleEditProduct,
-    Edit2,
     setHistoryProductId,
-    Activity,
     setPrintingBarcodeProduct,
-    Printer,
     handleDeleteProduct,
     setProductCurrentPage,
     AIProductSearchModal,
@@ -52,17 +46,11 @@ export default function ProductsTab(props: any) {
     handleAIProductsAdd,
     setGroupUpdateType,
     setIsGroupPriceModalOpen,
-    Percent,
     setShowProductBarcodesList
   ,
     setIsProductActionsMenuOpen,
     isProductActionsMenuOpen,
-    ArrowDownToLine,
-    ArrowUpFromLine,
-    FileSpreadsheet,
-    Sparkles,
     setIsFastProductModalOpen,
-    Zap,
     setEditingProductId,
     setNewProductName,
     setNewProductPrice,
@@ -78,8 +66,7 @@ export default function ProductsTab(props: any) {
   } = props;
   
   // Destruct icons
-  const { 
-    Package, Plus, Search, Filter, ArrowUpDown, MoreVertical, Edit, Trash2, 
+  const { Percent, ArrowDownToLine, ArrowUpFromLine, FileSpreadsheet, Sparkles, Zap, CheckCircle, Tag, Activity, Printer, Edit2, Package, Plus, Search, Filter, ArrowUpDown, MoreVertical, Edit, Trash2, 
     X, Check, AlertCircle, ChevronDown, ChevronUp, Download, Upload, 
     Copy, Barcode, Eye, FileText, Image
   } = lucide;
@@ -223,7 +210,7 @@ export default function ProductsTab(props: any) {
                                   className="w-full text-right px-4 py-2.5 hover:bg-blue-50 text-blue-700 flex items-center gap-3 text-sm transition-colors font-medium group"
                                 >
                                   <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-500 group-hover:bg-blue-200 group-hover:text-blue-600 transition-colors">
-                                    <BarcodeIcon className="w-4 h-4" />
+                                    <Barcode className="w-4 h-4" />
                                   </div>
                                   تولید گروهی بارکد
                                 </button>
@@ -297,12 +284,12 @@ export default function ProductsTab(props: any) {
                               کل کالاها و خدمات
                             </p>
                             <h4 className="text-lg font-black text-slate-800 mt-0.5">
-                              {products.length.toLocaleString("fa-IR")}
+                              {(products || []).length.toLocaleString("fa-IR")}
                             </h4>
                           </div>
                         </div>
                         <div className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-lg font-bold">
-                          {products
+                          {(products || [])
                             .filter((p) => p.type === "service")
                             .length.toLocaleString("fa-IR")}{" "}
                           خدمات
@@ -312,14 +299,14 @@ export default function ProductsTab(props: any) {
                       <div className="bg-slate-50/70 border border-slate-100 rounded-2xl p-4 flex items-center justify-between shadow-sm transition-all hover:shadow-md">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100/50 flex items-center justify-center text-amber-600">
-                            <BarcodeIcon className="w-5 h-5" />
+                            <Barcode className="w-5 h-5" />
                           </div>
                           <div>
                             <p className="text-[11px] font-bold text-slate-400">
                               کالاهای بدون بارکد
                             </p>
                             <h4 className="text-lg font-black text-amber-600 mt-0.5 animate-pulse">
-                              {products
+                              {(products || [])
                                 .filter(
                                   (p) => !p.barcode || p.barcode.trim() === "",
                                 )
@@ -349,7 +336,7 @@ export default function ProductsTab(props: any) {
                               گروه‌های تعریف‌شده
                             </p>
                             <h4 className="text-lg font-black text-slate-800 mt-0.5">
-                              {productCategories.length.toLocaleString("fa-IR")}
+                              {(productCategories || []).length.toLocaleString("fa-IR")}
                             </h4>
                           </div>
                         </div>
@@ -407,9 +394,9 @@ export default function ProductsTab(props: any) {
                             همه کالاها
                           </button>
 
-                          {productCategories.slice(0, 5).map((cat) => (
+                          {(productCategories || []).slice(0, 5).map((cat, idx) => (
                             <button
-                              key={cat.id}
+                              key={cat.id ? `cat-${cat.id}` : `cat-idx-${idx}`}
                               onClick={() =>
                                 setSelectedProductCategory(cat.id.toString())
                               }
@@ -423,12 +410,12 @@ export default function ProductsTab(props: any) {
                             </button>
                           ))}
 
-                          {productCategories.length > 5 && (
+                          {(productCategories || []).length > 5 && (
                             <div className="relative">
                               <select
                                 value={
                                   selectedProductCategory !== "all" &&
-                                  productCategories.find(
+                                  (productCategories || []).find(
                                     (c) =>
                                       c.id.toString() ===
                                       selectedProductCategory,
@@ -445,9 +432,9 @@ export default function ProductsTab(props: any) {
                                 <option value="" disabled>
                                   سایر گروه‌ها...
                                 </option>
-                                {productCategories.slice(5).map((cat) => (
+                                {(productCategories || []).slice(5).map((cat, idx) => (
                                   <option
-                                    key={cat.id}
+                                    key={cat.id ? `cat-${cat.id}` : `cat-idx-${idx}`}
                                     value={cat.id.toString()}
                                   >
                                     {cat.name}
@@ -858,7 +845,7 @@ export default function ProductsTab(props: any) {
                                     const isCurrent = pg === safeCurrentPage;
                                     return (
                                       <button
-                                        key={pg}
+                                        key={`${pg}-${idx}`}
                                         onClick={() =>
                                           setProductCurrentPage(pg as number)
                                         }
@@ -901,14 +888,14 @@ export default function ProductsTab(props: any) {
                     />
                     
                     {/* Floating Bulk Actions Bar */}
-                    {selectedProductIds.length > 0 && (
+                    {(selectedProductIds || []).length > 0 && (
                       <motion.div
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-2xl border border-indigo-100 p-3 flex items-center gap-4 z-40"
                       >
                         <div className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl font-black text-sm">
-                          {selectedProductIds.length} مورد انتخاب شده
+                          {(selectedProductIds || []).length} مورد انتخاب شده
                         </div>
                         <button
                           onClick={() => {

@@ -1742,7 +1742,8 @@ const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
 
 const [viewingProduct, setViewingProduct] = useState<any>(null);
 
-const [editingProductId, setEditingProductId] = useState<
+const [editingProductId,
+    setEditingProductId] = useState<
     string | number | null
   >(null);
 
@@ -6075,6 +6076,7 @@ const renderTabContent = () => {
     viewingProduct,
     setViewingProduct,
     editingProductId,
+    setEditingProductId,
     editingPersonId,
     setEditingPersonId,
     editingAccountId,

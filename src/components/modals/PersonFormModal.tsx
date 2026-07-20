@@ -69,7 +69,7 @@ export default function PersonFormModal({
   const [newPersonCompany, setNewPersonCompany] = useState("");
   const [newPersonEconomicCode, setNewPersonEconomicCode] = useState("");
   const [newPersonRegistrationNumber, setNewPersonRegistrationNumber] = useState("");
-  const [personFormTab, setPersonFormTab] = useState<"general" | "contact" | "financial">("general");
+  const [personFormTab, setPersonFormTab] = useState<"general" | "contact" | "financial" | "settings">("general");
   const [submittingPerson, setSubmittingPerson] = useState(false);
 
   const [newPersonTitle, setNewPersonTitle] = useState("");
@@ -97,7 +97,20 @@ export default function PersonFormModal({
       if (editingPersonId) {
         const person = persons.find(p => p.id === editingPersonId);
         if (person) {
-          setNewPersonFirstName(person.name || "");
+          setNewPersonFirstName(person.firstName || person.name || "");
+          setNewPersonLastName(person.lastName || "");
+          setNewPersonTitle(person.title || "");
+          setNewPersonFatherName(person.fatherName || "");
+          setNewPersonGender(person.gender || "");
+          setNewPersonAccountingCode(person.accountingCode || "");
+          setNewPersonCompanyName(person.companyName || person.name || "");
+          setNewPersonAlias(person.alias || "");
+          setNewPersonInitialBalance(person.initialBalance ? String(person.initialBalance) : "");
+          setNewPersonInitialBalanceType(person.initialBalanceType || "");
+          setNewPersonImage(person.image || "");
+          setNewPersonIsActive(person.isActive !== undefined ? person.isActive : true);
+          setNewPersonRegistrationDate(person.registrationDate || "");
+          
           setNewPersonRole(person.role || "customer");
           setNewPersonMobile(person.mobile || "");
           setNewPersonType(person.type || "real");
@@ -119,6 +132,19 @@ export default function PersonFormModal({
         }
       } else {
         setNewPersonFirstName("");
+        setNewPersonLastName("");
+        setNewPersonTitle("");
+        setNewPersonFatherName("");
+        setNewPersonGender("");
+        setNewPersonAccountingCode("");
+        setNewPersonCompanyName("");
+        setNewPersonAlias("");
+        setNewPersonInitialBalance("");
+        setNewPersonInitialBalanceType("");
+        setNewPersonImage("");
+        setNewPersonIsActive(true);
+        setNewPersonRegistrationDate("");
+        
         setNewPersonRole("customer");
         setNewPersonMobile("");
         setNewPersonType("real");
@@ -264,6 +290,16 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
         imageUrl: newPersonImage,
         role: newPersonRole,
         phone: newPersonPhone,
+        mobile: newPersonMobile,
+        code: newPersonCode,
+        postalCode: newPersonPostalCode,
+        email: newPersonEmail,
+        description: newPersonDescription,
+        groupId: newPersonGroupId,
+        roleId: newPersonRoleId,
+        company: newPersonCompany,
+        economicCode: newPersonEconomicCode,
+        registrationNumber: newPersonRegistrationNumber,
         contacts: newPersonContacts,
         initialBalance: Number(newPersonInitialBalance || 0),
         initialBalanceType: newPersonInitialBalanceType,
@@ -272,10 +308,11 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
         province: newPersonProvince,
         city: newPersonCity,
         isActive: newPersonIsActive,
-        registrationDate:
+        registrationDate: newPersonRegistrationDate ? (
           typeof newPersonRegistrationDate.toDate === "function"
             ? newPersonRegistrationDate.toDate().toISOString()
-            : new Date(newPersonRegistrationDate).toISOString(),
+            : new Date(newPersonRegistrationDate).toISOString()
+        ) : new Date().toISOString(),
       };
 
       let addedPerson;
@@ -432,8 +469,8 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setPersonFormTab("general")}
-                        className={`px-4 py-2 border-b-2 font-bold text-sm transition-colors cursor-pointer ${personFormTab === "general" ? "border-indigo-600 text-indigo-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}`}
+                        onClick={() => setPersonFormTab("settings")}
+                        className={`px-4 py-2 border-b-2 font-bold text-sm transition-colors cursor-pointer ${personFormTab === "settings" ? "border-indigo-600 text-indigo-600" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}`}
                       >
                         تنظیمات و وضعیت
                       </button>
@@ -571,18 +608,39 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
                                       <label className="block text-sm font-medium text-gray-700 mb-2">
                                         نام مستعار / نمایشی
                                       </label>
-                                      <input
-                                        type="text"
-                                        value={newPersonAlias}
-                                        onChange={(e) =>
-                                          setNewPersonAlias(e.target.value)
-                                        }
-                                        placeholder={
-                                          `مثال: ${newPersonTitle ? newPersonTitle + " " : ""}${newPersonFirstName ? newPersonFirstName + " " : ""}${newPersonLastName || ""}`.trim() ||
-                                          "خودکار ایجاد می‌شود"
-                                        }
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-900"
-                                      />
+                                      <div className="relative">
+                                        <input
+                                          type="text"
+                                          list="aliasOptionsList"
+                                          value={newPersonAlias}
+                                          onChange={(e) => setNewPersonAlias(e.target.value)}
+                                          onFocus={(e) => {
+                                            if (!newPersonAlias) {
+                                              const defaultAlias = `${newPersonTitle} ${newPersonFirstName} ${newPersonLastName}`.trim().replace(/\s+/g, ' ');
+                                              if (defaultAlias) setNewPersonAlias(defaultAlias);
+                                            }
+                                          }}
+                                          placeholder="انتخاب از لیست یا تایپ دستی..."
+                                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-900"
+                                        />
+                                        <datalist id="aliasOptionsList">
+                                          {Array.from(new Set([
+                                            `${newPersonTitle} ${newPersonFirstName} ${newPersonLastName}`.trim().replace(/\s+/g, ' '),
+                                            `${newPersonTitle} ${newPersonFirstName} ${newPersonLastName} ${newPersonFatherName ? `(فرزند ${newPersonFatherName})` : ''}`.trim().replace(/\s+/g, ' '),
+                                            `${newPersonFirstName} ${newPersonLastName}`.trim().replace(/\s+/g, ' '),
+                                            `${newPersonFirstName} ${newPersonLastName} ${newPersonFatherName ? `(فرزند ${newPersonFatherName})` : ''}`.trim().replace(/\s+/g, ' '),
+                                            `${newPersonTitle} ${newPersonLastName}`.trim().replace(/\s+/g, ' '),
+                                            `${newPersonTitle} ${newPersonLastName} ${newPersonFatherName ? `(فرزند ${newPersonFatherName})` : ''}`.trim().replace(/\s+/g, ' '),
+                                            `${newPersonLastName}`.trim().replace(/\s+/g, ' '),
+                                            `${newPersonLastName} ${newPersonFatherName ? `(فرزند ${newPersonFatherName})` : ''}`.trim().replace(/\s+/g, ' '),
+                                            `${newPersonTitle} ${newPersonFirstName}`.trim().replace(/\s+/g, ' '),
+                                            `${newPersonFirstName}`.trim().replace(/\s+/g, ' '),
+                                            `${newPersonLastName} ${newPersonFirstName}`.trim().replace(/\s+/g, ' ')
+                                          ].filter(Boolean))).map(opt => (
+                                            <option key={opt} value={opt} />
+                                          ))}
+                                        </datalist>
+                                      </div>
                                     </div>
                                   </div>
 
@@ -709,15 +767,30 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
                                       <label className="block text-sm font-medium text-gray-700 mb-2">
                                         نام مستعار / تجاری
                                       </label>
-                                      <input
-                                        type="text"
-                                        value={newPersonAlias}
-                                        onChange={(e) =>
-                                          setNewPersonAlias(e.target.value)
-                                        }
-                                        placeholder={`مثال: ${newPersonCompanyName || "شرکت البرز"}`}
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-900"
-                                      />
+                                      <div className="relative">
+                                        <input
+                                          type="text"
+                                          list="legalAliasOptionsList"
+                                          value={newPersonAlias}
+                                          onChange={(e) => setNewPersonAlias(e.target.value)}
+                                          onFocus={(e) => {
+                                            if (!newPersonAlias && newPersonCompanyName) {
+                                              setNewPersonAlias(newPersonCompanyName);
+                                            }
+                                          }}
+                                          placeholder={`مثال: ${newPersonCompanyName || "شرکت البرز"}`}
+                                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-900"
+                                        />
+                                        <datalist id="legalAliasOptionsList">
+                                          {Array.from(new Set([
+                                            newPersonCompanyName,
+                                            newPersonCompanyName ? `شرکت ${newPersonCompanyName}` : undefined,
+                                            newPersonCompanyName ? `فروشگاه ${newPersonCompanyName}` : undefined
+                                          ].filter(Boolean))).map(opt => (
+                                            <option key={opt} value={opt} />
+                                          ))}
+                                        </datalist>
+                                      </div>
                                     </div>
                                   </div>
                                   <div className="w-full text-right md:col-span-1">
@@ -925,7 +998,7 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
                             </div>
                           )}
 
-                          {personFormTab === "general" && (
+                          {personFormTab === "settings" && (
                             <>
                               <div className="w-full text-right md:col-span-2 bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-2">
                                 <div className="flex justify-between items-center mb-4">
