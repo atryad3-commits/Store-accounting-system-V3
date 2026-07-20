@@ -4,20 +4,31 @@ import {
   Pin, Palette, Archive, Trash2, Search, X, Plus, CheckSquare, 
   Image as ImageIcon, MoreVertical, Bell, User, FileText, History, Calendar, Check
 } from "lucide-react";
-import { getPersonalNotes, appendPersonalNote, updatePersonalNote, deletePersonalNote, savePersonalNotes } from "../../services/dataService";
-import { PersonalNote, NoteHistory } from "../../types";
+import DatePicker from "react-multi-date-picker";
+import persian from "react-date-object/calendars/persian";
+import persian_fa from "react-date-object/locales/persian_fa";
+import TimePicker from "react-multi-date-picker/plugins/time_picker";
+
+import { getPersonalNotes, appendPersonalNote, updatePersonalNote, deletePersonalNote, savePersonalNotes, getPersons, getInvoices } from "../../services/dataService";
+import { PersonalNote, NoteHistory, Person } from "../../types";
 
 const NOTE_COLORS = [
-  { id: 'default', bg: 'bg-white', border: 'border-slate-200', name: 'پیش‌فرض' },
+  { id: 'default', bg: 'bg-white', border: 'border-slate-200', name: 'پیش‌فرض (سفید)' },
+  { id: 'slate', bg: 'bg-slate-50', border: 'border-slate-200', name: 'خاکستری' },
   { id: 'red', bg: 'bg-red-50', border: 'border-red-200', name: 'قرمز' },
   { id: 'orange', bg: 'bg-orange-50', border: 'border-orange-200', name: 'نارنجی' },
   { id: 'amber', bg: 'bg-amber-50', border: 'border-amber-200', name: 'زرد' },
+  { id: 'yellow', bg: 'bg-yellow-50', border: 'border-yellow-200', name: 'زرد روشن' },
+  { id: 'lime', bg: 'bg-lime-50', border: 'border-lime-200', name: 'لیمویی' },
   { id: 'green', bg: 'bg-emerald-50', border: 'border-emerald-200', name: 'سبز' },
   { id: 'teal', bg: 'bg-teal-50', border: 'border-teal-200', name: 'فیروزه‌ای' },
+  { id: 'cyan', bg: 'bg-cyan-50', border: 'border-cyan-200', name: 'آبی آسمانی' },
   { id: 'blue', bg: 'bg-blue-50', border: 'border-blue-200', name: 'آبی' },
   { id: 'indigo', bg: 'bg-indigo-50', border: 'border-indigo-200', name: 'نیلی' },
+  { id: 'violet', bg: 'bg-violet-50', border: 'border-violet-200', name: 'بنفش روشن' },
   { id: 'purple', bg: 'bg-purple-50', border: 'border-purple-200', name: 'بنفش' },
   { id: 'pink', bg: 'bg-pink-50', border: 'border-pink-200', name: 'صورتی' },
+  { id: 'rose', bg: 'bg-rose-50', border: 'border-rose-200', name: 'رز' },
 ];
 
 export function PersonalNotesManager({ storeSettings }: any) {
@@ -33,13 +44,39 @@ export function PersonalNotesManager({ storeSettings }: any) {
   const [loading, setLoading] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
 
+  // For active palette popups
+  const [activePalette, setActivePalette] = useState<string | null>(null); // 'new', 'edit', or noteId
+
+  // Persons and Invoices for Autocomplete
+  const [systemPersons, setSystemPersons] = useState<Person[]>([]);
+  const [systemInvoices, setSystemInvoices] = useState<any[]>([]);
+
+  const [personSearch, setPersonSearch] = useState("");
+  const [showPersonDropdown, setShowPersonDropdown] = useState(false);
+  
+  const [docSearch, setDocSearch] = useState("");
+  const [showDocDropdown, setShowDocDropdown] = useState(false);
+
   const creatorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editFileInputRef = useRef<HTMLInputElement>(null);
-  
+  const paletteRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     fetchNotes();
+    loadSystemData();
   }, []);
+
+  const loadSystemData = async () => {
+    try {
+      const p = await getPersons();
+      setSystemPersons(p || []);
+      const i = await getInvoices();
+      setSystemInvoices((i as any) || []);
+    } catch(e) {
+      console.error(e);
+    }
+  };
 
   const fetchNotes = async () => {
     setLoading(true);
@@ -56,15 +93,34 @@ export function PersonalNotesManager({ storeSettings }: any) {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      // Creator save logic
       if (creatorRef.current && !creatorRef.current.contains(e.target as Node)) {
-        if (isExpanded && !editingNote) {
+        if (isExpanded && !editingNote && !activePalette) {
           handleSaveNewNote();
         }
+      }
+      
+      // Close active palette if clicked outside
+      if (activePalette) {
+          // Find if the click is inside a palette toggle button or popup
+          const target = e.target as HTMLElement;
+          if (!target.closest('.palette-container')) {
+              setActivePalette(null);
+          }
+      }
+
+      // Close dropdowns
+      const target = e.target as HTMLElement;
+      if (!target.closest('.person-search-container')) {
+          setShowPersonDropdown(false);
+      }
+      if (!target.closest('.doc-search-container')) {
+          setShowDocDropdown(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isExpanded, newTitle, newContent, newColor, editingNote]);
+  }, [isExpanded, newTitle, newContent, newColor, editingNote, activePalette]);
 
   const addHistoryRecord = (note: PersonalNote, action: string, details?: string) => {
     const historyItem: NoteHistory = {
@@ -152,6 +208,9 @@ export function PersonalNotesManager({ storeSettings }: any) {
 
   const handleCloseEditModal = () => {
     setEditingNote(null);
+    setActivePalette(null);
+    setPersonSearch("");
+    setDocSearch("");
   };
 
   useEffect(() => {
@@ -195,14 +254,14 @@ export function PersonalNotesManager({ storeSettings }: any) {
                  const newImages = [...(editingNote.images || []), result];
                  setEditingNote({...editingNote, images: newImages});
                  handleUpdateNote(editingNote.id, { images: newImages }, 'افزودن تصویر');
-             } else {
-                 // For new note, we could store it in state, but let's just force them to save first for simplicity
-                 // or just open edit modal
              }
          };
          reader.readAsDataURL(file);
      }
   };
+
+  const filteredPersons = systemPersons.filter(p => p.name.includes(personSearch) || p.mobile.includes(personSearch)).slice(0, 5);
+  const filteredInvoices = systemInvoices.filter(inv => inv.invoiceNumber.includes(docSearch)).slice(0, 5);
 
   const NoteCard = ({ note }: { note: PersonalNote }) => (
     <div 
@@ -261,20 +320,28 @@ export function PersonalNotesManager({ storeSettings }: any) {
 
       <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
          <div className="flex items-center gap-1">
-            <div className="relative group/palette">
-                <button className="p-1.5 rounded-full hover:bg-black/5 text-slate-500 transition-colors">
+            <div className="relative palette-container">
+                <button 
+                    onClick={() => setActivePalette(activePalette === note.id ? null : note.id)}
+                    className={`p-1.5 rounded-full hover:bg-black/5 transition-colors ${activePalette === note.id ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
+                >
                     <Palette className="w-4 h-4" />
                 </button>
-                <div className="absolute bottom-full right-0 mb-1 hidden group-hover/palette:flex flex-wrap gap-1 bg-white border border-slate-200 p-2 rounded-xl shadow-xl w-32 z-20">
-                    {NOTE_COLORS.map(c => (
-                        <div 
-                            key={c.id} 
-                            onClick={() => handleUpdateNote(note.id, { color: c.id }, 'تغییر رنگ')}
-                            className={`w-6 h-6 rounded-full cursor-pointer border hover:scale-110 transition-transform ${c.bg} ${c.border} ${note.color === c.id ? 'ring-2 ring-indigo-500 ring-offset-1' : ''}`}
-                            title={c.name}
-                        />
-                    ))}
-                </div>
+                {activePalette === note.id && (
+                    <div className="absolute bottom-full right-0 mb-1 flex flex-wrap gap-1 bg-white border border-slate-200 p-2 rounded-xl shadow-xl w-48 z-20">
+                        {NOTE_COLORS.map(c => (
+                            <div 
+                                key={c.id} 
+                                onClick={() => {
+                                    handleUpdateNote(note.id, { color: c.id }, 'تغییر رنگ');
+                                    setActivePalette(null);
+                                }}
+                                className={`w-6 h-6 rounded-full cursor-pointer border hover:scale-110 transition-transform ${c.bg} ${c.border} ${note.color === c.id ? 'ring-2 ring-indigo-500 ring-offset-1' : ''}`}
+                                title={c.name}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
             <button 
                 onClick={() => handleUpdateNote(note.id, { isArchived: !note.isArchived }, note.isArchived ? 'خروج از بایگانی' : 'بایگانی یادداشت')}
@@ -360,20 +427,28 @@ export function PersonalNotesManager({ storeSettings }: any) {
                       {isExpanded && (
                           <div className="flex items-center justify-between px-3 py-2 border-t border-black/5 bg-transparent">
                               <div className="flex items-center gap-1">
-                                 <div className="relative group/palette">
-                                    <button className="p-2 rounded-full hover:bg-black/5 text-slate-500 transition-colors">
+                                 <div className="relative palette-container">
+                                    <button 
+                                        onClick={() => setActivePalette(activePalette === 'new' ? null : 'new')}
+                                        className={`p-2 rounded-full hover:bg-black/5 transition-colors ${activePalette === 'new' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500'}`}
+                                    >
                                         <Palette className="w-4 h-4" />
                                     </button>
-                                    <div className="absolute top-full right-0 mt-1 hidden group-hover/palette:flex flex-wrap gap-1 bg-white border border-slate-200 p-2 rounded-xl shadow-xl w-32 z-20">
-                                        {NOTE_COLORS.map(c => (
-                                            <div 
-                                                key={c.id} 
-                                                onClick={() => setNewColor(c.id)}
-                                                className={`w-6 h-6 rounded-full cursor-pointer border hover:scale-110 transition-transform ${c.bg} ${c.border} ${newColor === c.id ? 'ring-2 ring-indigo-500 ring-offset-1' : ''}`}
-                                                title={c.name}
-                                            />
-                                        ))}
-                                    </div>
+                                    {activePalette === 'new' && (
+                                        <div className="absolute top-full right-0 mt-1 flex flex-wrap gap-1 bg-white border border-slate-200 p-2 rounded-xl shadow-xl w-48 z-20">
+                                            {NOTE_COLORS.map(c => (
+                                                <div 
+                                                    key={c.id} 
+                                                    onClick={() => {
+                                                        setNewColor(c.id);
+                                                        setActivePalette(null);
+                                                    }}
+                                                    className={`w-6 h-6 rounded-full cursor-pointer border hover:scale-110 transition-transform ${c.bg} ${c.border} ${newColor === c.id ? 'ring-2 ring-indigo-500 ring-offset-1' : ''}`}
+                                                    title={c.name}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
                                  </div>
                               </div>
                               <button 
@@ -436,7 +511,7 @@ export function PersonalNotesManager({ storeSettings }: any) {
                       initial={{ opacity: 0, scale: 0.95, y: 20 }} 
                       animate={{ opacity: 1, scale: 1, y: 0 }} 
                       exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                      className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl rounded-2xl shadow-2xl z-50 flex max-h-[85vh] ${getColorClass(editingNote.color)}`}
+                      className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl rounded-2xl shadow-2xl z-50 flex max-h-[85vh] min-h-[500px] ${getColorClass(editingNote.color)}`}
                   >
                       <div className="flex-1 flex flex-col min-w-[500px]">
                           <input
@@ -479,22 +554,30 @@ export function PersonalNotesManager({ storeSettings }: any) {
                               )}
                           </div>
                           
-                          <div className="flex items-center justify-between px-4 py-3 bg-black/5 rounded-b-2xl">
+                          <div className="flex items-center justify-between px-4 py-3 bg-black/5 rounded-br-2xl">
                               <div className="flex items-center gap-2">
-                                 <div className="relative group/palette_modal">
-                                    <button className="p-2 rounded-full hover:bg-black/10 text-slate-600 transition-colors">
+                                 <div className="relative palette-container">
+                                    <button 
+                                        onClick={() => setActivePalette(activePalette === 'edit' ? null : 'edit')}
+                                        className={`p-2 rounded-full hover:bg-black/10 transition-colors ${activePalette === 'edit' ? 'bg-black/10 text-slate-800' : 'text-slate-600'}`}
+                                    >
                                         <Palette className="w-5 h-5" />
                                     </button>
-                                    <div className="absolute bottom-full right-0 mb-2 hidden group-hover/palette_modal:flex flex-wrap gap-1 bg-white border border-slate-200 p-2 rounded-xl shadow-xl w-36 z-50">
-                                        {NOTE_COLORS.map(c => (
-                                            <div 
-                                                key={c.id} 
-                                                onClick={() => setEditingNote({...editingNote, color: c.id})}
-                                                className={`w-7 h-7 rounded-full cursor-pointer border hover:scale-110 transition-transform ${c.bg} ${c.border} ${editingNote.color === c.id ? 'ring-2 ring-indigo-500 ring-offset-1' : ''}`}
-                                                title={c.name}
-                                            />
-                                        ))}
-                                    </div>
+                                    {activePalette === 'edit' && (
+                                        <div className="absolute bottom-full right-0 mb-2 flex flex-wrap gap-1 bg-white border border-slate-200 p-2 rounded-xl shadow-xl w-48 z-50">
+                                            {NOTE_COLORS.map(c => (
+                                                <div 
+                                                    key={c.id} 
+                                                    onClick={() => {
+                                                        setEditingNote({...editingNote, color: c.id});
+                                                        setActivePalette(null);
+                                                    }}
+                                                    className={`w-7 h-7 rounded-full cursor-pointer border hover:scale-110 transition-transform ${c.bg} ${c.border} ${editingNote.color === c.id ? 'ring-2 ring-indigo-500 ring-offset-1' : ''}`}
+                                                    title={c.name}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
                                  </div>
                                  
                                  <button 
@@ -537,48 +620,64 @@ export function PersonalNotesManager({ storeSettings }: any) {
                       </div>
                       
                       {/* Sidebar panel for settings */}
-                      <div className="w-64 border-r border-black/10 bg-black/5 rounded-l-2xl p-4 overflow-y-auto flex flex-col gap-4">
+                      <div className="w-72 border-r border-black/10 bg-black/5 rounded-l-2xl p-4 overflow-y-auto flex flex-col gap-5 custom-scrollbar">
                           <div>
-                              <h4 className="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1"><Bell className="w-3 h-3" /> یادآوری</h4>
-                              <input 
-                                  type="datetime-local" 
-                                  value={editingNote.reminderDate ? editingNote.reminderDate.slice(0,16) : ""}
-                                  onChange={e => setEditingNote({...editingNote, reminderDate: e.target.value ? new Date(e.target.value).toISOString() : undefined})}
-                                  className="w-full text-xs p-2 rounded-lg border border-black/10 bg-white/50 outline-none"
+                              <h4 className="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1"><Bell className="w-3 h-3" /> یادآوری (تاریخ شمسی)</h4>
+                              <DatePicker
+                                  calendar={persian}
+                                  locale={persian_fa}
+                                  format="YYYY/MM/DD HH:mm"
+                                  plugins={[<TimePicker position="bottom" />]}
+                                  value={editingNote.reminderDate ? new Date(editingNote.reminderDate) : null}
+                                  onChange={(date: any) => {
+                                      if (date) {
+                                          setEditingNote({...editingNote, reminderDate: date.toDate().toISOString()});
+                                      } else {
+                                          setEditingNote({...editingNote, reminderDate: undefined});
+                                      }
+                                  }}
+                                  containerClassName="w-full"
+                                  inputClass="w-full text-xs p-2 rounded-lg border border-black/10 bg-white/50 outline-none font-sans cursor-pointer focus:ring-2 focus:ring-indigo-500 text-center"
+                                  placeholder="انتخاب تاریخ و ساعت"
                               />
                           </div>
                           
-                          <div>
+                          <div className="person-search-container relative">
                               <h4 className="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1"><User className="w-3 h-3" /> ارتباط با اشخاص</h4>
-                              <div className="flex gap-1 mb-2">
+                              <div className="relative mb-2">
                                   <input 
-                                      id="personInput"
                                       type="text" 
-                                      placeholder="نام شخص..." 
-                                      className="flex-1 text-xs p-2 rounded-lg border border-black/10 bg-white/50 outline-none"
-                                      onKeyDown={e => {
-                                          if (e.key === 'Enter' && e.currentTarget.value) {
-                                              const newPersons = [...(editingNote.linkedPersons || []), e.currentTarget.value];
-                                              setEditingNote({...editingNote, linkedPersons: newPersons});
-                                              handleUpdateNote(editingNote.id, { linkedPersons: newPersons }, `ارتباط با شخص: ${e.currentTarget.value}`);
-                                              e.currentTarget.value = "";
-                                          }
+                                      placeholder="جستجوی شخص..." 
+                                      value={personSearch}
+                                      onChange={e => {
+                                          setPersonSearch(e.target.value);
+                                          setShowPersonDropdown(true);
                                       }}
+                                      onFocus={() => setShowPersonDropdown(true)}
+                                      className="w-full text-xs p-2 rounded-lg border border-black/10 bg-white/50 outline-none focus:ring-2 focus:ring-indigo-500"
                                   />
-                                  <button 
-                                      onClick={() => {
-                                          const input = document.getElementById('personInput') as HTMLInputElement;
-                                          if (input.value) {
-                                              const newPersons = [...(editingNote.linkedPersons || []), input.value];
-                                              setEditingNote({...editingNote, linkedPersons: newPersons});
-                                              handleUpdateNote(editingNote.id, { linkedPersons: newPersons }, `ارتباط با شخص: ${input.value}`);
-                                              input.value = "";
-                                          }
-                                      }}
-                                      className="p-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200"
-                                  >
-                                      <Plus className="w-3 h-3" />
-                                  </button>
+                                  {showPersonDropdown && filteredPersons.length > 0 && (
+                                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-50 max-h-40 overflow-y-auto">
+                                          {filteredPersons.map(p => (
+                                              <div 
+                                                  key={p.id}
+                                                  onClick={() => {
+                                                      if (!editingNote.linkedPersons?.includes(p.name)) {
+                                                          const newPersons = [...(editingNote.linkedPersons || []), p.name];
+                                                          setEditingNote({...editingNote, linkedPersons: newPersons});
+                                                          handleUpdateNote(editingNote.id, { linkedPersons: newPersons }, `ارتباط با شخص: ${p.name}`);
+                                                      }
+                                                      setPersonSearch("");
+                                                      setShowPersonDropdown(false);
+                                                  }}
+                                                  className="p-2 text-xs hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0"
+                                              >
+                                                  <div className="font-bold text-slate-700">{p.name}</div>
+                                                  <div className="text-[10px] text-slate-500">{p.mobile}</div>
+                                              </div>
+                                          ))}
+                                      </div>
+                                  )}
                               </div>
                               <div className="flex flex-wrap gap-1">
                                   {editingNote.linkedPersons?.map((p, i) => (
@@ -594,37 +693,42 @@ export function PersonalNotesManager({ storeSettings }: any) {
                               </div>
                           </div>
                           
-                          <div>
-                              <h4 className="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1"><FileText className="w-3 h-3" /> ارتباط با اسناد</h4>
-                              <div className="flex gap-1 mb-2">
+                          <div className="doc-search-container relative">
+                              <h4 className="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1"><FileText className="w-3 h-3" /> ارتباط با اسناد (فاکتورها)</h4>
+                              <div className="relative mb-2">
                                   <input 
-                                      id="docInput"
                                       type="text" 
-                                      placeholder="شماره فاکتور/رسید..." 
-                                      className="flex-1 text-xs p-2 rounded-lg border border-black/10 bg-white/50 outline-none"
-                                      onKeyDown={e => {
-                                          if (e.key === 'Enter' && e.currentTarget.value) {
-                                              const newDocs = [...(editingNote.linkedDocs || []), e.currentTarget.value];
-                                              setEditingNote({...editingNote, linkedDocs: newDocs});
-                                              handleUpdateNote(editingNote.id, { linkedDocs: newDocs }, `ارتباط با سند: ${e.currentTarget.value}`);
-                                              e.currentTarget.value = "";
-                                          }
+                                      placeholder="شماره فاکتور..." 
+                                      value={docSearch}
+                                      onChange={e => {
+                                          setDocSearch(e.target.value);
+                                          setShowDocDropdown(true);
                                       }}
+                                      onFocus={() => setShowDocDropdown(true)}
+                                      className="w-full text-xs p-2 rounded-lg border border-black/10 bg-white/50 outline-none focus:ring-2 focus:ring-indigo-500 font-sans text-left"
                                   />
-                                  <button 
-                                      onClick={() => {
-                                          const input = document.getElementById('docInput') as HTMLInputElement;
-                                          if (input.value) {
-                                              const newDocs = [...(editingNote.linkedDocs || []), input.value];
-                                              setEditingNote({...editingNote, linkedDocs: newDocs});
-                                              handleUpdateNote(editingNote.id, { linkedDocs: newDocs }, `ارتباط با سند: ${input.value}`);
-                                              input.value = "";
-                                          }
-                                      }}
-                                      className="p-2 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200"
-                                  >
-                                      <Plus className="w-3 h-3" />
-                                  </button>
+                                  {showDocDropdown && filteredInvoices.length > 0 && (
+                                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-50 max-h-40 overflow-y-auto">
+                                          {filteredInvoices.map(inv => (
+                                              <div 
+                                                  key={inv.id}
+                                                  onClick={() => {
+                                                      if (!editingNote.linkedDocs?.includes(inv.invoiceNumber)) {
+                                                          const newDocs = [...(editingNote.linkedDocs || []), inv.invoiceNumber];
+                                                          setEditingNote({...editingNote, linkedDocs: newDocs});
+                                                          handleUpdateNote(editingNote.id, { linkedDocs: newDocs }, `ارتباط با فاکتور: ${inv.invoiceNumber}`);
+                                                      }
+                                                      setDocSearch("");
+                                                      setShowDocDropdown(false);
+                                                  }}
+                                                  className="p-2 text-xs hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0"
+                                              >
+                                                  <div className="font-bold text-slate-700 font-sans">{inv.invoiceNumber}</div>
+                                                  <div className="text-[10px] text-slate-500">{inv.type === 'sales' ? 'فروش' : 'خرید'} - {inv.personName}</div>
+                                              </div>
+                                          ))}
+                                      </div>
+                                  )}
                               </div>
                               <div className="flex flex-wrap gap-1">
                                   {editingNote.linkedDocs?.map((d, i) => (
@@ -642,11 +746,11 @@ export function PersonalNotesManager({ storeSettings }: any) {
                           
                           <div className="mt-auto border-t border-black/10 pt-4">
                               <h4 className="text-xs font-bold text-slate-600 mb-2 flex items-center gap-1"><History className="w-3 h-3" /> تاریخچه تغییرات</h4>
-                              <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar pr-1">
+                              <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-1">
                                   {[...(editingNote.history || [])].reverse().map((h, i) => (
                                       <div key={i} className="text-[10px] bg-white/40 p-1.5 rounded border border-white/20">
                                           <div className="font-bold text-slate-700">{h.action}</div>
-                                          <div className="text-slate-500 font-sans mt-0.5">{new Date(h.date).toLocaleString("fa-IR")}</div>
+                                          <div className="text-slate-500 font-sans mt-0.5" dir="ltr" style={{textAlign: "right"}}>{new Date(h.date).toLocaleString("fa-IR")}</div>
                                       </div>
                                   ))}
                               </div>
