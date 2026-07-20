@@ -183,3 +183,14 @@ export function convertToGregorian(dateInput: string | Date | null | undefined):
     }
     return new Date().toISOString();
 }
+
+export const customPersonFilter = (option: any, inputValue: string) => {
+  if (!inputValue) return true;
+  const terms = inputValue.toLowerCase().split(" ").filter(Boolean);
+  const searchable = (
+    option.data?.searchStr ||
+    option.label ||
+    ""
+  ).toLowerCase();
+  return terms.every((term) => searchable.includes(term));
+};

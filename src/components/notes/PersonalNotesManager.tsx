@@ -260,7 +260,7 @@ export function PersonalNotesManager({ storeSettings }: any) {
      }
   };
 
-  const filteredPersons = systemPersons.filter(p => p.name.includes(personSearch) || p.mobile.includes(personSearch)).slice(0, 5);
+  const filteredPersons = systemPersons.filter(p => p.name.includes(personSearch) || p.phone.includes(personSearch)).slice(0, 5);
   const filteredInvoices = systemInvoices.filter(inv => inv.invoiceNumber.includes(docSearch)).slice(0, 5);
 
   const NoteCard = ({ note }: { note: PersonalNote }) => (
@@ -673,7 +673,7 @@ export function PersonalNotesManager({ storeSettings }: any) {
                                                   className="p-2 text-xs hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0"
                                               >
                                                   <div className="font-bold text-slate-700">{p.name}</div>
-                                                  <div className="text-[10px] text-slate-500">{p.mobile}</div>
+                                                  <div className="text-[10px] text-slate-500">{p.phone}</div>
                                               </div>
                                           ))}
                                       </div>

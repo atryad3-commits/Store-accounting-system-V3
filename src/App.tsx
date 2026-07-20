@@ -152,7 +152,7 @@ import {
   showInvoiceCurrency,
   numToPersianWords,
   toPersianDigits,
-  formatDateDisplay, convertToGregorian,
+  formatDateDisplay, convertToGregorian, customPersonFilter,
 } from "./utils/format";
 import CustomDatePicker from "./components/ui/CustomDatePicker";
 const DatePicker = CustomDatePicker;
@@ -317,7 +317,9 @@ import {
 import appVersion from "./version.json";
 import OrderList from "./components/inventory/OrderList";
 import { useAppController } from "./hooks/useAppController";
-import { AppView } from "./AppView";
+
+
+
 
 
 
@@ -325,7 +327,7 @@ export default function App() {
 
       const appState = useAppController();
       const {
-        activeFinancialYear,
+        isFastStocktaking, activeFinancialYear,
         hasCheckedFinancialYears,
         isComposeOpen,
         setIsComposeOpen,
@@ -424,6 +426,8 @@ export default function App() {
         setStoreSettings,
         isGmailTheme,
         loading,
+        authLoading,
+        requiresInitSetup,
         sendNotification,
         receiptNumber,
         setReceiptPersonId,
@@ -636,6 +640,215 @@ export default function App() {
         formatNumber,
         renderTabContent
       } = appState;
+if (loading || authLoading) {
+    const textStr = authLoading ? "در حال بررسی احراز هویت..." : "در حال بارگذاری اطلاعات و تنظیمات سیستم...";
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center relative overflow-hidden" dir="rtl">
+        {/* Background elements */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+        
+        <div className="relative z-10 flex flex-col items-center">
+          {/* Animated Logo/Icon */}
+          <div className="relative w-24 h-24 mb-8">
+            <motion.div
+              className="absolute inset-0 border-4 border-indigo-200 rounded-2xl"
+              animate={{ rotate: 180, scale: [1, 1.1, 1] }}
+              transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute inset-2 border-4 border-blue-400 rounded-xl"
+              animate={{ rotate: -180, scale: [1, 1.2, 1] }}
+              transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute inset-4 bg-gradient-to-tr from-indigo-600 to-blue-500 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/30"
+              animate={{ scale: [1, 0.9, 1] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            >
+              <LayoutDashboard className="w-6 h-6 text-white" />
+            </motion.div>
+          </div>
+
+          {/* Loading Text */}
+          <div className="flex flex-col items-center gap-3">
+            <h2 className="text-xl font-black text-slate-800 tracking-tight">
+              نرم‌افزار جامع مدیریت مالی
+            </h2>
+            <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-2xl shadow-sm border border-slate-100">
+              <motion.div
+                 animate={{ rotate: 360 }}
+                 transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                 className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full"
+              />
+              <span className="text-sm font-bold text-slate-500">{textStr}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Decorative progress bar */}
+        <div className="fixed bottom-0 left-0 right-0 h-1 bg-slate-100">
+          <motion.div 
+            className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{ duration: 2.5, ease: "easeInOut", repeat: Infinity }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+if (requiresInitSetup && user) {
+    return (
+      <div
+        className="min-h-screen bg-slate-50 flex items-center justify-center p-4 pt-10 pb-10"
+        dir="rtl"
+      >
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden max-w-xl w-full">
+          <div className="bg-slate-900 p-10 text-center text-white relative overflow-hidden">
+            <h1 className="text-2xl font-black mb-3 relative z-10 tracking-tight">
+              خوش آمدید
+            </h1>
+            <p className="text-slate-300 font-medium relative z-10 text-sm">
+              جهت ورود به سیستم، تنظیمات اولیه را تکمیل نمایید
+            </p>
+          </div>
+          <div className="p-8">
+            <div className="bg-amber-50 text-amber-800 p-4 rounded-xl text-sm font-bold flex items-start gap-3 mb-8 border border-amber-100 shadow-sm">
+              <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                توجه: <strong>نوع تقویم</strong> و <strong>واحد پولی</strong> پس
+                از ثبت برای حفظ یکپارچگی پایگاه داده سیستم{" "}
+                <strong>غیرقابل تغییر</strong> خواهند بود.
+              </p>
+            </div>
+
+            <form onSubmit={handleSaveSettings} className="space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  نام مجموعه / شرکت
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={settingsForm.storeName}
+                  onChange={(e) =>
+                    setSettingsForm({
+                      ...settingsForm,
+                      storeName: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-800 focus:border-slate-800 focus:bg-white transition-colors font-semibold text-slate-900"
+                  placeholder="عنوان کسب و کار خود را وارد کنید..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  واحد پولی سیستم
+                </label>
+                <select
+                  value={settingsForm.currency}
+                  onChange={(e) =>
+                    setSettingsForm({
+                      ...settingsForm,
+                      currency: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-800 focus:border-slate-800 focus:bg-white transition-colors font-semibold text-slate-900"
+                >
+                  <option value="ریال">ریال</option>
+                  <option value="تومان">تومان</option>
+                  <option value="دلار">دلار (USD)</option>
+                  <option value="افغانی">افغانی</option>
+                  <option value="درهم">درهم (AED)</option>
+                  <option value="یورو">یورو (EUR)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  تاریخ و تقویم سیستم
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettingsForm({
+                        ...settingsForm,
+                        calendarType: "jalali",
+                      })
+                    }
+                    className={`py-4 px-2 rounded-xl border flex items-center justify-center gap-2 font-bold transition-all ${settingsForm.calendarType !== "gregorian" ? "border-slate-800 bg-slate-800 text-white shadow-sm" : "border-slate-200 text-slate-500 hover:border-slate-300 bg-slate-50/50 hover:bg-slate-50"}`}
+                  >
+                    تقویم شمسی (جلالی)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettingsForm({
+                        ...settingsForm,
+                        calendarType: "gregorian",
+                      })
+                    }
+                    className={`py-4 px-2 rounded-xl border flex items-center justify-center gap-2 font-bold transition-all ${settingsForm.calendarType === "gregorian" ? "border-slate-800 bg-slate-800 text-white shadow-sm" : "border-slate-200 text-slate-500 hover:border-slate-300 bg-slate-50/50 hover:bg-slate-50"}`}
+                  >
+                    تقویم میلادی
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  فونت سیستم
+                </label>
+                <select
+                  value={settingsForm.fontFamily || "Vazirmatn"}
+                  onChange={(e) =>
+                    setSettingsForm({
+                      ...settingsForm,
+                      fontFamily: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-3 bg-slate-50/50 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-800 focus:border-slate-800 focus:bg-white transition-colors font-semibold text-slate-900"
+                >
+                  <option value="Vazirmatn">وزیرمتن (Vazirmatn)</option>
+                  <option value="IRANYekanXFaNum">
+                    ایران یکان (IRANYekanX)
+                  </option>
+                  <option value="Lalezar">لاله‌زار (Lalezar)</option>
+                  <option value="Readex Pro">ریدکس پرو (Readex Pro)</option>
+                  <option value="Cairo">قاهره (Cairo)</option>
+                  <option value="Amiri">امیری (Amiri)</option>
+                  <option value="Changa">چنگا (Changa)</option>
+                  <option value="Tahoma">تاهوما (Tahoma)</option>
+                </select>
+              </div>
+
+              <div className="pt-6 border-t border-slate-100 mt-2">
+                <button
+                  type="submit"
+                  disabled={submittingSettings}
+                  className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2 shadow-md active:scale-[0.98] focus:ring-4 focus:ring-slate-100"
+                >
+                  {submittingSettings ? (
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <CheckCircle className="w-5 h-5" />
+                  )}
+                  ثبت نهایی و ورود به سیستم
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+
+
 
       return (
         <>
@@ -1453,7 +1666,7 @@ export default function App() {
                       />
                     ) : activeTab === "persons" ? (
                       <PersonsManager
-                        filteredPersons={filteredPersons} personPageSize={personPageSize} personCurrentPage={personCurrentPage} calculatePersonBalance={calculatePersonBalance} formatNumber={formatNumber} personSearchTerm={personSearchTerm} setPersonSearchTerm={setPersonSearchTerm} selectedPersonGroup={selectedPersonGroup} setSelectedPersonGroup={setSelectedPersonGroup} personGroups={personGroups} selectedPersonRole={selectedPersonRole} setSelectedPersonRole={setSelectedPersonRole} personRoles={personRoles} personsViewMode={personsViewMode} setPersonsViewMode={setPersonsViewMode} setIsPersonModalOpen={setIsPersonModalOpen} setPersonCurrentPage={setPersonCurrentPage} getRoleBadgeClasses={getRoleBadgeClasses} getRoleName={getRoleName} handleEditPerson={handleEditPerson} setProfilePersonId={setProfilePersonId} setLedgerPersonId={setLedgerPersonId} setRawActiveTab={setRawActiveTab} handleDeletePerson={handleDeletePerson} setPrintingPersonLedger={setPrintingPersonLedger} fetchPersons={fetchPersons} activePersonsOnly={activePersonsOnly} clearDraft={clearDraft} handleGenerateMissingAccountingCodes={handleGenerateMissingAccountingCodes} isGeneratingCodes={isGeneratingCodes} setPersonIOAction={setPersonIOAction} setIsPersonIOModalOpen={setIsPersonIOModalOpen} setEditingPersonId={setEditingPersonId} setNewPersonType={setNewPersonType} setNewPersonTitle={setNewPersonTitle} setNewPersonAlias={setNewPersonAlias} setNewPersonFirstName={setNewPersonFirstName} setNewPersonLastName={setNewPersonLastName} setNewPersonCompanyName={setNewPersonCompanyName} setNewPersonFatherName={setNewPersonFatherName} setNewPersonNationalId={setNewPersonNationalId} setNewPersonAccountingCode={setNewPersonAccountingCode} setNewPersonAddress={setNewPersonAddress} setNewPersonImage={setNewPersonImage} setNewPersonPhone={setNewPersonPhone} setNewPersonContacts={setNewPersonContacts} setNewPersonRole={setNewPersonRole} setNewPersonInitialBalance={setNewPersonInitialBalance} setNewPersonInitialBalanceType={setNewPersonInitialBalanceType} setNewPersonCreditLimit={setNewPersonCreditLimit} successMsg={successMsg} getPersonDisplayName={getPersonDisplayName} toPersianDigits={toPersianDigits}  setCustomerId={setCustomerId} setReceiptPersonId={setReceiptPersonId} setPersonExtraId={setPersonExtraId} setPersonBankName={setPersonBankName} setPersonBankAcc={setPersonBankAcc} setPersonCard={setPersonCard} setPersonSheba={setPersonSheba} setPersonBankAccounts={setPersonBankAccounts} setPersonNotes={setPersonNotes} setIsPersonExtraModalOpen={setIsPersonExtraModalOpen} confirmAction={confirmAction} setPersonPageSize={setPersonPageSize} setActiveTab={setActiveTab}
+                        filteredPersons={filteredPersons} personPageSize={personPageSize} personCurrentPage={personCurrentPage} calculatePersonBalance={calculatePersonBalance} formatNumber={formatNumber} personSearchTerm={personSearchTerm} setPersonSearchTerm={setPersonSearchTerm} selectedPersonGroup={selectedPersonGroup} setSelectedPersonGroup={setSelectedPersonGroup} personGroups={personGroups} selectedPersonRole={selectedPersonRole} setSelectedPersonRole={setSelectedPersonRole} personRoles={personRoles} personsViewMode={personsViewMode} setPersonsViewMode={setPersonsViewMode} setIsPersonModalOpen={setIsPersonModalOpen} setPersonCurrentPage={setPersonCurrentPage} getRoleBadgeClasses={getRoleBadgeClasses} getRoleName={getRoleName} handleEditPerson={handleEditPerson} setProfilePersonId={setProfilePersonId} setLedgerPersonId={setLedgerPersonId} setRawActiveTab={setRawActiveTab} handleDeletePerson={handleDeletePerson} setPrintingPersonLedger={setPrintingPersonLedger} fetchPersons={fetchPersons} activePersonsOnly={activePersonsOnly} clearDraft={clearDraft} handleGenerateMissingAccountingCodes={handleGenerateMissingAccountingCodes} isGeneratingCodes={isGeneratingCodes} setPersonIOAction={setPersonIOAction} setIsPersonIOModalOpen={setIsPersonIOModalOpen} setEditingPersonId={setEditingPersonId} setNewPersonType={setNewPersonType} setNewPersonTitle={setNewPersonTitle} setNewPersonAlias={setNewPersonAlias} setNewPersonFirstName={setNewPersonFirstName} setNewPersonLastName={setNewPersonLastName} setNewPersonCompanyName={setNewPersonCompanyName} setNewPersonFatherName={setNewPersonFatherName} setNewPersonNationalId={setNewPersonNationalId} setNewPersonAccountingCode={setNewPersonAccountingCode} setNewPersonAddress={setNewPersonAddress} setNewPersonImage={setNewPersonImage} setNewPersonPhone={setNewPersonPhone} setNewPersonContacts={setNewPersonContacts} setNewPersonRole={setNewPersonRole} setNewPersonInitialBalance={setNewPersonInitialBalance} setNewPersonInitialBalanceType={setNewPersonInitialBalanceType} setNewPersonCreditLimit={setNewPersonCreditLimit} successMsg={successMsg} getPersonDisplayName={getPersonDisplayName} toPersianDigits={toPersianDigits} storeSettings={storeSettings}  setCustomerId={setCustomerId} setReceiptPersonId={setReceiptPersonId} setPersonExtraId={setPersonExtraId} setPersonBankName={setPersonBankName} setPersonBankAcc={setPersonBankAcc} setPersonCard={setPersonCard} setPersonSheba={setPersonSheba} setPersonBankAccounts={setPersonBankAccounts} setPersonNotes={setPersonNotes} setIsPersonExtraModalOpen={setIsPersonExtraModalOpen} confirmAction={confirmAction} setPersonPageSize={setPersonPageSize} setActiveTab={setActiveTab}
                       />
                     ) : activeTab === "person_groups" ? (
                       <PersonGroupsManager showNotification={showNotification} />
@@ -4049,7 +4262,286 @@ export default function App() {
                 ? `[${relatedPerson.personCode}] `
                 : "";
 
-              return <AppView {...useAppController()} />
+              return <div
+                  className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm print:bg-white print:p-0 print:absolute print:z-auto print:block"
+                  dir="rtl"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-2xl max-h-full flex flex-col print-section print:shadow-none print:border-none print:rounded-none print:w-[210mm] print:h-[148mm] print:max-w-none print:max-h-none mx-auto font-sans"
+                  >
+                    <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 print:hidden relative z-10 shrink-0">
+                      <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">
+                        <Printer className="w-5 h-5 text-indigo-500" />
+                        پیش‌نمایش چاپ رسید
+                      </h3>
+                      <button
+                        onClick={() => setPrintingTransaction(null)}
+                        className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-2 rounded-xl transition-colors bg-white border border-gray-100"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div
+                      id="print-area"
+                      className="p-6 md:p-8 print:p-6 bg-white relative overflow-y-auto overflow-x-hidden print:overflow-hidden flex-1 flex flex-col font-sans border-2 border-gray-100 print:border-[3px] print:border-gray-800 rounded-2xl print:rounded-none min-h-[500px]"
+                    >
+                      <div className="relative z-10 flex-1 flex flex-col">
+                        {/* Header */}
+                        <div className="flex justify-between items-start mb-8 border-b-[3px] border-gray-800 pb-5">
+                          <div className="flex items-center gap-4 w-[35%]">
+                            {storeSettings?.logoUrl ? (
+                              <img
+                                src={storeSettings.logoUrl}
+                                alt="Logo"
+                                className="w-16 h-16 object-contain grayscale"
+                              />
+                            ) : (
+                              <div className="w-16 h-16 bg-gray-50 border-[2px] border-gray-800 rounded-2xl flex items-center justify-center print:border-gray-800">
+                                <Store className="w-8 h-8 text-gray-800" />
+                              </div>
+                            )}
+                            <div>
+                              <h2 className="text-xl font-black text-gray-900 leading-tight">
+                                {storeSettings?.storeName || "نام مجموعه تجاری"}
+                              </h2>
+                              {storeSettings?.phone && (
+                                <p
+                                  className="text-sm text-gray-700 font-sans font-bold mt-1.5 text-base"
+                                  dir="ltr"
+                                >
+                                  {storeSettings.phone}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="w-[30%] text-center flex justify-center mt-2">
+                            <h1 className="text-xl md:text-2xl font-black tracking-tight text-gray-900 border-[3px] border-gray-800 px-6 py-2.5 inline-block rounded-2xl">
+                              {receiptTitle}
+                            </h1>
+                          </div>
+
+                          <div className="w-[35%] flex flex-col items-end text-sm space-y-3 mt-2">
+                            <div className="flex justify-between items-center w-full max-w-[170px]">
+                              <span className="text-gray-800 font-bold">
+                                شماره:
+                              </span>
+                              <span className="font-sans font-black text-gray-900">
+                                {toPersianDigits(
+                                  printingTransaction.receiptNumber,
+                                ) || `#${toPersianDigits(printingTransaction.id)}`}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center w-full max-w-[170px]">
+                              <span className="text-gray-800 font-bold">
+                                تاریخ:
+                              </span>
+                              <span className="font-sans font-black text-gray-900">
+                                {formatDateDisplay(
+                                  printingTransaction.date || printingTransaction.jalaliDate,
+                                )}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center w-full max-w-[170px]">
+                              <span className="text-gray-800 font-bold">
+                                پیوست:
+                              </span>
+                              <span className="font-sans font-bold text-gray-900">
+                                ندارد
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Amount Block */}
+                        <div className="mb-10 flex justify-center mt-4">
+                          <div className="w-full max-w-sm border-[3px] border-gray-800 rounded-2xl overflow-hidden flex">
+                            <div className="bg-gray-100 border-l-[3px] border-gray-800 px-5 py-4 flex items-center justify-center">
+                              <span className="text-base font-black text-gray-900 whitespace-nowrap">
+                                مبلغ ({storeSettings?.currency || "ریال"})
+                              </span>
+                            </div>
+                            <div className="flex-1 flex items-center justify-center p-4 text-3xl font-black font-sans tracking-wide bg-white relative">
+                              {toPersianDigits(
+                                typeof formatNumber === "function"
+                                  ? formatNumber(printingTransaction.amount)
+                                  : String(printingTransaction.amount),
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Body details */}
+                        <div className="mb-10 text-lg md:text-xl font-bold text-gray-900 leading-[3.8rem] md:leading-[4.5rem] text-justify px-4">
+                          بدینوسیله گواهی می‌شود مبلغ{" "}
+                          <span className="border-b-[3px] border-dashed border-gray-800 px-6 font-black mx-1 pb-1 inline-block min-w-[120px] text-center text-xl md:text-2xl">
+                            {toPersianDigits(
+                              typeof formatNumber === "function"
+                                ? formatNumber(printingTransaction.amount)
+                                : String(printingTransaction.amount),
+                            )}{" "}
+                            {storeSettings?.currency || "ریال"}
+                          </span>{" "}
+                          معادل ({" "}
+                          <span className="border-b-[3px] border-dashed border-gray-800 px-6 font-black text-lg md:text-xl pb-1 inline-block min-w-[200px] text-center">
+                            {numToPersianWords(printingTransaction.amount)}
+                          </span>{" "}
+                          ) مشخصاً،
+                          <br />
+                          {isReceive
+                            ? "از جناب آقای / سرکار خانم / شرکت"
+                            : "به جناب آقای / سرکار خانم / شرکت"}{" "}
+                          <span className="font-black text-2xl border-b-[3px] border-dashed border-gray-800 px-8 mx-1 pb-1 inline-block min-w-[300px] text-center">
+                            {personCode}
+                            {personName}
+                          </span>
+                          <br />
+                          به صورت{" "}
+                          <span className="font-black text-xl md:text-2xl border-b-[3px] border-dashed border-gray-800 px-6 mx-1 pb-1 inline-block min-w-[150px] text-center">
+                            {printingTransaction.method === "cash"
+                              ? "نقدی / واریز بانکی"
+                              : "چک"}
+                          </span>
+                          {printingTransaction.method === "check" ? (
+                            <span className="font-black text-xl md:text-2xl border-b-[3px] border-dashed border-gray-800 px-6 mx-1 pb-1 inline-block min-w-[300px] text-center">
+                              {printingTransaction.checkBankName ||
+                                (printingTransaction.checkbookId
+                                  ? checkbooks.find(
+                                      (cb) =>
+                                        cb.id?.toString() ===
+                                        printingTransaction.checkbookId?.toString(),
+                                    )
+                                    ? accounts.find(
+                                        (a) =>
+                                          a.id?.toString() ===
+                                          checkbooks
+                                            .find(
+                                              (cb) =>
+                                                cb.id?.toString() ===
+                                                printingTransaction.checkbookId?.toString(),
+                                            )
+                                            ?.accountId?.toString(),
+                                      )?.bankName
+                                    : "نامشخص"
+                                  : "نامشخص")}{" "}
+                              / شماره:{" "}
+                              {toPersianDigits(
+                                printingTransaction.checkNumber || "",
+                              )}{" "}
+                              / سررسید:{" "}
+                              {toPersianDigits(
+                                printingTransaction.checkDueDate || "",
+                              )}
+                            </span>
+                          ) : null}
+                          {!isSalary && printingTransaction.method !== "check" && (
+                            <>
+                              {" "}
+                              {isReceive ? "به" : "توسط"}{" "}
+                              <span className="font-black text-xl md:text-2xl border-b-[3px] border-dashed border-gray-800 px-8 mx-1 pb-1 inline-block min-w-[200px] text-center">
+                                {printingTransaction.resourceType === "bank"
+                                  ? `حساب ${accounts.find((a) => a.id === printingTransaction.resourceId || a.id?.toString() === printingTransaction.resourceId?.toString())?.bankName || "نامشخص"}`
+                                  : printingTransaction.resourceType === "cashbox"
+                                    ? `صندوق ${cashboxes.find((c) => c.id === printingTransaction.resourceId || c.id?.toString() === printingTransaction.resourceId?.toString())?.name || "نامشخص"}`
+                                    : "نامشخص"}
+                              </span>
+                            </>
+                          )}
+                          <br />
+                          بابت{" "}
+                          <span className="font-black text-xl md:text-2xl border-b-[3px] border-dashed border-gray-800 px-10 mx-1 pb-1 inline-block min-w-[350px] text-center">
+                            {printingTransaction.description || "‌"}
+                          </span>
+                          <br />
+                          {printingTransaction.note && (
+                            <>
+                              یادداشت / کد پیگیری:{" "}
+                              <span className="font-bold text-lg border-b border-dashed border-gray-500 px-6 mx-1 inline-block text-center">
+                                {printingTransaction.note}
+                              </span>
+                              <br />
+                            </>
+                          )}
+                          {isReceive
+                            ? "نقداً دریافت گردید."
+                            : "تمام و کمال پرداخت گردید."}
+                        </div>
+
+                        {/* Signatures */}
+                        <div className="flex justify-between items-end px-12 mt-auto pt-32 mb-8">
+                          <div className="text-center w-56">
+                            <span className="block text-sm font-bold text-gray-900 mb-20">
+                              {storeSettings?.print_signature_1 ||
+                                (isReceive
+                                  ? "مهر و امضای پرداخت کننده"
+                                  : isSalary
+                                    ? "امضای کارمند"
+                                    : "مهر و امضای گیرنده وجه")}
+                            </span>
+                            <span className="block w-full border-t-[2px] border-gray-400 border-dashed"></span>
+                          </div>
+                          <div className="text-center w-56">
+                            <span className="block text-sm font-bold text-gray-900 mb-20">
+                              {storeSettings?.print_signature_2 ||
+                                "مهر و امضای امور مالی / مدیریت"}
+                            </span>
+                            <span className="block w-full border-t-[2px] border-gray-400 border-dashed"></span>
+                          </div>
+                        </div>
+
+                        {storeSettings?.print_footer_note && (
+                          <div className="mt-8 text-center text-xs text-gray-600 font-bold leading-relaxed px-4 pt-4 border-t-2 border-gray-800">
+                            {storeSettings.print_footer_note}
+                          </div>
+                        )}
+
+                        {/* Address block at bottom if available */}
+                        {!storeSettings?.print_footer_note &&
+                          storeSettings?.address && (
+                            <div className="mt-8 text-center text-xs text-gray-600 font-bold px-4 pt-4 border-t-[2px] border-gray-800">
+                              نشانی: {storeSettings.address}
+                            </div>
+                          )}
+
+                        <div className="mt-6 text-center text-xs text-gray-500 font-sans font-bold opacity-80 flex justify-between px-4 pt-2">
+                          <span>
+                            شناسه سیستمی:{" "}
+                            {toPersianDigits(
+                              printingTransaction.receiptNumber ||
+                                printingTransaction.id ||
+                                "",
+                            )}
+                          </span>
+                          <span>
+                            PRINTED:{" "}
+                            {new Date().toLocaleString("en-US", { hour12: false })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-6 py-5 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 mt-auto print:hidden rounded-b-3xl relative z-10 shrink-0">
+                      <button
+                        onClick={() => setPrintingTransaction(null)}
+                        className="px-6 py-3 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 rounded-xl font-bold transition-all shadow-sm text-sm"
+                      >
+                        انصراف
+                      </button>
+                      <button
+                        onClick={() => {
+                          setTimeout(() => window.print(), 100);
+                        }}
+                        className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-sm transition-all shadow-md flex items-center justify-center gap-2 hover:-translate-y-0.5"
+                      >
+                        <Printer className="w-5 h-5" />
+                        چاپ رسید
+                      </button>
+                    </div>
+                  </motion.div>
+                </div>
             })()}
           <PricingWizardModal
             pricingWizardInvoice={pricingWizardInvoice} setPricingWizardInvoice={setPricingWizardInvoice} pricingWizardItems={pricingWizardItems} setPricingWizardItems={setPricingWizardItems} products={products} storeSettings={storeSettings} toPersianDigits={toPersianDigits} formatDateDisplay={formatDateDisplay} formatNumber={formatNumber} setSuccessMsg={setSuccessMsg} fetchProducts={fetchProducts} updateProduct={updateProduct} List={List}
