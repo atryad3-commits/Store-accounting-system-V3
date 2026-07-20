@@ -191,7 +191,7 @@ export default function AccountingDocCreate({ showNotification, onBack, initialD
                     >
                       <option value="">-- انتخاب حساب --</option>
                       {(accounts || []).filter(a => ['general', 'subsidiary', 'detailed'].includes(a.type)).map(a => (
-                        <option key={a.id || `key-${Math.random()}`} value={a.id}>{a.code} - {a.title} ({a.type === 'general' ? 'کل' : a.type === 'subsidiary' ? 'معین' : 'تفصیلی'})</option>
+                        <option key={a.id} value={a.id}>{a.code} - {a.title} ({a.type === 'general' ? 'کل' : a.type === 'subsidiary' ? 'معین' : 'تفصیلی'})</option>
                       ))}
                     </select>
                   </td>
@@ -202,7 +202,7 @@ export default function AccountingDocCreate({ showNotification, onBack, initialD
                       className="w-full bg-white border border-slate-200 rounded-md px-2 py-1.5 text-xs text-slate-600"
                     >
                        <option value="">بدون شخص</option>
-                       {(persons || []).filter(p => p.isActive !== false).map(p => <option key={p.id || `key-${Math.random()}`} value={p.id}>{p.name}</option>)}
+                       {(persons || []).filter(p => p.isActive !== false).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                   </td>
                   <td className="p-2 min-w-[200px]">

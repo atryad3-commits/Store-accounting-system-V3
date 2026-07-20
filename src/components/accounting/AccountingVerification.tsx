@@ -228,7 +228,7 @@ export default function AccountingVerification({ showNotification }: any) {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {filteredDocs.map((doc) => (
-                        <tr key={doc.id || `key-${Math.random()}`} className="hover:bg-slate-50 transition-colors">
+                        <tr key={doc.id} className="hover:bg-slate-50 transition-colors">
                           <td className="p-4 font-mono font-black text-slate-800">{doc.documentNumber}</td>
                           <td className="p-4 font-bold text-slate-600">{formatDateDisplay(doc.date, storeSettings?.calendarType)}</td>
                           <td className="p-4 text-sm text-slate-700 max-w-xs truncate">{doc.description}</td>
@@ -288,7 +288,7 @@ export default function AccountingVerification({ showNotification }: any) {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {trialBalance.map((acc) => (
-                        <tr key={acc.id || `key-${Math.random()}`} className="hover:bg-slate-50 transition-colors">
+                        <tr key={acc.id} className="hover:bg-slate-50 transition-colors">
                           <td className="p-3 font-mono font-bold text-slate-600">{acc.code}</td>
                           <td className="p-3 font-bold text-slate-800">{acc.title}</td>
                           <td className="p-3">

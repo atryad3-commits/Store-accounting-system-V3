@@ -512,7 +512,7 @@ const isReceive = false;
                           >
                             <option value="">-- انتخاب صندوق --</option>
                             {(cashboxes || []).map((cb) => (
-                              <option key={cb.id || `cb-${Math.random()}`} value={cb.id}>
+                              <option key={cb.id} value={cb.id}>
                                 {cb.name}
                               </option>
                             ))}
@@ -595,7 +595,7 @@ const isReceive = false;
                               (a) => a.id === cb.accountId,
                             );
                             return (
-                              <option key={cb.id || `cb-${Math.random()}`} value={cb.id}>
+                              <option key={cb.id} value={cb.id}>
                                 {bankAccount?.bankName} ({cb.startNumber} تا{" "}
                                 {cb.endNumber})
                               </option>
@@ -627,7 +627,7 @@ const isReceive = false;
                               if (!cb) return null;
                               const available = (issuedChecks || []).filter((ic: any) => String(ic.checkbookId) === String(receiptCheckbookId) && ic.status === 'blank');
                               return available.map((c: any) => (
-                                <option key={c.id || Math.random().toString()} value={c.checkNumber}>
+                                <option key={c.id} value={c.checkNumber}>
                                   {c.checkNumber}
                                 </option>
                               ));
@@ -732,7 +732,7 @@ const isReceive = false;
                                     receiptLinkedInvoices[inv.id] || 0;
                                   return (
                                     <tr
-                                      key={inv.id || `inv-${Math.random()}`}
+                                      key={inv.id}
                                       className="border-b border-slate-50 last:border-0 hover:bg-slate-50"
                                     >
                                       <td className="p-3 font-mono text-xs font-bold text-slate-600">

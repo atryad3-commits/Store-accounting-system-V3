@@ -194,7 +194,7 @@ export default function EditReceiptModal({
               >
                 <option value="">-- انتخاب طرف حساب --</option>
                 {(persons || []).filter(p => p.isActive !== false).map(p => (
-                  <option key={p.id || `key-${Math.random()}`} value={p.id}>{p.name} ({p.role === 'customer' ? 'مشتری' : p.role === 'supplier' ? 'تامین کننده' : 'همکار'})</option>
+                  <option key={p.id} value={p.id}>{p.name} ({p.role === 'customer' ? 'مشتری' : p.role === 'supplier' ? 'تامین کننده' : 'همکار'})</option>
                 ))}
               </select>
             </div>
@@ -270,7 +270,7 @@ export default function EditReceiptModal({
                   >
                     <option value="">-- انتخاب بانک --</option>
                     {(accounts || []).map(acc => (
-                      <option key={acc.id || `key-${Math.random()}`} value={acc.id}>{acc.bankName} - {acc.accountNumber}</option>
+                      <option key={acc.id} value={acc.id}>{acc.bankName} - {acc.accountNumber}</option>
                     ))}
                   </select>
                 ) : (
@@ -282,7 +282,7 @@ export default function EditReceiptModal({
                   >
                     <option value="">-- انتخاب صندوق --</option>
                     {(cashboxes || []).map(cb => (
-                      <option key={cb.id || `key-${Math.random()}`} value={cb.id}>{cb.name}</option>
+                      <option key={cb.id} value={cb.id}>{cb.name}</option>
                     ))}
                   </select>
                 )}
@@ -340,7 +340,7 @@ export default function EditReceiptModal({
                     <option value="">-- انتخاب دسته چک --</option>
                     {(checkbooks || []).map(cb => {
                       const acc = accounts.find(a => a.id == cb.accountId);
-                      return <option key={cb.id || `key-${Math.random()}`} value={cb.id}>{acc?.bankName || 'نامشخص'} (برگه‌های: {cb.startNumber} تا {cb.endNumber})</option>;
+                      return <option key={cb.id} value={cb.id}>{acc?.bankName || 'نامشخص'} (برگه‌های: {cb.startNumber} تا {cb.endNumber})</option>;
                     })}
                   </select>
                 </div>

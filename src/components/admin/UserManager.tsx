@@ -108,7 +108,7 @@ export default function UserManager() {
              </thead>
              <tbody className="divide-y divide-gray-50 text-sm">
                 {users.map(u => (
-                  <tr key={u.id || `key-${Math.random()}`} className="hover:bg-gray-50/50">
+                  <tr key={u.id} className="hover:bg-gray-50/50">
                     <td className="px-6 py-4 font-bold text-gray-800">{u.name}</td>
                     <td className="px-6 py-4 text-gray-600 font-mono text-left" dir="ltr">{u.username}</td>
                     <td className="px-6 py-4">

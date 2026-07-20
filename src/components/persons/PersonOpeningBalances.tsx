@@ -216,7 +216,7 @@ export default function PersonOpeningBalances(props: any) {
                                       ob.balanceType === "debtor";
                                     return (
                                       <tr
-                                        key={ob.id || `key-${Math.random()}`}
+                                        key={ob.id}
                                         className="hover:bg-slate-50/50 transition-colors"
                                       >
                                         <td className="px-4 py-3 text-slate-400 font-mono font-medium">

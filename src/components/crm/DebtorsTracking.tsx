@@ -350,7 +350,7 @@ export default function DebtorsTracking({ persons, showNotification, storeSettin
           {columns.map(column => {
             const columnItems = filteredItems.filter(item => item.status === column.id);
             return (
-              <div key={column.id || `key-${Math.random()}`} className={`flex-shrink-0 w-80 rounded-2xl border ${column.borderColor} ${column.color} flex flex-col max-h-[700px]`}>
+              <div key={column.id} className={`flex-shrink-0 w-80 rounded-2xl border ${column.borderColor} ${column.color} flex flex-col max-h-[700px]`}>
                 <div className={`p-4 border-b ${column.borderColor} flex items-center justify-between`}>
                   <h3 className={`font-black text-sm ${column.titleColor}`}>{column.title}</h3>
                   <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-white/50 ${column.titleColor}`}>
@@ -364,7 +364,7 @@ export default function DebtorsTracking({ persons, showNotification, storeSettin
                       const lastNote = item.notes && item.notes.length > 0 ? item.notes[item.notes.length - 1] : null;
                       
                       return (
-                        <SortableItem key={item.id || `key-${Math.random()}`} id={item.id}>
+                        <SortableItem key={item.id} id={item.id}>
                           <div 
                             onClick={() => { setSelectedItem(item); setIsNoteModalOpen(true); }}
                             className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md hover:border-indigo-200 transition-all cursor-grab active:cursor-grabbing group"
@@ -441,7 +441,7 @@ export default function DebtorsTracking({ persons, showNotification, storeSettin
                       <select required value={selectedPersonId} onChange={e => setSelectedPersonId(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-gray-50 focus:ring-2 focus:ring-indigo-500/20 outline-none">
                         <option value="">-- انتخاب کنید --</option>
                         {(persons || []).map((p: any) => (
-                           <option key={p.id || `key-${Math.random()}`} value={p.id}>{p.name || p.companyName}</option>
+                           <option key={p.id} value={p.id}>{p.name || p.companyName}</option>
                         ))}
                       </select>
                     </div>
@@ -590,7 +590,7 @@ export default function DebtorsTracking({ persons, showNotification, storeSettin
                 
                 <div className="space-y-2 mt-4 max-h-64 overflow-y-auto">
                    {columns.map(c => (
-                     <div key={c.id || `key-${Math.random()}`} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-xl">
+                     <div key={c.id} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-xl">
                         <span className="text-sm font-bold text-gray-800">{c.title}</span>
                         <button onClick={() => handleDeleteColumn(c.id)} className="text-rose-500 hover:text-rose-700 p-1">
                            <Trash2 className="w-4 h-4" />

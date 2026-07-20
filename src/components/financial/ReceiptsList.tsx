@@ -118,7 +118,7 @@ export default function ReceiptsList(props: any) {
                   : `صندوق: ${cashboxes.find((cb: any) => cb.id.toString() === tx.resourceId?.toString())?.name || "نامشخص"}`;
             
             return (
-              <div key={tx.id || `key-${Math.random()}`} className={`bg-white rounded-2xl p-4 shadow-sm border-l-4 ${isRec ? "border-l-emerald-500 border-y-slate-200 border-r-slate-200" : "border-l-rose-500 border-y-slate-200 border-r-slate-200"} flex flex-col gap-3 relative`}>
+              <div key={tx.id} className={`bg-white rounded-2xl p-4 shadow-sm border-l-4 ${isRec ? "border-l-emerald-500 border-y-slate-200 border-r-slate-200" : "border-l-rose-500 border-y-slate-200 border-r-slate-200"} flex flex-col gap-3 relative`}>
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="font-bold text-slate-800 text-sm mb-1">{renderPersonLink(person?.id, person?.name)}</div>
@@ -222,7 +222,7 @@ export default function ReceiptsList(props: any) {
                         ? `حساب بانکی: ${accounts.find((a: any) => a.id.toString() === tx.resourceId?.toString())?.bankName || "نامشخص"}`
                         : `صندوق: ${cashboxes.find((cb: any) => cb.id.toString() === tx.resourceId?.toString())?.name || "نامشخص"}`;
                   return (
-                    <tr key={tx.id || `key-${Math.random()}`} className="hover:bg-slate-50/50 transition-colors">
+                    <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="p-4 font-sans font-bold text-sm text-indigo-600 whitespace-nowrap">
                         <span
                           onClick={() => setPreviewReceiptData && setPreviewReceiptData({ ...tx, _isReadOnly: true })}

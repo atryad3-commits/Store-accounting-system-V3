@@ -75,7 +75,7 @@ export default function ModuleSelector({
       else if (inv.type?.includes("warehouse")) { typeText = "سند انبارداری"; iconColor = "text-indigo-600 bg-indigo-50"; }
       
       activities.push({
-        id: `inv-${inv.id || Math.random()}`,
+        id: `inv-${inv.id || "temp-" + Date.now()}`,
         type: "invoice",
         category: inv.type,
         title: typeText,
@@ -94,7 +94,7 @@ export default function ModuleSelector({
       else if (p.role === "supplier") roleText = "تأمین‌کننده جدید";
       else if (p.role === "employee") roleText = "پرسنل جدید";
       activities.push({
-        id: `person-${p.id || Math.random()}`,
+        id: `person-${p.id || "temp-" + Date.now()}`,
         type: "person",
         title: roleText,
         description: `تعریف "${p.name}" با شماره ${p.phone || "بدون شماره"}`,
@@ -109,7 +109,7 @@ export default function ModuleSelector({
     transactions.slice(-10).forEach(t => {
       const isDeposit = t.type === "deposit";
       activities.push({
-        id: `tx-${t.id || Math.random()}`,
+        id: `tx-${t.id || "temp-" + Date.now()}`,
         type: "transaction",
         title: isDeposit ? "دریافت نقد/بانک" : "پرداخت نقد/بانک",
         description: `انتقال مبلغ ${formatCurrency(t.amount || 0)} تومان بابت ${t.description || "ثبت مالی"}`,
@@ -123,7 +123,7 @@ export default function ModuleSelector({
   if (Array.isArray(issuedChecks)) {
     issuedChecks.slice(-5).forEach(c => {
       activities.push({
-        id: `issued-check-${c.id || Math.random()}`,
+        id: `issued-check-${c.id || "temp-" + Date.now()}`,
         type: "check",
         title: "صدور چک بانکی",
         description: `شماره ${c.checkNumber || ""} به مبلغ ${formatCurrency(c.amount || 0)} تومان`,
@@ -137,7 +137,7 @@ export default function ModuleSelector({
   if (Array.isArray(receivedChecks)) {
     receivedChecks.slice(-5).forEach(c => {
       activities.push({
-        id: `received-check-${c.id || Math.random()}`,
+        id: `received-check-${c.id || "temp-" + Date.now()}`,
         type: "check",
         title: "وصول/دریافت چک",
         description: `چک بانک ${c.bankName || ""} به مبلغ ${formatCurrency(c.amount || 0)} تومان`,
@@ -288,7 +288,7 @@ export default function ModuleSelector({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {modules.map((m, idx) => (
                 <motion.div
-                  key={m.id || `key-${Math.random()}`}
+                  key={m.id}
                   initial={{ opacity: 0, scale: 0.97 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: idx * 0.04 + 0.1 }}
@@ -364,7 +364,7 @@ export default function ModuleSelector({
                 </div>
               ) : (
                 sortedActivities.map((act) => (
-                  <div key={act.id || `key-${Math.random()}`} className="group/item flex gap-3 items-start border-r-2 border-slate-100 pr-3 relative hover:border-indigo-400 transition-colors py-1">
+                  <div key={act.id} className="group/item flex gap-3 items-start border-r-2 border-slate-100 pr-3 relative hover:border-indigo-400 transition-colors py-1">
                     <div className="absolute right-[-5px] top-2 w-2.5 h-2.5 rounded-full bg-slate-200 group-hover/item:bg-indigo-500 transition-colors border-2 border-white" />
                     
                     <div className="flex-1 min-w-0">

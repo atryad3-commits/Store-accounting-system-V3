@@ -191,7 +191,7 @@ const DebtsCreditsReport: React.FC<DebtsCreditsReportProps> = ({ showNotificatio
             >
               <option value="all">همه گروه‌ها</option>
               {groups.map(g => (
-                <option key={g.id || `key-${Math.random()}`} value={g.id.toString()}>{g.name}</option>
+                <option key={g.id} value={g.id.toString()}>{g.name}</option>
               ))}
             </select>
           </div>
@@ -235,7 +235,7 @@ const DebtsCreditsReport: React.FC<DebtsCreditsReportProps> = ({ showNotificatio
             </thead>
             <tbody className="divide-y divide-gray-100 print:divide-slate-300">
               {rows.map((row, idx) => (
-                <tr key={row.id || `key-${Math.random()}`} className="hover:bg-gray-50/50 transition-colors print:hover:bg-transparent">
+                <tr key={row.id} className="hover:bg-gray-50/50 transition-colors print:hover:bg-transparent">
                   <td className="py-3 px-4 font-bold text-gray-500 border-l border-gray-100 print:border-slate-300 text-center">{idx + 1}</td>
                   <td className="py-3 px-4 font-bold text-slate-800 border-l border-gray-100 print:border-slate-300">
                     <div className="flex items-center gap-2">

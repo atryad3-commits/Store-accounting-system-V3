@@ -131,7 +131,7 @@ export default function SystemLogs() {
                 {filteredLogs.map((log) => {
                   const dateObj = new Date(log.timestamp);
                   return (
-                    <tr key={log.id || `key-${Math.random()}`} className="hover:bg-slate-50/50 transition-colors">
+                    <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="p-4 text-xs font-bold text-slate-600">
                         <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/>
                            <span dir="ltr">{dateObj.toLocaleDateString('fa-IR')} - {dateObj.toLocaleTimeString('fa-IR')}</span>

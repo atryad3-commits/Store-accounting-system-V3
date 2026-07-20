@@ -328,7 +328,7 @@ export default function FinancialYearManager({ showNotification }: any) {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {years.map(y => (
-                      <tr key={y.id || `key-${Math.random()}`} className="hover:bg-slate-50 transition-colors">
+                      <tr key={y.id} className="hover:bg-slate-50 transition-colors">
                         <td className="p-3 font-black text-slate-700">{y.name}</td>
                         <td className="p-3 text-slate-600 font-mono text-xs" dir="ltr">{formatDateDisplay(y.startDate, calendarType)}</td>
                         <td className="p-3 text-slate-600 font-mono text-xs" dir="ltr">{formatDateDisplay(y.endDate, calendarType)}</td>

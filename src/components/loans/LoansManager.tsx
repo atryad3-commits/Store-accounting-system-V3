@@ -368,7 +368,7 @@ export default function LoansManager({
                 >
                   <option value="">انتخاب شخص...</option>
                   {(persons || []).filter(p => p.isActive !== false).map(p => (
-                    <option key={p.id || `key-${Math.random()}`} value={p.id}>{p.name}</option>
+                    <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
                 {selectedPersonBalance && selectedPersonBalance.value !== 0 && (
@@ -444,7 +444,7 @@ export default function LoansManager({
                   >
                     <option value="">انتخاب حساب...</option>
                     {(accounts || []).map(a => (
-                      <option key={a.id || `key-${Math.random()}`} value={a.id}>{a.bankName}</option>
+                      <option key={a.id} value={a.id}>{a.bankName}</option>
                     ))}
                   </select>
                </div>
@@ -642,7 +642,7 @@ export default function LoansManager({
                const isExpanded = expandedLoanId === loan.id;
 
                return (
-                 <div key={loan.id || `key-${Math.random()}`} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all hover:border-gray-200">
+                 <div key={loan.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all hover:border-gray-200">
                     <div className="p-6 flex flex-col lg:flex-row items-center gap-6 cursor-pointer" onClick={() => setExpandedLoanId(isExpanded ? null : loan.id)}>
                        
                        <div className="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center" style={{backgroundColor: loan.type === 'given' ? '#eff6ff' : '#ecfdf5'}}>
@@ -699,7 +699,7 @@ export default function LoansManager({
                                 </h4>
                                 <div className="space-y-3">
                                    {loanInsts.map(inst => (
-                                     <div key={inst.id || `key-${Math.random()}`} className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                                     <div key={inst.id} className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-3 h-3 rounded-full ${inst.status === 'paid' ? 'bg-emerald-500' : inst.status === 'overdue' ? 'bg-rose-500' : 'bg-amber-400'}`}></div>
                                             <div>
@@ -721,7 +721,7 @@ export default function LoansManager({
                                                  className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none w-full md:w-40 font-medium"
                                                >
                                                  <option value="">انتخاب حساب</option>
-                                                 {(accounts || []).map(a => <option key={a.id || `key-${Math.random()}`} value={a.id}>{a.bankName}</option>)}
+                                                 {(accounts || []).map(a => <option key={a.id} value={a.id}>{a.bankName}</option>)}
                                                </select>
                                                <div className="flex flex-wrap items-center gap-1 w-full md:w-auto">
                                                  <button

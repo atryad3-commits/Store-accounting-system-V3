@@ -5778,7 +5778,7 @@ const renderTabContent = () => {
       case "list_pay_receipt": {
         return (
           <ReceiptsList
-             transactions={transactions} activeTab={activeTab} persons={persons} getPersonDisplayName={getPersonDisplayName} formatCurrency={formatCurrency} formatDateDisplay={formatDateDisplay}  renderPersonLink={renderPersonLink}  List={List} setActiveTab={setActiveTab} invoiceSearchQuery={invoiceSearchQuery} setInvoiceSearchQuery={setInvoiceSearchQuery} toPersianDigits={toPersianDigits} accounts={accounts} cashboxes={cashboxes} formatNumber={formatNumber} numToPersianWords={numToPersianWords} openPayslip={openPayslip} setPrintingTransaction={setPrintingTransaction} setEditingReceipt={setEditingReceipt} setIsEditReceiptModalOpen={setIsEditReceiptModalOpen} confirmAction={confirmAction} deleteTransaction={deleteTransaction} fetchTransactions={fetchTransactions} setPreviewReceiptData={setPreviewReceiptData}
+             transactions={transactions} activeTab={activeTab} persons={persons} getPersonDisplayName={getPersonDisplayName} formatCurrency={formatCurrency} formatDateDisplay={formatDateDisplay}  renderPersonLink={renderPersonLink} storeSettings={storeSettings} List={List} setActiveTab={setActiveTab} invoiceSearchQuery={invoiceSearchQuery} setInvoiceSearchQuery={setInvoiceSearchQuery} toPersianDigits={toPersianDigits} accounts={accounts} cashboxes={cashboxes} formatNumber={formatNumber} numToPersianWords={numToPersianWords} openPayslip={openPayslip} setPrintingTransaction={setPrintingTransaction} setEditingReceipt={setEditingReceipt} setIsEditReceiptModalOpen={setIsEditReceiptModalOpen} confirmAction={confirmAction} deleteTransaction={deleteTransaction} fetchTransactions={fetchTransactions} setPreviewReceiptData={setPreviewReceiptData}
           />
         );
       }
@@ -5790,7 +5790,7 @@ const renderTabContent = () => {
 
       case "list_salary_payroll":
         return (
-          <ListSalaryPayroll transactions={transactions} persons={persons}  formatCurrency={formatCurrency} Trash2={Trash2} confirmAction={confirmAction} List={List} toPersianDigits={toPersianDigits} renderPersonLink={renderPersonLink} formatDateDisplay={formatDateDisplay} payslips={payslips} numToPersianWords={numToPersianWords} openPayslip={openPayslip} Eye={Eye} deleteTransaction={deleteTransaction} fetchTransactions={fetchTransactions} />
+          <ListSalaryPayroll transactions={transactions} persons={persons} storeSettings={storeSettings}  formatCurrency={formatCurrency} Trash2={Trash2} confirmAction={confirmAction} List={List} toPersianDigits={toPersianDigits} renderPersonLink={renderPersonLink} formatDateDisplay={formatDateDisplay} payslips={payslips} numToPersianWords={numToPersianWords} openPayslip={openPayslip} Eye={Eye} deleteTransaction={deleteTransaction} fetchTransactions={fetchTransactions} />
         );
 
 

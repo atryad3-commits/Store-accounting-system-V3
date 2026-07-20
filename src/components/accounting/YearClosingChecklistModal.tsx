@@ -187,7 +187,7 @@ export default function YearClosingChecklistModal({ isOpen, onClose, onConfirm, 
                 const Icon = item.icon;
                 return (
                 <div 
-                  key={item.id || `key-${Math.random()}`} 
+                  key={item.id} 
                   className={`p-4 rounded-xl border ${
                     item.passed 
                       ? 'bg-emerald-50/50 border-emerald-100' 

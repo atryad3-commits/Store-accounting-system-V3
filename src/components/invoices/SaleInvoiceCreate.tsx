@@ -442,7 +442,7 @@ export default function SaleInvoiceCreate(props: any) {
                     )}
                     {(items || []).map((item, index) => (
                       <tr
-                        key={item.id || `key-${Math.random()}`}
+                        key={item.id}
                         className="hover:bg-indigo-50/20 transition-colors"
                         data-row-type="sale-row"
                       >

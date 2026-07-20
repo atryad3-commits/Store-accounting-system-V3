@@ -116,7 +116,7 @@ export default function SettingsTab(props: any) {
                           const isActive = settingsTab === tab.id;
                           return (
                             <button
-                              key={tab.id || `key-${Math.random()}`}
+                              key={tab.id}
                               onClick={() => setSettingsTab(tab.id)}
                               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold ${
                                 isActive
@@ -1062,7 +1062,7 @@ export default function SettingsTab(props: any) {
                                         <h4 className="font-bold text-sm text-gray-700 mb-4 text-right">آستانه هشدار موجودی (نقطه سفارش) بر اساس دسته‌بندی</h4>
                                         <div className="space-y-3">
                                           {[].map(cat => (
-                                            <div key={cat.id || `key-${Math.random()}`} className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                            <div key={cat.id} className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
                                               <span className="flex-1 text-right font-medium text-sm text-gray-800">{cat.name}</span>
                                               <input
                                                 type="number"
@@ -1122,7 +1122,7 @@ export default function SettingsTab(props: any) {
                                         { id: "gsm", label: "مودم GSM محلی" },
                                       ].map((method) => (
                                         <label
-                                          key={method.id || `key-${Math.random()}`}
+                                          key={method.id}
                                           className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-xl border-2 cursor-pointer transition-all ${
                                             settingsForm.notify_method ===
                                             method.id

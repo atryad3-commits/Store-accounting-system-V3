@@ -1884,7 +1884,7 @@ if (requiresInitSetup && user) {
                     ) : activeTab === "users_manager" ? (
                       <UserManager />
                     ) : activeTab === "settings" ? (
-                      <SettingsTab 
+                      <SettingsTab storeSettings={storeSettings} 
                         
                         user={user}
                       settingsForm={settingsForm}
@@ -2782,7 +2782,7 @@ if (requiresInitSetup && user) {
                                   },
                                 ].map((fmt, index) => (
                                   <button
-                                    key={fmt.id ? `fmt-${fmt.id}-${index}` : `fmt-${Math.random()}`}
+                                    key={fmt.id}
                                     type="button"
                                     onClick={() => setBarcodeFormat(fmt.id)}
                                     className={`p-3 rounded-2xl border text-right transition-all cursor-pointer flex flex-col gap-1 ${

@@ -266,7 +266,7 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {stocktakings.map(st => (
-                    <tr key={st.id || `key-${Math.random()}`} className="hover:bg-slate-50/50 transition-colors">
+                    <tr key={st.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="p-4 font-mono font-bold text-slate-800">{st.date}</td>
                       <td className="p-4 font-bold text-indigo-700">{whMap[st.warehouseId] || 'نامشخص'}</td>
                       <td className="p-4 text-sm text-slate-600 truncate max-w-[200px]">{st.description || '-'}</td>
@@ -313,7 +313,7 @@ export default function StocktakingManager({ showNotification, currentUser = 'س
                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none font-bold"
                    >
                      <option value="">-- یک انبار انتخاب کنید --</option>
-                     {(warehouses || []).map(w => <option key={w.id || `key-${Math.random()}`} value={w.id}>{w.name}</option>)}
+                     {(warehouses || []).map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
                    </select>
                 </div>
                 <div>

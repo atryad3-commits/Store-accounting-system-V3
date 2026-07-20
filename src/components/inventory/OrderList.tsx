@@ -169,7 +169,7 @@ export default function OrderList({
               >
                 <option value="">-- انتخاب کنید --</option>
                 {products.filter(p => p.type !== 'service' && p.isActive !== false).map(p => (
-                  <option key={p.id || `key-${Math.random()}`} value={p.id}>{p.name} {p.code ? `(${p.code})` : ''}</option>
+                  <option key={p.id} value={p.id}>{p.name} {p.code ? `(${p.code})` : ''}</option>
                 ))}
               </select>
             </div>

@@ -153,7 +153,7 @@ export default function WarehouseManager(props: any) {
                             <tbody className="divide-y divide-gray-50">
                               {(warehouses || []).map((wh, index) => (
                                 <tr
-                                  key={wh.id || `key-${Math.random()}`}
+                                  key={wh.id}
                                   className="hover:bg-gray-50/50 transition-colors text-gray-700"
                                 >
                                   <td className="py-4 px-6 font-medium text-gray-400">

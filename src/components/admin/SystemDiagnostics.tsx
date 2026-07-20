@@ -295,7 +295,7 @@ export default function SystemDiagnostics({
         ) : (
           <div className="space-y-4">
             {issues.map(issue => (
-              <div key={issue.id || `key-${Math.random()}`} className={`p-5 rounded-2xl border ${issue.type === 'error' ? 'bg-rose-50/50 border-rose-200' : 'bg-amber-50/50 border-amber-200'}`}>
+              <div key={issue.id} className={`p-5 rounded-2xl border ${issue.type === 'error' ? 'bg-rose-50/50 border-rose-200' : 'bg-amber-50/50 border-amber-200'}`}>
                 <div className="flex items-start gap-4">
                   <div className={`p-2 rounded-xl mt-1 shrink-0 ${issue.type === 'error' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
                     {issue.type === 'error' ? <Bug className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}

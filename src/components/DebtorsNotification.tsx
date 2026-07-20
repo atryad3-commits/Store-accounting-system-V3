@@ -183,7 +183,7 @@ export default function DebtorsNotification({
             <AnimatePresence>
               {activeDebtors.map((debtor) => (
                 <motion.div
-                  key={debtor.id || `key-${Math.random()}`}
+                  key={debtor.id}
                   initial={{ opacity: 0, scale: 0.9, x: location.includes('left') ? -20 : location.includes('right') ? 20 : 0, y: location.includes('top') || isModal ? -20 : 20 }}
                   animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, filter: 'blur(4px)' }}

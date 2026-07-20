@@ -389,7 +389,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
                                 >
                                   <option value="">بدون گروه (عمومی)</option>
                                   {productCategories.map((cat, index) => (
-                                    <option key={cat.id ? `cat-${cat.id}-${index}` : `cat-${Math.random()}`} value={cat.id}>
+                                    <option key={cat.id} value={cat.id}>
                                       {cat.name}
                                     </option>
                                   ))}
@@ -651,7 +651,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
                                     {warehouses
                                       .filter((w) => w.isActive)
                                       .map((wh, index) => (
-                                        <option key={wh.id ? `wh-${wh.id}-${index}` : `wh-${Math.random()}`} value={wh.id}>
+                                        <option key={wh.id} value={wh.id}>
                                           {wh.name}
                                         </option>
                                       ))}

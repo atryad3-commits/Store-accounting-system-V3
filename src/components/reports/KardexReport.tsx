@@ -95,7 +95,7 @@ export default function KardexReport() {
                onChange={(e) => setSelectedProductId(e.target.value)}
              >
                <option value="">-- انتخاب کنید --</option>
-               {products.map(p => <option key={p.id || `key-${Math.random()}`} value={p.id}>{p.name} ({p.code || '-'})</option>)}
+               {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.code || '-'})</option>)}
              </select>
           </div>
           
@@ -107,7 +107,7 @@ export default function KardexReport() {
                onChange={(e) => setSelectedWarehouseId(e.target.value)}
              >
                <option value="all">همه انبارها</option>
-               {warehouses.map(w => <option key={w.id || `key-${Math.random()}`} value={w.id}>{w.name}</option>)}
+               {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
              </select>
           </div>
           
@@ -174,7 +174,7 @@ export default function KardexReport() {
                      const wh = warehouses.find(w => w.id?.toString() === item.warehouseId?.toString());
                      const isInput = item.type === 'in';
                      return (
-                        <tr key={item.id || `key-${Math.random()}`} className="hover:bg-indigo-50/30 transition-colors group">
+                        <tr key={item.id} className="hover:bg-indigo-50/30 transition-colors group">
                            <td className="px-4 py-3 text-slate-500 font-mono text-xs">{idx + 1}</td>
                            <td className="px-4 py-3 text-slate-600 font-mono text-xs" dir="ltr">{item.date} {item.time || ''}</td>
                            <td className="px-4 py-3 font-bold text-slate-700 text-xs">{wh ? wh.name : 'پیش‌فرض'}</td>
