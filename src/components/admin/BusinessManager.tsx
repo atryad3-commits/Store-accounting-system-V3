@@ -222,16 +222,20 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
                             {store.name}
                           </h3>
                           <div className="flex items-center gap-2 mt-1.5">
-                            {store.id === 'default' && (
+                            {store.id === 'default' ? (
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border bg-amber-50 text-amber-600 border-amber-200">
                                 کسب و کار اصلی
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border bg-emerald-50 text-emerald-600 border-emerald-200">
+                                شعبه / شرکت فرعی
                               </span>
                             )}
                             <span className="text-xs text-slate-400 font-mono bg-slate-100 px-2 py-0.5 rounded-md truncate max-w-[120px]" title={store.id}>
                               ID: {store.id === 'default' ? 'default' : store.id.substring(0,8)+'...'}
                             </span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${isPostgres ? 'bg-sky-50 text-sky-600 border-sky-100' : 'bg-slate-50 text-slate-500 border-slate-100'}`}>
-                              {isPostgres ? 'PostgreSQL' : 'SQLite'}
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border $'bg-sky-50 text-sky-600 border-sky-100'`}>
+                              'PostgreSQL'
                             </span>
                           </div>
                         </div>

@@ -889,7 +889,7 @@ async function startServer() {
       const { name } = req.body;
       if (!name) return res.status(400).json({ error: 'Name is required' });
       
-      const id = encodeURIComponent(name.replace(/\s+/g, '_')) + '_' + Date.now();
+      const id = 'store_' + Math.random().toString(36).substring(2, 6) + '_' + Date.now().toString(36);
       let actualDbType = 'sqlite';
       
       try {
