@@ -14,8 +14,8 @@ export default function PricingWizardModal(props: any) {
   
   const [pricingPrintMode, setPricingPrintMode] = useState<"list" | "labels">("list");
   const [printFormatId, setPrintFormatId] = useState('a4');
-  const [labelTitleFontSize, setLabelTitleFontSize] = useState(11);
-  const [labelPriceFontSize, setLabelPriceFontSize] = useState(12);
+  const [labelTitleFontSize, setLabelTitleFontSize] = useState(13);
+  const [labelPriceFontSize, setLabelPriceFontSize] = useState(15);
   const [labelShowTitle, setLabelShowTitle] = useState(true);
   const [labelShowPrice, setLabelShowPrice] = useState(true);
   const [labelBarcodeScale, setLabelBarcodeScale] = useState(90);
@@ -24,12 +24,12 @@ export default function PricingWizardModal(props: any) {
     { 
       id: 'a4', 
       name: 'برگه A4 (۴ ستونه)', 
-      css: `@page { size: A4; margin: 10mm; } .print-labels-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2mm; } .label-item { height: 35mm; }`
+      css: `@page { size: A4; margin: 10mm; } .print-labels-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; } .label-item { height: 52mm; page-break-inside: avoid; }`
     },
     { 
       id: 'a5', 
       name: 'برگه A5 (۲ ستونه)', 
-      css: `@page { size: A5; margin: 5mm; } .print-labels-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2mm; } .label-item { height: 32mm; }`
+      css: `@page { size: A5; margin: 5mm; } .print-labels-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3mm; } .label-item { height: 37mm; page-break-inside: avoid; }`
     },
     { 
       id: 'label_50x30', 
@@ -50,6 +50,14 @@ export default function PricingWizardModal(props: any) {
 
   return (
     <>
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .print-section, .print-section * { visibility: visible; }
+          .print-section { position: absolute; left: 0; top: 0; width: 100%; }
+          ${selectedFormat.css}
+        }
+      `}</style>
       {pricingWizardInvoice && (
                 <div key="pricingWizardInvoice-modal"
                   className="fixed inset-0 z-[999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 print:p-0 print:bg-white print:block print:overflow-visible overflow-y-auto print-section">
@@ -390,22 +398,21 @@ export default function PricingWizardModal(props: any) {
             )}
 
             {pricingPrintMode === "labels" && (
-              <div className="flex flex-wrap gap-4 items-start justify-start">
+              <div className="print-labels-container w-full" dir="rtl">
                 {pricingWizardItems.map((item, idx) => {
                   const prod = products.find((p) => p.id === item.productId);
                   return (
                     <div
                       key={idx}
-                      className="border border-slate-900 p-2 bg-white flex flex-col justify-center items-center overflow-hidden rounded-lg box-border"
-                      style={{ 
-                        width: printFormatId.includes('50x30') ? '48mm' : (printFormatId.includes('80x40') ? '78mm' : '95mm'),
-                        height: printFormatId.includes('50x30') ? '28mm' : (printFormatId.includes('80x40') ? '38mm' : '65mm'),
-                        margin: printFormatId.includes('label_') ? '1mm auto' : '0',
-                        pageBreakAfter: printFormatId.includes('label_') ? 'always' : 'auto',
-                        border: printFormatId.includes('label_') ? 'none' : '5px solid #0f172a',
-                        borderRadius: printFormatId.includes('label_') ? '0' : '1.5rem',
-                      }}
+                      className="label-item border border-black p-2 bg-white flex flex-col justify-center items-center overflow-hidden rounded-lg box-border"
+                      style={printFormatId.includes('label_') ? {} : { borderRadius: '1rem', border: '2px solid black' }}
                     >
+                      <div 
+                        className="font-bold text-black mb-1 truncate px-1 w-full text-center leading-tight"
+                        style={{ fontSize: `12px` }}
+                      >
+                        {storeSettings?.storeName || 'فروشگاه'}
+                      </div>
                       {labelShowTitle && (
                         <div 
                           className="font-bold text-black mb-1 truncate px-1 w-full text-center leading-tight"

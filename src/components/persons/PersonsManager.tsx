@@ -304,8 +304,7 @@ export default function PersonsManager(props: any) {
                               </button>
 
                               {personGroups.slice(0, 3).map((g, index) => {
-              const effectiveViewMode = isMobile ? "list" : personsViewMode;
-  return (
+                                return (
                                   <button
                                     key={g.id ? `id-${g.id}` : `idx-${index}`}
                                     onClick={() => setSelectedPersonGroup(g.id)}
@@ -342,8 +341,7 @@ export default function PersonsManager(props: any) {
                                     بیشتر...
                                   </option>
                                   {personGroups.slice(3).map((g, index) => {
-                  const effectiveViewMode = isMobile ? "list" : personsViewMode;
-  return (
+                                    return (
                                       <option key={g.id ? `id-${g.id}` : `idx-${index}`} value={g.id}>
                                         {g.name}
                                       </option>
@@ -396,13 +394,12 @@ export default function PersonsManager(props: any) {
                                 const isDebtor = bal > 0;
                                 const isCreditor = bal < 0;
 
-              const effectiveViewMode = isMobile ? "list" : personsViewMode;
-  return (
+                                return (
                                   <motion.div
   initial={{ opacity: 0, y: 10 }}
   animate={{ opacity: 1, y: 0 }}
   transition={{ delay: index * 0.03 }}
-  key={p.id ? `id-${p.id}` : `idx-${index}`}
+  key={p.id ? `id-${p.id}-${index}` : `idx-${index}`}
   onClick={() => {
     setProfilePersonId(p.id);
     setActiveTab("person_profile");
@@ -648,10 +645,9 @@ export default function PersonsManager(props: any) {
                                       const isDebtor = bal > 0;
                                       const isCreditor = bal < 0;
 
-                    const effectiveViewMode = isMobile ? "list" : personsViewMode;
-  return (
+                                      return (
                                         <tr
-                                          key={p.id ? `id-${p.id}` : `idx-${index}`}
+                                          key={p.id ? `id-${p.id}-${index}` : `idx-${index}`}
                                           onClick={() => {
                                             setProfilePersonId(p.id);
                                             setActiveTab("person_profile");
@@ -741,8 +737,7 @@ export default function PersonsManager(props: any) {
                                                     (grp) => grp.id === p.group,
                                                   );
                                                   if (!g) return null;
-                                const effectiveViewMode = isMobile ? "list" : personsViewMode;
-  return (
+                                                  return (
                                                     <span className="text-[10px] font-bold text-slate-500">
                                                       {g.name}
                                                     </span>
@@ -1072,8 +1067,7 @@ setIsPersonExtraModalOpen(
 
                               {getPaginationItems().map((pg, idx) => {
                                 if (pg === "...") {
-                const effectiveViewMode = isMobile ? "list" : personsViewMode;
-  return (
+                                  return (
                                     <span
                                       key={`ellipsis-${idx}`}
                                       className="px-2 text-slate-400 font-black tracking-widest flex items-end pb-1"
@@ -1083,8 +1077,7 @@ setIsPersonExtraModalOpen(
                                   );
                                 }
                                 const isCurrent = pg === safeCurrentPage;
-              const effectiveViewMode = isMobile ? "list" : personsViewMode;
-  return (
+                                return (
                                   <button
                                     key={pg}
                                     onClick={() =>

@@ -193,8 +193,8 @@ export default function EditReceiptModal({
                 className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-slate-500/30"
               >
                 <option value="">-- انتخاب طرف حساب --</option>
-                {(persons || []).filter(p => p.isActive !== false).map(p => (
-                  <option key={p.id} value={p.id}>{p.name} ({p.role === 'customer' ? 'مشتری' : p.role === 'supplier' ? 'تامین کننده' : 'همکار'})</option>
+                {(persons || []).filter(p => p.isActive !== false).map((p, idx) => (
+                  <option key={`${p.id}-${idx}`} value={p.id}>{p.name} ({p.role === 'customer' ? 'مشتری' : p.role === 'supplier' ? 'تامین کننده' : 'همکار'})</option>
                 ))}
               </select>
             </div>
@@ -269,8 +269,8 @@ export default function EditReceiptModal({
                     className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-white"
                   >
                     <option value="">-- انتخاب بانک --</option>
-                    {(accounts || []).map(acc => (
-                      <option key={acc.id} value={acc.id}>{acc.bankName} - {acc.accountNumber}</option>
+                    {(accounts || []).map((acc, idx) => (
+                      <option key={`${acc.id}-${idx}`} value={acc.id}>{acc.bankName} - {acc.accountNumber}</option>
                     ))}
                   </select>
                 ) : (
@@ -281,8 +281,8 @@ export default function EditReceiptModal({
                     className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-white"
                   >
                     <option value="">-- انتخاب صندوق --</option>
-                    {(cashboxes || []).map(cb => (
-                      <option key={cb.id} value={cb.id}>{cb.name}</option>
+                    {(cashboxes || []).map((cb, idx) => (
+                      <option key={`${cb.id}-${idx}`} value={cb.id}>{cb.name}</option>
                     ))}
                   </select>
                 )}
@@ -338,9 +338,9 @@ export default function EditReceiptModal({
                     className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm bg-white"
                   >
                     <option value="">-- انتخاب دسته چک --</option>
-                    {(checkbooks || []).map(cb => {
+                    {(checkbooks || []).map((cb, idx) => {
                       const acc = accounts.find(a => a.id == cb.accountId);
-                      return <option key={cb.id} value={cb.id}>{acc?.bankName || 'نامشخص'} (برگه‌های: {cb.startNumber} تا {cb.endNumber})</option>;
+                      return <option key={`${cb.id}-${idx}`} value={cb.id}>{acc?.bankName || 'نامشخص'} (برگه‌های: {cb.startNumber} تا {cb.endNumber})</option>;
                     })}
                   </select>
                 </div>

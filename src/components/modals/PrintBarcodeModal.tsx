@@ -15,13 +15,13 @@ const PRINT_FORMATS = [
   { 
     id: 'a4', 
     name: 'برگه A4 (۴ ستونه)', 
-    css: `@page { size: A4; margin: 10mm; } .print-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2mm; } .label-item { height: 35mm; }`,
+    css: `@page { size: A4; margin: 10mm; } .print-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; } .label-item { height: 52mm; page-break-inside: avoid; }`,
     defaultCount: 40
   },
   { 
     id: 'a5', 
     name: 'برگه A5 (۲ ستونه)', 
-    css: `@page { size: A5; margin: 5mm; } .print-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2mm; } .label-item { height: 32mm; }`,
+    css: `@page { size: A5; margin: 5mm; } .print-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 3mm; } .label-item { height: 37mm; page-break-inside: avoid; }`,
     defaultCount: 12
   },
   { 
@@ -44,8 +44,8 @@ export default function PrintBarcodeModal({ product, onClose, storeSettings }: P
   const selectedFormat = PRINT_FORMATS.find(f => f.id === formatId) || PRINT_FORMATS[1];
   const [labelCount, setLabelCount] = useState(selectedFormat.defaultCount);
   
-  const [titleFontSize, setTitleFontSize] = useState(11);
-  const [priceFontSize, setPriceFontSize] = useState(12);
+  const [titleFontSize, setTitleFontSize] = useState(13);
+  const [priceFontSize, setPriceFontSize] = useState(15);
   const [showTitle, setShowTitle] = useState(true);
   const [showPrice, setShowPrice] = useState(true);
   const [barcodeScale, setBarcodeScale] = useState(100);
@@ -222,6 +222,12 @@ export default function PrintBarcodeModal({ product, onClose, storeSettings }: P
         <div className="hidden print:flex print-container print:w-full" dir="rtl">
           {Array.from({ length: labelCount }).map((_, index) => (
             <div key={index} className="label-item border border-black p-2 bg-white flex flex-col justify-center items-center w-full overflow-hidden rounded-lg box-border">
+              <div 
+                className="font-bold text-black mb-1 truncate px-1 w-full text-center leading-tight"
+                style={{ fontSize: `12px` }}
+              >
+                {storeSettings?.storeName || 'فروشگاه'}
+              </div>
               {showTitle && (
                 <div 
                   className="font-bold text-black mb-1 truncate px-1 w-full text-center leading-tight"

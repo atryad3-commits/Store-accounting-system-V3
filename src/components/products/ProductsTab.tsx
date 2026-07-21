@@ -13,11 +13,7 @@ export default function ProductsTab(props: any) {
     handleDuplicateProduct, handleFastBarcodeScan, getCategoryName,
     numToPersianWords, DatePicker, persian, persian_fa,
     storeSettings, user,
-    setNewProductSecondaryUnit,
-    setNewProductUnit,
-    setNewProductUnitRatio,
-    setNewProductDesc,
-    setProductFormTab,
+    
     setIsProductModalOpen,
     successMsg,
     setIsGenerateBarcodesModalOpen,
@@ -52,16 +48,6 @@ export default function ProductsTab(props: any) {
     isProductActionsMenuOpen,
     setIsFastProductModalOpen,
     setEditingProductId,
-    setNewProductName,
-    setNewProductPrice,
-    setNewProductType,
-    setNewProductCategoryId,
-    setNewProductCode,
-    setNewProductBarcode,
-    setNewProductPurchasePrice,
-    setNewProductStock,
-    setNewProductMinStock
-,
     ...rest
   } = props;
   
@@ -241,20 +227,6 @@ export default function ProductsTab(props: any) {
                         <button
                           onClick={() => {
                             setEditingProductId(null);
-                            setNewProductName("");
-                            setNewProductPrice("");
-                            setNewProductType("product");
-                            setNewProductCategoryId("");
-                            setNewProductCode("");
-                            setNewProductBarcode("");
-                            setNewProductPurchasePrice("");
-                            setNewProductStock("");
-                            setNewProductMinStock("");
-                            setNewProductUnit("");
-                            setNewProductSecondaryUnit("");
-                            setNewProductUnitRatio("");
-                            setNewProductDesc("");
-                            setProductFormTab("general");
                             setIsProductModalOpen(true);
                           }}
                           className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center gap-2 transition-colors text-sm font-bold shadow-sm"
@@ -586,7 +558,7 @@ export default function ProductsTab(props: any) {
                                 <tbody className="divide-y divide-gray-50 text-sm">
                                   {paginatedProducts.map((p, index) => (
                                     <tr
-                                      key={p.id ? `id-${p.id}` : `idx-${index}`}
+                                      key={p.id ? `id-${p.id}-${index}` : `idx-${index}`}
                                       className="hover:bg-slate-50/80 transition-colors group"
                                     >
                                       <td className="py-4 px-4 text-center">

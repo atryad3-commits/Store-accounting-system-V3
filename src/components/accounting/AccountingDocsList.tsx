@@ -192,11 +192,11 @@ export default function AccountingDocsList({ onNavigateToCreate, onNavigateToVie
                    </td>
                  </tr>
               ) : (
-                filteredDocs.map((doc) => {
+                filteredDocs.map((doc, idx) => {
                   const total = doc.items.reduce((sum, item) => sum + Number(item.debit || 0), 0);
                   
                   return (
-                  <tr key={doc.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={`${doc.id}-${idx}`} className="hover:bg-slate-50 transition-colors">
                     <td className="p-4 text-sm font-black text-slate-800 font-mono">{doc.documentNumber}</td>
                     <td className="p-4 text-sm font-bold text-slate-600">
                       <div className="flex items-center gap-1.5">

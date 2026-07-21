@@ -389,7 +389,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
                                 >
                                   <option value="">بدون گروه (عمومی)</option>
                                   {productCategories.map((cat, index) => (
-                                    <option key={cat.id} value={cat.id}>
+                                    <option key={`${cat.id}-${index}`} value={cat.id}>
                                       {cat.name}
                                     </option>
                                   ))}
@@ -495,11 +495,13 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
                                 <label className="block text-sm font-bold text-emerald-950 mb-2">
                                   تاریخ ثبت / تغییر قیمت
                                 </label>
-                                <input
-                                  type="date"
+                                <DatePicker
                                   value={newProductPriceDate}
-                                  onChange={(e) => setNewProductPriceDate(e.target.value)}
-                                  className="w-full px-4 py-3 rounded-xl border border-emerald-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition-colors text-emerald-900 font-mono text-left bg-white"
+                                  onChange={(date: any) => setNewProductPriceDate(date ? (typeof date.toDate === 'function' ? date.toDate().toISOString() : new Date(date).toISOString()) : new Date().toISOString())}
+                                  calendar={storeSettings?.calendarType === "gregorian" ? undefined : persian}
+                                  locale={storeSettings?.calendarType === "gregorian" ? undefined : persian_fa}
+                                  calendarPosition="bottom-right"
+                                  inputClass="w-full px-4 py-3 rounded-xl border border-emerald-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm transition-colors text-emerald-900 font-mono text-left bg-white"
                                 />
                               </div>
                               <div className="w-full">
@@ -651,7 +653,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
                                     {warehouses
                                       .filter((w) => w.isActive)
                                       .map((wh, index) => (
-                                        <option key={wh.id} value={wh.id}>
+                                        <option key={`${wh.id}-${index}`} value={wh.id}>
                                           {wh.name}
                                         </option>
                                       ))}
@@ -786,11 +788,13 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
                                             <td className="px-4 py-3 text-sm text-gray-700" dir="ltr">
                                               {editingHistoryId === h.id ? (
                                                 <div className="flex items-center gap-2">
-                                                  <input
-                                                    type="date"
-                                                    value={editingHistoryDate.split('T')[0]}
-                                                    onChange={(e) => setEditingHistoryDate(e.target.value)}
-                                                    className="w-full px-2 py-1 rounded border border-gray-300 text-sm"
+                                                  <DatePicker
+                                                    value={editingHistoryDate}
+                                                    onChange={(date: any) => setEditingHistoryDate(date ? (typeof date.toDate === 'function' ? date.toDate().toISOString() : new Date(date).toISOString()) : new Date().toISOString())}
+                                                    calendar={storeSettings?.calendarType === "gregorian" ? undefined : persian}
+                                                    locale={storeSettings?.calendarType === "gregorian" ? undefined : persian_fa}
+                                                    calendarPosition="bottom-right"
+                                                    inputClass="w-full px-2 py-1 rounded border border-gray-300 text-sm"
                                                   />
                                                 </div>
                                               ) : (
@@ -875,11 +879,13 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
                                             <td className="px-4 py-3 text-sm text-gray-700" dir="ltr">
                                               {editingHistoryId === h.id ? (
                                                 <div className="flex items-center gap-2">
-                                                  <input
-                                                    type="date"
-                                                    value={editingHistoryDate.split('T')[0]}
-                                                    onChange={(e) => setEditingHistoryDate(e.target.value)}
-                                                    className="w-full px-2 py-1 rounded border border-gray-300 text-sm"
+                                                  <DatePicker
+                                                    value={editingHistoryDate}
+                                                    onChange={(date: any) => setEditingHistoryDate(date ? (typeof date.toDate === 'function' ? date.toDate().toISOString() : new Date(date).toISOString()) : new Date().toISOString())}
+                                                    calendar={storeSettings?.calendarType === "gregorian" ? undefined : persian}
+                                                    locale={storeSettings?.calendarType === "gregorian" ? undefined : persian_fa}
+                                                    calendarPosition="bottom-right"
+                                                    inputClass="w-full px-2 py-1 rounded border border-gray-300 text-sm"
                                                   />
                                                 </div>
                                               ) : (
