@@ -353,6 +353,16 @@ const confirmAction = (message: string, onConfirm: () => Promise<void> | void, d
 
 const { user, loading: authLoading, signIn, signOut } = useAuth();
 
+
+const [activeStoreId, setActiveStoreId] = useState<string | null>(localStorage.getItem("activeStoreId"));
+const [availableStores, setAvailableStores] = useState<any[]>([]);
+const [isStoreSelectionOpen, setIsStoreSelectionOpen] = useState(!localStorage.getItem("activeStoreId"));
+
+useEffect(() => {
+  fetch('/api/databases').then(r => r.json()).then(d => {
+    if (d.success) setAvailableStores(d.databases);
+  }).catch(() => {});
+}, []);
 const [activeTab, setRawActiveTab] = useState<
     | "create_sale"
     | "debts_credits"
