@@ -5845,7 +5845,7 @@ const renderTabContent = () => {
 
   return {
 
-    productSearchTerm,
+    activeStoreId, setActiveStoreId, availableStores, setAvailableStores, isStoreSelectionOpen, setIsStoreSelectionOpen, productSearchTerm,
     setProductSearchTerm,
     isFastStocktaking,
     authLoading,

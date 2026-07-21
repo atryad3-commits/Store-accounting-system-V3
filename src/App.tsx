@@ -1,3 +1,4 @@
+import BusinessManager from "./components/admin/BusinessManager";
 import { SystemUpdatePage } from "./components/admin/SystemUpdatePage";
 import { PersonalNotesManager } from "./components/notes/PersonalNotesManager";
 import FastStocktakingMobile from "./components/inventory/FastStocktakingMobile";
@@ -648,15 +649,16 @@ const appState = useAppController();
         renderTabContent
       } = appState;
 
-  if (appState.isStoreSelectionOpen) {
+if (appState.isStoreSelectionOpen) {
     return (
-      <StoreSelectionModal 
+      <BusinessManager 
         availableStores={appState.availableStores} 
         setAvailableStores={appState.setAvailableStores} 
         onSelectStore={(id: string) => {
           localStorage.setItem("activeStoreId", id);
           window.location.reload();
-        }} 
+        }}
+        onClose={localStorage.getItem("activeStoreId") ? () => appState.setIsStoreSelectionOpen(false) : undefined}
       />
     );
   }

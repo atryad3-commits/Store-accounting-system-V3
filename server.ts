@@ -556,6 +556,10 @@ async function startServer() {
   app.use(express.text({ limit: '500mb', type: ['text/*', 'application/sql', 'application/json'] }));
   app.use(cookieParser());
 
+    app.post('/api/generate_demo_data', async (req, res) => {
+    res.json({ success: true, message: 'Demo data generation not available in this environment.' });
+  });
+
   app.get('/api/databases', async (req, res) => {
     try {
       const files = await fsPromises.readdir(process.cwd());
@@ -573,6 +577,44 @@ async function startServer() {
       res.status(500).json({ error: e.message });
     }
   });
+  app.put('/api/databases/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name } = req.body;
+      if (!name) return res.status(400).json({ error: 'Name is required' });
+      if (id === 'default') return res.status(400).json({ error: 'Cannot rename default store' });
+      const newId = encodeURIComponent(name.replace(/\s+/g, '_'));
+      const oldFile = path.join(process.cwd(), `database_${id}.sqlite`);
+      const newFile = path.join(process.cwd(), `database_${newId}.sqlite`);
+      
+      if (dbs[id]) {
+        try { dbs[id].close(); } catch(e) {}
+        delete dbs[id];
+      }
+      await fsPromises.rename(oldFile, newFile);
+      res.json({ success: true, database: { id: newId, name } });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.delete('/api/databases/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      if (id === 'default') return res.status(400).json({ error: 'Cannot delete default store' });
+      const dbFile = path.join(process.cwd(), `database_${id}.sqlite`);
+      
+      if (dbs[id]) {
+        try { dbs[id].close(); } catch(e) {}
+        delete dbs[id];
+      }
+      await fsPromises.unlink(dbFile);
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
 
   app.post('/api/databases', async (req, res) => {
     try {
@@ -1846,6 +1888,8 @@ async function startServer() {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
+
+  
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
