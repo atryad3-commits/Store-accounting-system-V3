@@ -46,8 +46,82 @@ function getDb() {
   }
   return dbs[storeId];
 }
-let pgPool: any = null;
-let usePg = false;
+
+const activePgPools: Record<string, any> = {};
+const usePgMap: Record<string, boolean> = {};
+
+async function loadPgPoolForStore(storeId: string) {
+    if (activePgPools[storeId] !== undefined) return;
+    
+    if (storeId === 'default') {
+        try {
+            const configRaw = await fsPromises.readFile(DB_CONFIG_FILE, 'utf-8');
+            const config = JSON.parse(configRaw);
+            if (config.engine === 'postgres' && config.connectionString) {
+                const pool = await connectPgDb(config.connectionString);
+                activePgPools['default'] = pool;
+                usePgMap['default'] = true;
+                return;
+            }
+        } catch(e) {}
+        
+        if (process.env.SQL_HOST && process.env.SQL_USER) {
+            const pool = new Pool({
+                host: process.env.SQL_HOST,
+                user: process.env.SQL_USER,
+                password: process.env.SQL_PASSWORD,
+                database: process.env.SQL_DB_NAME,
+            });
+            await pool.query('SELECT 1');
+            activePgPools['default'] = pool;
+            usePgMap['default'] = true;
+            return;
+        } else if (process.env.DATABASE_URL) {
+            const pool = await connectPgDb(process.env.DATABASE_URL);
+            activePgPools['default'] = pool;
+            usePgMap['default'] = true;
+            return;
+        }
+        
+        activePgPools['default'] = null;
+        usePgMap['default'] = false;
+        return;
+    }
+    
+    // For other stores
+    const defaultDb = storeContext.run('default', () => getDb());
+    try {
+        const stmt = defaultDb.prepare("SELECT * FROM businesses WHERE id = ?");
+        const business = stmt.get(storeId);
+        
+        if (business && business.db_type === 'postgres') {
+            const configRaw = await fsPromises.readFile(DB_CONFIG_FILE, 'utf-8');
+            const config = JSON.parse(configRaw);
+            if (config.engine === 'postgres' && config.connectionString) {
+                const url = new URL(config.connectionString);
+                url.pathname = `/${business.db_name}`;
+                const pool = await connectPgDb(url.toString());
+                activePgPools[storeId] = pool;
+                usePgMap[storeId] = true;
+                return;
+            }
+        }
+    } catch(e) {}
+    
+    activePgPools[storeId] = null;
+    usePgMap[storeId] = false;
+}
+
+function getActivePgPool() {
+    const storeId = storeContext.getStore() || 'default';
+    return activePgPools[storeId] || null;
+}
+
+function isPgActive() {
+    const storeId = storeContext.getStore() || 'default';
+    return !!usePgMap[storeId];
+}
+
 const DB_CONFIG_FILE = path.join(process.cwd(), 'db_config.json');
 
 const KNOWN_TABLES = [
@@ -130,10 +204,10 @@ async function connectPgDb(connectionString: string) {
 
 
 async function innerGetDbData(key: string) {
-  if (usePg && pgPool) {
+  if (isPgActive() && getActivePgPool()) {
     if (!KNOWN_TABLES.includes(key)) return null;
     try {
-      const res = await pgPool.query(`SELECT * FROM "${key}"`);
+      const res = await getActivePgPool().query(`SELECT * FROM "${key}"`);
       
       const parseJSONFields = (row: any) => {
          if (!row) return row;
@@ -149,8 +223,8 @@ async function innerGetDbData(key: string) {
 
       if (key === 'company_profile') {
         try {
-           await pgPool.query(`CREATE TABLE IF NOT EXISTS system_settings (setting_key VARCHAR PRIMARY KEY, setting_value TEXT)`);
-           const cres = await pgPool.query(`SELECT * FROM system_settings`);
+           await getActivePgPool().query(`CREATE TABLE IF NOT EXISTS system_settings (setting_key VARCHAR PRIMARY KEY, setting_value TEXT)`);
+           const cres = await getActivePgPool().query(`SELECT * FROM system_settings`);
            if (cres.rows.length === 0) return null;
            const obj = { id: 'singleton' };
            for (const r of cres.rows) {
@@ -193,9 +267,9 @@ async function innerGetDbData(key: string) {
 }
 
 async function innerSetDbData(key: string, data: any) {
-  if (usePg && pgPool) {
+  if (isPgActive() && getActivePgPool()) {
     if (!KNOWN_TABLES.includes(key)) return;
-    const client = await pgPool.connect();
+    const client = await getActivePgPool().connect();
     try {
        await client.query('BEGIN');
        if (key === 'company_profile') {
@@ -358,7 +432,7 @@ async function setDbData(key: string, data: any) {
 }
 
 async function getAllDbData() {
-  if (usePg && pgPool) {
+  if (isPgActive() && getActivePgPool()) {
     const allData = [];
     const parseJSONFields = (row: any) => {
        if (!row) return row;
@@ -373,12 +447,12 @@ async function getAllDbData() {
     };
 
     for (const key of KNOWN_TABLES) {
-       const res = await pgPool.query(`SELECT * FROM "${key}"`);
+       const res = await getActivePgPool().query(`SELECT * FROM "${key}"`);
        if (key === 'company_profile') {
          let cval = null;
          try {
-            await pgPool.query(`CREATE TABLE IF NOT EXISTS system_settings (setting_key VARCHAR PRIMARY KEY, setting_value TEXT)`);
-            const cres = await pgPool.query(`SELECT * FROM system_settings`);
+            await getActivePgPool().query(`CREATE TABLE IF NOT EXISTS system_settings (setting_key VARCHAR PRIMARY KEY, setting_value TEXT)`);
+            const cres = await getActivePgPool().query(`SELECT * FROM system_settings`);
             if (cres.rows.length > 0) {
                cval = { id: 'singleton' };
                for (const r of cres.rows) {
@@ -408,15 +482,15 @@ async function getAllDbData() {
 }
 
 async function ensurePostgresTables() {
-  if (usePg && pgPool) {
+  if (isPgActive() && getActivePgPool()) {
     try {
-      await pgPool.query('GRANT ALL ON SCHEMA public TO public');
+      await getActivePgPool().query('GRANT ALL ON SCHEMA public TO public');
     } catch (e) {
       console.warn('Could not grant schema privileges:', e.message);
     }
     for (const key of KNOWN_TABLES) {
       try {
-        await pgPool.query(`
+        await getActivePgPool().query(`
           CREATE TABLE IF NOT EXISTS "${key}" (id VARCHAR PRIMARY KEY)
         `);
       } catch (err: any) {
@@ -427,9 +501,9 @@ async function ensurePostgresTables() {
 }
 
 async function migrateSqliteToPostgres() {
-  if (!usePg || !pgPool) return;
+  if (!isPgActive() || !getActivePgPool()) return;
     try {
-      const res = await pgPool.query(`SELECT COUNT(*) as count FROM "users"`);
+      const res = await getActivePgPool().query(`SELECT COUNT(*) as count FROM "users"`);
       const hasSqliteData = getDb().prepare('SELECT count(*) as count FROM store').get() as any;
       if (parseInt(res.rows[0].count) === 0 && hasSqliteData && hasSqliteData.count > 0) {
         // Only migrate if Postgres has no users AND SQLite has data. To prevent accidental data wipe, we don't drop tables.
@@ -443,12 +517,12 @@ async function migrateSqliteToPostgres() {
             if (key === 'company_profile' || key === 'backupConfig' || !Array.isArray(data)) {
                if (data && typeof data === 'object') {
                   data.id = 'singleton';
-                  await syncTableSchema(pgPool, key, data);
+                  await syncTableSchema(getActivePgPool(), key, data);
                   const keys = Object.keys(data);
                   const vals = Object.values(data).map(v => v === undefined ? null : (v !== null && typeof v === 'object') ? JSON.stringify(v) : v);
                   const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
                   const colNames = keys.map(k => `"${k}"`).join(', ');
-                  await pgPool.query(`INSERT INTO "${key}" (${colNames}) VALUES (${placeholders}) ON CONFLICT(id) DO NOTHING`, vals);
+                  await getActivePgPool().query(`INSERT INTO "${key}" (${colNames}) VALUES (${placeholders}) ON CONFLICT(id) DO NOTHING`, vals);
                }
             } else {
                for (const item of data) {
@@ -462,21 +536,21 @@ async function migrateSqliteToPostgres() {
                      related = rel;
                   }
 
-                  await syncTableSchema(pgPool, key, finalItem);
+                  await syncTableSchema(getActivePgPool(), key, finalItem);
                   const keys = Object.keys(finalItem);
                   const vals = Object.values(finalItem).map(v => v === undefined ? null : (v !== null && typeof v === 'object') ? JSON.stringify(v) : v);
                   const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
                   const colNames = keys.map(k => `"${k}"`).join(', ');
-                  await pgPool.query(`INSERT INTO "${key}" (${colNames}) VALUES (${placeholders}) ON CONFLICT(id) DO NOTHING`, vals);
+                  await getActivePgPool().query(`INSERT INTO "${key}" (${colNames}) VALUES (${placeholders}) ON CONFLICT(id) DO NOTHING`, vals);
 
                   if (related && related.childTable) {
                       for (const it of related.items) {
-                          await syncTableSchema(pgPool, related.childTable, it);
+                          await syncTableSchema(getActivePgPool(), related.childTable, it);
                           const itKeys = Object.keys(it);
                           const itVals = Object.values(it).map(v => v === undefined ? null : (v !== null && typeof v === 'object') ? JSON.stringify(v) : v);
                           const itPlaceholders = itKeys.map((_, idx) => `$${idx + 1}`).join(', ');
                           const itColNames = itKeys.map(k => `"${k}"`).join(', ');
-                          await pgPool.query(`INSERT INTO "${related.childTable}" (${itColNames}) VALUES (${itPlaceholders}) ON CONFLICT(id) DO NOTHING`, itVals);
+                          await getActivePgPool().query(`INSERT INTO "${related.childTable}" (${itColNames}) VALUES (${itPlaceholders}) ON CONFLICT(id) DO NOTHING`, itVals);
                       }
                   }
                }
@@ -488,31 +562,8 @@ async function migrateSqliteToPostgres() {
     } catch(e) { console.error('Migration error', e); }
 }
 async function initDB() {
-  try {
-    const configRaw = await fsPromises.readFile(DB_CONFIG_FILE, 'utf-8');
-    const config = JSON.parse(configRaw);
-    if (config.engine === 'postgres' && config.connectionString) {
-      pgPool = await connectPgDb(config.connectionString);
-      usePg = true;
-      console.log('Connected to PostgreSQL');
-    }
-  } catch (e) {
-    if (process.env.SQL_HOST && process.env.SQL_USER) {
-      pgPool = new Pool({
-        host: process.env.SQL_HOST,
-        user: process.env.SQL_USER,
-        password: process.env.SQL_PASSWORD,
-        database: process.env.SQL_DB_NAME,
-      });
-      await pgPool.query('SELECT 1');
-      usePg = true;
-      console.log('Connected to Cloud SQL PostgreSQL');
-    } else if (process.env.DATABASE_URL) {
-      pgPool = await connectPgDb(process.env.DATABASE_URL);
-      usePg = true;
-      console.log('Connected to PostgreSQL from env DATABASE_URL');
-    }
-  }
+  await loadPgPoolForStore('default');
+
 
 
   getDb().exec(`
@@ -536,7 +587,7 @@ async function initDB() {
     console.log('Migrated JSON DB to SQLite');
   } catch (e) {}
 
-  if (usePg && pgPool) {
+  if (isPgActive() && getActivePgPool()) {
     await ensurePostgresTables();
     await migrateSqliteToPostgres();
   } else {
@@ -682,31 +733,69 @@ async function startServer() {
 
   app.post('/api/databases', async (req, res) => {
     try {
-      const { name, db_type, db_host, db_port, db_name, db_user, db_password } = req.body;
+      const { name } = req.body;
       if (!name) return res.status(400).json({ error: 'Name is required' });
       
       const id = encodeURIComponent(name.replace(/\s+/g, '_')) + '_' + Date.now();
+      let actualDbType = 'sqlite';
+      
+      try {
+        const configRaw = await fsPromises.readFile(DB_CONFIG_FILE, 'utf-8');
+        const config = JSON.parse(configRaw);
+        if (config.engine === 'postgres' && config.connectionString) {
+          actualDbType = 'postgres';
+          // Provision a new Postgres database for this business
+          const dbNameForBusiness = `store_${id}`.replace(/[^a-zA-Z0-9_]/g, '');
+          
+          const client = new Client({ connectionString: config.connectionString });
+          await client.connect();
+          await client.query(`CREATE DATABASE "${dbNameForBusiness}"`);
+          await client.end();
+          
+          // Connect to new DB and initialize schema? 
+          // We don't have to initialize the schema here because `getDbData` and other APIs handle it dynamically, 
+          // but we should probably wait for it.
+          // Wait, the client doesn't connect if we just store the connection string.
+          // In businesses table, we store the new db_name, the rest we can leave empty 
+          // and infer from db_config.json on runtime, or we store the full connection string.
+          // For simplicity, we just store the new dbName.
+          
+          const defaultDb = storeContext.run('default', () => getDb());
+          try {
+            const stmt = defaultDb.prepare(`
+              INSERT INTO businesses (id, name, db_type, db_host, db_port, db_name, db_user, db_password)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `);
+            // We just store db_name. The connect function will read db_config.json and replace the db name.
+            stmt.run(id, name, 'postgres', '', '', dbNameForBusiness, '', '');
+          } catch(e) {}
+          
+          return res.json({ success: true, database: { id, name, db_type: 'postgres', db_name: dbNameForBusiness } });
+        }
+      } catch (e) {
+         console.log("Error checking config or creating postgres DB, falling back to sqlite:", e);
+      }
+
+      // SQLite fallback
       const defaultDb = storeContext.run('default', () => getDb());
       try {
         const stmt = defaultDb.prepare(`
           INSERT INTO businesses (id, name, db_type, db_host, db_port, db_name, db_user, db_password)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `);
-        stmt.run(id, name, db_type || 'sqlite', db_host || '', db_port || '', db_name || '', db_user || '', db_password || '');
+        stmt.run(id, name, 'sqlite', '', '', '', '', '');
       } catch(e) {}
 
-      if (!db_type || db_type === 'sqlite') {
-        const dbFile = path.join(process.cwd(), `database_${id}.sqlite`);
-        const newDb = new DatabaseSync(dbFile);
-        newDb.exec(`
-          CREATE TABLE IF NOT EXISTS store (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL
-          )
-        `);
-      }
+      const dbFile = path.join(process.cwd(), `database_${id}.sqlite`);
+      const newDb = new DatabaseSync(dbFile);
+      newDb.exec(`
+        CREATE TABLE IF NOT EXISTS store (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        )
+      `);
 
-      res.json({ success: true, database: { id, name, db_type: db_type || 'sqlite', db_host, db_port, db_name, db_user, db_password } });
+      res.json({ success: true, database: { id, name, db_type: 'sqlite' } });
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
@@ -932,19 +1021,19 @@ async function startServer() {
          const filePath = path.join(dir, filename);
          if (!filePath.startsWith(dir)) return res.status(403).send('Invalid path');
          
-         if (filename.endsWith('.sql') && usePg && pgPool) {
+         if (filename.endsWith('.sql') && isPgActive() && getActivePgPool()) {
              const fileContent = await fsPromises.readFile(filePath, 'utf-8');
              // Split by statements or just execute the whole block if memory allows. 
-             // pgPool.query handles multiple statements separated by ';'
-             await pgPool.query(fileContent);
+             // getActivePgPool().query handles multiple statements separated by ';'
+             await getActivePgPool().query(fileContent);
          } else {
              const fileContent = await fsPromises.readFile(filePath, 'utf-8');
              const backupData = JSON.parse(fileContent);
              
-             if (usePg && pgPool) {
+             if (isPgActive() && getActivePgPool()) {
                for (const key of KNOWN_TABLES) {
                  try {
-                   await pgPool.query(`TRUNCATE TABLE "${key}" CASCADE`);
+                   await getActivePgPool().query(`TRUNCATE TABLE "${key}" CASCADE`);
                  } catch (e) {}
                }
              } else {
@@ -1056,9 +1145,9 @@ async function startServer() {
     try {
       if (!newItem.id) newItem.id = Math.random().toString(36).substring(2, 15);
       
-      if (usePg && pgPool) {
+      if (isPgActive() && getActivePgPool()) {
          if (!KNOWN_TABLES.includes(key)) return res.status(400).json({ error: 'Unknown table' });
-         await pgPool.query(`CREATE TABLE IF NOT EXISTS "${key}" (id VARCHAR PRIMARY KEY)`);
+         await getActivePgPool().query(`CREATE TABLE IF NOT EXISTS "${key}" (id VARCHAR PRIMARY KEY)`);
          let finalItem = { ...newItem };
          let related = null;
          if (['invoices', 'sales_invoices', 'purchase_invoices', 'warehouse_receipts', 'warehouse_remittances', 'proforma_invoices', 'sale_returns', 'purchase_returns', 'wastes', 'accounting_documents', 'stocktakings'].includes(key)) {
@@ -1067,26 +1156,26 @@ async function startServer() {
              related = rel;
          }
 
-         await syncTableSchema(pgPool, key, finalItem);
+         await syncTableSchema(getActivePgPool(), key, finalItem);
          const keys = Object.keys(finalItem);
          const vals = Object.values(finalItem).map(v => v === undefined ? null : (v !== null && typeof v === 'object') ? JSON.stringify(v) : v);
          const placeholders = keys.map((_, idx) => `$${idx + 1}`).join(', ');
          const colNames = keys.map(k => `"${k}"`).join(', ');
-         await pgPool.query(`INSERT INTO "${key}" (${colNames}) VALUES (${placeholders}) ON CONFLICT(id) DO UPDATE SET ${keys.map(k => `"${k}" = EXCLUDED."${k}"`).join(', ')}`, vals);
+         await getActivePgPool().query(`INSERT INTO "${key}" (${colNames}) VALUES (${placeholders}) ON CONFLICT(id) DO UPDATE SET ${keys.map(k => `"${k}" = EXCLUDED."${k}"`).join(', ')}`, vals);
          
          if (related && related.childTable) {
              const fId = finalItem.id;
              try {
                 const col = (related.childTable === 'invoice_items' || related.childTable.endsWith('_invoice_items') || related.childTable.endsWith('_receipt_items') || related.childTable.endsWith('_remittance_items') || related.childTable.endsWith('_return_items') || related.childTable.endsWith('waste_items')) ? 'invoiceId' : (related.childTable === 'accounting_document_items' ? 'documentId' : 'stocktakingId');
-                await pgPool.query(`DELETE FROM "${related.childTable}" WHERE "${col}" = $1`, [fId]);
+                await getActivePgPool().query(`DELETE FROM "${related.childTable}" WHERE "${col}" = $1`, [fId]);
              } catch(e) {}
              for (const it of related.items) {
-                 await syncTableSchema(pgPool, related.childTable, it);
+                 await syncTableSchema(getActivePgPool(), related.childTable, it);
                  const itKeys = Object.keys(it);
                  const itVals = Object.values(it).map(v => v === undefined ? null : (v !== null && typeof v === 'object') ? JSON.stringify(v) : v);
                  const itPlaceholders = itKeys.map((_, idx) => `$${idx + 1}`).join(', ');
                  const itColNames = itKeys.map(k => `"${k}"`).join(', ');
-                 await pgPool.query(`INSERT INTO "${related.childTable}" (${itColNames}) VALUES (${itPlaceholders}) ON CONFLICT(id) DO UPDATE SET ${itKeys.map(k => `"${k}" = EXCLUDED."${k}"`).join(', ')}`, itVals);
+                 await getActivePgPool().query(`INSERT INTO "${related.childTable}" (${itColNames}) VALUES (${itPlaceholders}) ON CONFLICT(id) DO UPDATE SET ${itKeys.map(k => `"${k}" = EXCLUDED."${k}"`).join(', ')}`, itVals);
              }
          }
       } else {
@@ -1103,14 +1192,14 @@ async function startServer() {
       const sysLogs = (await getDbData('system_logs')) || [];
       const timestamp = Date.now();
       sysLogs.push({ id: Math.random().toString(36).substring(2, 15), action: 'CREATE', userId: 'system', details: 'ایجاد رکورد جدید', entityType: key, entityId: newItem.id, changes: JSON.stringify(newItem), timestamp });
-      if (usePg && pgPool) {
+      if (isPgActive() && getActivePgPool()) {
          const log = sysLogs[sysLogs.length - 1];
-         await syncTableSchema(pgPool, 'system_logs', log);
+         await syncTableSchema(getActivePgPool(), 'system_logs', log);
          const keys = Object.keys(log);
          const vals = Object.values(log).map(v => v === undefined ? null : (v !== null && typeof v === 'object') ? JSON.stringify(v) : v);
          const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
          const colNames = keys.map(k => `"${k}"`).join(', ');
-         await pgPool.query(`INSERT INTO "system_logs" (${colNames}) VALUES (${placeholders}) ON CONFLICT(id) DO UPDATE SET ${keys.map(k => `"${k}" = EXCLUDED."${k}"`).join(', ')}`, vals);
+         await getActivePgPool().query(`INSERT INTO "system_logs" (${colNames}) VALUES (${placeholders}) ON CONFLICT(id) DO UPDATE SET ${keys.map(k => `"${k}" = EXCLUDED."${k}"`).join(', ')}`, vals);
       } else {
          await setDbData('system_logs', sysLogs);
       }
@@ -1128,7 +1217,7 @@ async function startServer() {
     const { key, id } = req.params;
     const updatedItem = req.body;
     try {
-      if (usePg && pgPool) {
+      if (isPgActive() && getActivePgPool()) {
          if (!KNOWN_TABLES.includes(key)) return res.status(400).json({ error: 'Unknown table' });
          
          const data = (await getDbData(key)) || [];
@@ -1147,26 +1236,26 @@ async function startServer() {
              related = rel;
          }
 
-         await syncTableSchema(pgPool, key, finalItem);
+         await syncTableSchema(getActivePgPool(), key, finalItem);
          const keys = Object.keys(finalItem);
          const vals = Object.values(finalItem).map(v => v === undefined ? null : (v !== null && typeof v === 'object') ? JSON.stringify(v) : v);
          const placeholders = keys.map((_, idx) => `$${idx + 1}`).join(', ');
          const colNames = keys.map(k => `"${k}"`).join(', ');
-         await pgPool.query(`INSERT INTO "${key}" (${colNames}) VALUES (${placeholders}) ON CONFLICT(id) DO UPDATE SET ${keys.map(k => `"${k}" = EXCLUDED."${k}"`).join(', ')}`, vals);
+         await getActivePgPool().query(`INSERT INTO "${key}" (${colNames}) VALUES (${placeholders}) ON CONFLICT(id) DO UPDATE SET ${keys.map(k => `"${k}" = EXCLUDED."${k}"`).join(', ')}`, vals);
          
          if (related && related.childTable) {
              const fId = finalItem.id;
              try {
                 const col = (related.childTable === 'invoice_items' || related.childTable.endsWith('_invoice_items') || related.childTable.endsWith('_receipt_items') || related.childTable.endsWith('_remittance_items') || related.childTable.endsWith('_return_items') || related.childTable.endsWith('waste_items')) ? 'invoiceId' : (related.childTable === 'accounting_document_items' ? 'documentId' : 'stocktakingId');
-                await pgPool.query(`DELETE FROM "${related.childTable}" WHERE "${col}" = $1`, [fId]);
+                await getActivePgPool().query(`DELETE FROM "${related.childTable}" WHERE "${col}" = $1`, [fId]);
              } catch(e) {}
              for (const it of related.items) {
-                 await syncTableSchema(pgPool, related.childTable, it);
+                 await syncTableSchema(getActivePgPool(), related.childTable, it);
                  const itKeys = Object.keys(it);
                  const itVals = Object.values(it).map(v => v === undefined ? null : (v !== null && typeof v === 'object') ? JSON.stringify(v) : v);
                  const itPlaceholders = itKeys.map((_, idx) => `$${idx + 1}`).join(', ');
                  const itColNames = itKeys.map(k => `"${k}"`).join(', ');
-                 await pgPool.query(`INSERT INTO "${related.childTable}" (${itColNames}) VALUES (${itPlaceholders}) ON CONFLICT(id) DO UPDATE SET ${itKeys.map(k => `"${k}" = EXCLUDED."${k}"`).join(', ')}`, itVals);
+                 await getActivePgPool().query(`INSERT INTO "${related.childTable}" (${itColNames}) VALUES (${itPlaceholders}) ON CONFLICT(id) DO UPDATE SET ${itKeys.map(k => `"${k}" = EXCLUDED."${k}"`).join(', ')}`, itVals);
              }
          }
       } else {
@@ -1189,14 +1278,14 @@ async function startServer() {
       const sysLogs = (await getDbData('system_logs')) || [];
       const timestamp = Date.now();
       sysLogs.push({ id: Math.random().toString(36).substring(2, 15), action: 'UPDATE', userId: 'system', details: 'ویرایش رکورد', entityType: key, entityId: id, changes: JSON.stringify(updatedItem), timestamp });
-      if (usePg && pgPool) {
+      if (isPgActive() && getActivePgPool()) {
          const log = sysLogs[sysLogs.length - 1];
-         await syncTableSchema(pgPool, 'system_logs', log);
+         await syncTableSchema(getActivePgPool(), 'system_logs', log);
          const keys = Object.keys(log);
          const vals = Object.values(log).map(v => v === undefined ? null : (v !== null && typeof v === 'object') ? JSON.stringify(v) : v);
          const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
          const colNames = keys.map(k => `"${k}"`).join(', ');
-         await pgPool.query(`INSERT INTO "system_logs" (${colNames}) VALUES (${placeholders}) ON CONFLICT(id) DO UPDATE SET ${keys.map(k => `"${k}" = EXCLUDED."${k}"`).join(', ')}`, vals);
+         await getActivePgPool().query(`INSERT INTO "system_logs" (${colNames}) VALUES (${placeholders}) ON CONFLICT(id) DO UPDATE SET ${keys.map(k => `"${k}" = EXCLUDED."${k}"`).join(', ')}`, vals);
       } else {
          await setDbData('system_logs', sysLogs);
       }
@@ -1456,12 +1545,12 @@ async function startServer() {
     try {
       let totalSize = 0;
       try {
-        if (!usePg) {
+        if (!isPgActive()) {
            const stats = await fsPromises.stat(SQLITE_FILE);
            totalSize = stats.size;
         } else {
            // mock size for PG or fetch from pg_database size
-           const res = await pgPool.query('SELECT pg_database_size(current_database()) as size');
+           const res = await getActivePgPool().query('SELECT pg_database_size(current_database()) as size');
            if (res.rows.length > 0) totalSize = parseInt(res.rows[0].size, 10);
         }
       } catch(e) {}
@@ -1502,18 +1591,18 @@ async function startServer() {
 
   app.post('/api/db/restore', async (req, res) => {
     try {
-      if (usePg && pgPool) {
+      if (isPgActive() && getActivePgPool()) {
           // req.body could be parsed JSON from old backups or raw SQL string.
           // Because Express body-parser is set up, it might have failed to parse if it was SQL, unless we added a text parser.
           // Let's assume req.body is string for SQL or object for JSON
           if (typeof req.body === 'string' && req.body.includes('Professional Postgres Dump')) {
-              await pgPool.query(req.body);
+              await getActivePgPool().query(req.body);
               return res.json({ success: true });
           } else if (typeof req.body === 'object') {
               // Old JSON format restore
               const parsed = req.body;
               for (const key of KNOWN_TABLES) {
-                try { await pgPool.query(`TRUNCATE TABLE "${key}" CASCADE`); } catch (e) {}
+                try { await getActivePgPool().query(`TRUNCATE TABLE "${key}" CASCADE`); } catch (e) {}
               }
               for (const [key, value] of Object.entries(parsed)) {
                  if (KNOWN_TABLES.includes(key)) await setDbData(key, value);
@@ -1647,8 +1736,8 @@ async function startServer() {
       if (engine === 'sqlite' || connectionString === 'sqlite') {
          const config = { engine: 'sqlite' };
          await fsPromises.writeFile(DB_CONFIG_FILE, JSON.stringify(config));
-         usePg = false;
-         pgPool = null;
+         activePgPools['default'] = null;
+         usePgMap['default'] = false;
          return res.json({ success: true });
       }
 
@@ -1683,8 +1772,8 @@ async function startServer() {
       await fsPromises.writeFile(DB_CONFIG_FILE, JSON.stringify(config));
       
       // Try to re-init DB with new connection
-      pgPool = await connectPgDb(finalConnectionString);
-      usePg = true;
+      activePgPools['default'] = await connectPgDb(finalConnectionString);
+      usePgMap['default'] = true;
       await ensurePostgresTables();
       await migrateSqliteToPostgres();
 
@@ -1716,9 +1805,9 @@ async function startServer() {
   app.post('/api/db/execute', async (req, res) => {
     const { query, params } = req.body;
     try {
-      if (usePg && pgPool) {
+      if (isPgActive() && getActivePgPool()) {
          const isSelect = query.trim().toUpperCase().startsWith('SELECT');
-         const result = await pgPool.query(query, params || []);
+         const result = await getActivePgPool().query(query, params || []);
          if (isSelect) {
            res.json({ results: result.rows });
          } else {
