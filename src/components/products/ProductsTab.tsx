@@ -447,7 +447,7 @@ export default function ProductsTab(props: any) {
                             (p.description || "")
                           ).toLowerCase();
                           const matchesSearch = matchString.includes(
-                            productSearchTerm.toLowerCase(),
+                            (productSearchTerm || "").toLowerCase(),
                           );
                           const matchesCat =
                             selectedProductCategory === "all" ||

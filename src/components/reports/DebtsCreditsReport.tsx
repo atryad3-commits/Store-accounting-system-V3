@@ -39,6 +39,7 @@ const DebtsCreditsReport: React.FC<DebtsCreditsReportProps> = ({ showNotificatio
       setTransactions(await getTransactions());
       setIssuedChecks(await getIssuedChecks());
       setReceivedChecks(await getReceivedChecks());
+      setAccountingDocuments(await getAccountingDocuments());
       setSettings(await getStoreSettings());
       setGroups(await getPersonGroups());
     } catch (err) {

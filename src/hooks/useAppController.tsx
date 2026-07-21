@@ -3509,6 +3509,7 @@ const handleCurrencyChange = (newCurrency: string) => {
           const subtotal = item.quantity * updatedPrice;
           const total = subtotal * (1 - item.discountPercent / 100);
           return {
+
             ...item,
             unitPrice: Number(updatedPrice.toFixed(4)),
             totalPrice: Number(total.toFixed(4)),
@@ -3574,6 +3575,7 @@ const handleSourceInvoiceChange = (invoiceId: string | number) => {
             const processed = key ? processedAmounts[key] || 0 : 0;
             const remaining = (Number(it.quantity) || 0) - processed;
             return {
+
               ...it,
               id: generateId(),
               maxQuantity: remaining > 0 ? remaining : 0, // Save max
@@ -3599,6 +3601,7 @@ const handleExchangeRateChange = (newRate: number) => {
           const subtotal = item.quantity * updatedPrice;
           const total = subtotal * (1 - item.discountPercent / 100);
           return {
+
             ...item,
             unitPrice: Number(updatedPrice.toFixed(4)),
             totalPrice: Number(total.toFixed(4)),
@@ -4825,6 +4828,7 @@ const saveInvoiceData = async (
                  basePurchasePrice = Number((basePurchasePrice / prod.unitRatio).toFixed(4));
               }
               return {
+
                 productId: it.productId,
                 productName: it.productName,
                 purchasePrice: basePurchasePrice,
@@ -5244,6 +5248,7 @@ const handleInvoicePreviewTrigger = () => {
           (p) => p.id.toString() === String(item.productId),
         );
         return {
+
           ...item,
           warehouseId:
             (storeSettings.requireWarehouse ||
@@ -5478,7 +5483,8 @@ const calculateProductCurrentStock = (productId: string | number) => {
 
 const calculatePersonBalance = (personId: string | number) => {
     const person = persons.find((p) => p.id.toString() === personId.toString());
-    if (!person) return { amount: 0, status: "بی‌حساب" };
+    if (!person) return {
+ amount: 0, status: "بی‌حساب" };
 
     let balance = 0; // positive for debtor, negative for creditor
 
@@ -5496,6 +5502,7 @@ const calculatePersonBalance = (personId: string | number) => {
 
     if (balance > 0)
       return {
+
         amount: balance,
         status: "بدهکار",
         color: "text-rose-600",
@@ -5503,12 +5510,14 @@ const calculatePersonBalance = (personId: string | number) => {
       };
     if (balance < 0)
       return {
+
         amount: Math.abs(balance),
         status: "بستانکار",
         color: "text-emerald-600",
         bg: "bg-emerald-50",
       };
     return {
+
       amount: 0,
       status: "بی‌حساب",
       color: "text-gray-500",
@@ -5824,6 +5833,9 @@ const renderTabContent = () => {
   };
 
   return {
+
+    productSearchTerm,
+    setProductSearchTerm,
     isFastStocktaking,
     authLoading,
     requiresInitSetup,
