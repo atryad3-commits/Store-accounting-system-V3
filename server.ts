@@ -992,9 +992,17 @@ async function startServer() {
   });
 
   app.use((req, res, next) => {
-    const storeId = req.headers['x-store-id'] || 'default';
-    storeContext.run(storeId as string, () => {
-      next();
+    const storeId = (req.headers['x-store-id'] as string) || 'default';
+    
+    loadPgPoolForStore(storeId).then(() => {
+        storeContext.run(storeId, () => {
+            next();
+        });
+    }).catch((e) => {
+        console.error("Failed to load pool for store", storeId, e);
+        storeContext.run(storeId, () => {
+            next();
+        });
     });
   });
 
