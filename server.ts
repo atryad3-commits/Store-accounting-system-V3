@@ -63,7 +63,7 @@ async function loadPgPoolForStore(storeId: string) {
                 usePgMap['default'] = true;
                 return;
             }
-        } catch(e) {}
+        } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
         
         if (process.env.SQL_HOST && process.env.SQL_USER) {
             const pool = new Pool({
@@ -89,10 +89,19 @@ async function loadPgPoolForStore(storeId: string) {
     }
     
     // For other stores
-    const defaultDb = storeContext.run('default', () => getDb());
     try {
-        const stmt = defaultDb.prepare("SELECT * FROM businesses WHERE id = ?");
-        const business = stmt.get(storeId);
+        if (activePgPools['default'] === undefined) {
+            await loadPgPoolForStore('default');
+        }
+        let business = null;
+        if (usePgMap['default'] && activePgPools['default']) {
+            const res = await activePgPools['default'].query("SELECT * FROM businesses WHERE id = $1", [storeId]);
+            if (res.rows.length > 0) business = res.rows[0];
+        } else {
+            const defaultDb = storeContext.run('default', () => getDb());
+            const stmt = defaultDb.prepare("SELECT * FROM businesses WHERE id = ?");
+            business = stmt.get(storeId);
+        }
         
         if (business && business.db_type === 'postgres') {
             const configRaw = await fsPromises.readFile(DB_CONFIG_FILE, 'utf-8');
@@ -106,7 +115,7 @@ async function loadPgPoolForStore(storeId: string) {
                 return;
             }
         }
-    } catch(e) {}
+    } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
     
     activePgPools[storeId] = null;
     usePgMap[storeId] = false;
@@ -215,7 +224,7 @@ async function innerGetDbData(key: string) {
             if (typeof row[k] === 'string' && (row[k].startsWith('{') || row[k].startsWith('['))) {
                try {
                   row[k] = JSON.parse(row[k]);
-               } catch(e) {}
+               } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
             }
          }
          return row;
@@ -440,7 +449,7 @@ async function getAllDbData() {
           if (typeof row[k] === 'string' && (row[k].startsWith('{') || row[k].startsWith('['))) {
              try {
                 row[k] = JSON.parse(row[k]);
-             } catch(e) {}
+             } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
           }
        }
        return row;
@@ -460,7 +469,7 @@ async function getAllDbData() {
                   catch(e) { cval[r.setting_key] = r.setting_value; }
                }
             }
-         } catch(e) {}
+         } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
          allData.push({ key, value: cval });
        } else if (key === 'backupConfig') {
          allData.push({ key, value: res.rows.length > 0 ? parseJSONFields(res.rows[0]) : null });
@@ -508,6 +517,34 @@ async function migrateSqliteToPostgres() {
       if (parseInt(res.rows[0].count) === 0 && hasSqliteData && hasSqliteData.count > 0) {
         // Only migrate if Postgres has no users AND SQLite has data. To prevent accidental data wipe, we don't drop tables.
         console.log('Migrating from SQLite to Postgres...');
+        
+        try {
+            const storeId = storeContext.getStore() || 'default';
+            if (storeId === 'default') {
+                const businesses = getDb().prepare('SELECT * FROM businesses').all();
+                if (businesses.length > 0) {
+                    await getActivePgPool().query(`
+                      CREATE TABLE IF NOT EXISTS businesses (
+                        id VARCHAR PRIMARY KEY,
+                        name VARCHAR NOT NULL,
+                        db_type VARCHAR DEFAULT 'sqlite',
+                        db_host VARCHAR,
+                        db_port VARCHAR,
+                        db_name VARCHAR,
+                        db_user VARCHAR,
+                        db_password VARCHAR
+                      )
+                    `);
+                    for (const b of businesses) {
+                        await getActivePgPool().query(`
+                          INSERT INTO businesses (id, name, db_type, db_host, db_port, db_name, db_user, db_password)
+                          VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT(id) DO NOTHING
+                        `, [b.id, b.name, b.db_type, b.db_host, b.db_port, b.db_name, b.db_user, b.db_password]);
+                    }
+                }
+            }
+        } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+        
         tableSchemas.clear();
         const sqliteRows = getDb().prepare('SELECT key, value FROM store').all();
         for (const row of sqliteRows) {
@@ -630,9 +667,26 @@ async function startServer() {
     try {
       let dbsFromTable = [];
       try {
-        const defaultDb = storeContext.run('default', () => getDb());
-        const stmt = defaultDb.prepare("SELECT * FROM businesses");
-        dbsFromTable = stmt.all();
+        if (usePgMap['default'] && activePgPools['default']) {
+            await activePgPools['default'].query(`
+              CREATE TABLE IF NOT EXISTS businesses (
+                id VARCHAR PRIMARY KEY,
+                name VARCHAR NOT NULL,
+                db_type VARCHAR DEFAULT 'sqlite',
+                db_host VARCHAR,
+                db_port VARCHAR,
+                db_name VARCHAR,
+                db_user VARCHAR,
+                db_password VARCHAR
+              )
+            `);
+            const r = await activePgPools['default'].query("SELECT * FROM businesses");
+            dbsFromTable = r.rows;
+        } else {
+            const defaultDb = storeContext.run('default', () => getDb());
+            const stmt = defaultDb.prepare("SELECT * FROM businesses");
+            dbsFromTable = stmt.all();
+        }
       } catch (e) {}
 
       const files = await fsPromises.readdir(process.cwd());
@@ -665,6 +719,62 @@ async function startServer() {
     }
   });
 
+  app.get('/api/databases/:id/test-connection', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      let business = null;
+      if (usePgMap['default'] && activePgPools['default']) {
+          const r = await activePgPools['default'].query("SELECT * FROM businesses WHERE id = $1", [id]);
+          if (r.rows.length > 0) business = r.rows[0];
+      } else {
+          const defaultDb = storeContext.run('default', () => getDb());
+          try {
+              const stmt = defaultDb.prepare("SELECT * FROM businesses WHERE id = ?");
+              business = stmt.get(id);
+          } catch(e) {}
+      }
+      
+      // Default store is always valid if we reach here
+      if (id === 'default' && !business) {
+          return res.json({ success: true });
+      }
+
+      if (!business && id !== 'default') {
+          // it might be a sqlite file without db entry
+          try {
+             const stat = await fsPromises.stat(path.join(process.cwd(), `database_${id}.sqlite`));
+             return res.json({ success: true });
+          } catch(e) {
+             return res.status(404).json({ error: 'Business not found' });
+          }
+      }
+      
+      if (business && business.db_type === 'postgres') {
+          try {
+              const configRaw = await fsPromises.readFile(DB_CONFIG_FILE, 'utf-8');
+              const config = JSON.parse(configRaw);
+              if (config.engine === 'postgres' && config.connectionString) {
+                  const url = new URL(config.connectionString);
+                  url.pathname = `/${business.db_name}`;
+                  const pool = new Pool({ connectionString: url.toString() });
+                  await pool.query('SELECT 1');
+                  await pool.end();
+                  return res.json({ success: true });
+              } else {
+                  return res.status(500).json({ error: 'Postgres config missing' });
+              }
+          } catch(e) {
+              return res.status(500).json({ error: 'Connection failed: ' + e.message });
+          }
+      } else {
+          return res.json({ success: true });
+      }
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.put('/api/databases/:id', async (req, res) => {
     try {
       const { id } = req.params;
@@ -672,23 +782,44 @@ async function startServer() {
       if (!name) return res.status(400).json({ error: 'Name is required' });
       if (id === 'default') return res.status(400).json({ error: 'Cannot rename default store' });
       
-      const defaultDb = storeContext.run('default', () => getDb());
-      const checkStmt = defaultDb.prepare("SELECT * FROM businesses WHERE id = ?");
-      const existing = checkStmt.get(id);
+      let existing = null;
+      if (usePgMap['default'] && activePgPools['default']) {
+          const r = await activePgPools['default'].query("SELECT * FROM businesses WHERE id = $1", [id]);
+          if (r.rows.length > 0) existing = r.rows[0];
+      } else {
+          const defaultDb = storeContext.run('default', () => getDb());
+          const checkStmt = defaultDb.prepare("SELECT * FROM businesses WHERE id = ?");
+          existing = checkStmt.get(id);
+      }
 
       if (existing) {
-        const stmt = defaultDb.prepare(`
-          UPDATE businesses SET 
-            name = ?, 
-            db_type = COALESCE(?, db_type), 
-            db_host = COALESCE(?, db_host), 
-            db_port = COALESCE(?, db_port), 
-            db_name = COALESCE(?, db_name), 
-            db_user = COALESCE(?, db_user), 
-            db_password = COALESCE(?, db_password) 
-          WHERE id = ?
-        `);
-        stmt.run(name, db_type, db_host, db_port, db_name, db_user, db_password, id);
+        if (usePgMap['default'] && activePgPools['default']) {
+            await activePgPools['default'].query(`
+              UPDATE businesses SET 
+                name = $1, 
+                db_type = COALESCE($2, db_type), 
+                db_host = COALESCE($3, db_host), 
+                db_port = COALESCE($4, db_port), 
+                db_name = COALESCE($5, db_name), 
+                db_user = COALESCE($6, db_user), 
+                db_password = COALESCE($7, db_password) 
+              WHERE id = $8
+            `, [name, db_type, db_host, db_port, db_name, db_user, db_password, id]);
+        } else {
+            const defaultDb = storeContext.run('default', () => getDb());
+            const stmt = defaultDb.prepare(`
+              UPDATE businesses SET 
+                name = ?, 
+                db_type = COALESCE(?, db_type), 
+                db_host = COALESCE(?, db_host), 
+                db_port = COALESCE(?, db_port), 
+                db_name = COALESCE(?, db_name), 
+                db_user = COALESCE(?, db_user), 
+                db_password = COALESCE(?, db_password) 
+              WHERE id = ?
+            `);
+            stmt.run(name, db_type, db_host, db_port, db_name, db_user, db_password, id);
+        }
         res.json({ success: true, database: { id, name, db_type: db_type || existing.db_type, db_host, db_port, db_name, db_user, db_password } });
       } else {
         // Fallback for file-only databases being renamed
@@ -697,7 +828,7 @@ async function startServer() {
         const newFile = path.join(process.cwd(), `database_${newId}.sqlite`);
         
         if (dbs[id]) {
-          try { dbs[id].close(); } catch(e) {}
+          try { dbs[id].close(); } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
           delete dbs[id];
         }
         await fsPromises.rename(oldFile, newFile);
@@ -713,18 +844,22 @@ async function startServer() {
       const { id } = req.params;
       if (id === 'default') return res.status(400).json({ error: 'Cannot delete default store' });
       
-      const defaultDb = storeContext.run('default', () => getDb());
       try {
-        const stmt = defaultDb.prepare("DELETE FROM businesses WHERE id = ?");
-        stmt.run(id);
-      } catch(e) {}
+        if (usePgMap['default'] && activePgPools['default']) {
+            await activePgPools['default'].query("DELETE FROM businesses WHERE id = $1", [id]);
+        } else {
+            const defaultDb = storeContext.run('default', () => getDb());
+            const stmt = defaultDb.prepare("DELETE FROM businesses WHERE id = ?");
+            stmt.run(id);
+        }
+      } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
 
       const dbFile = path.join(process.cwd(), `database_${id}.sqlite`);
       if (dbs[id]) {
-        try { dbs[id].close(); } catch(e) {}
+        try { dbs[id].close(); } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
         delete dbs[id];
       }
-      try { await fsPromises.unlink(dbFile); } catch(e) {}
+      try { await fsPromises.unlink(dbFile); } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
       res.json({ success: true });
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -760,15 +895,33 @@ async function startServer() {
           // and infer from db_config.json on runtime, or we store the full connection string.
           // For simplicity, we just store the new dbName.
           
-          const defaultDb = storeContext.run('default', () => getDb());
           try {
-            const stmt = defaultDb.prepare(`
-              INSERT INTO businesses (id, name, db_type, db_host, db_port, db_name, db_user, db_password)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            `);
-            // We just store db_name. The connect function will read db_config.json and replace the db name.
-            stmt.run(id, name, 'postgres', '', '', dbNameForBusiness, '', '');
-          } catch(e) {}
+            if (usePgMap['default'] && activePgPools['default']) {
+                await activePgPools['default'].query(`
+                  CREATE TABLE IF NOT EXISTS businesses (
+                    id VARCHAR PRIMARY KEY,
+                    name VARCHAR NOT NULL,
+                    db_type VARCHAR DEFAULT 'sqlite',
+                    db_host VARCHAR,
+                    db_port VARCHAR,
+                    db_name VARCHAR,
+                    db_user VARCHAR,
+                    db_password VARCHAR
+                  )
+                `);
+                await activePgPools['default'].query(`
+                  INSERT INTO businesses (id, name, db_type, db_host, db_port, db_name, db_user, db_password)
+                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                `, [id, name, 'postgres', '', '', dbNameForBusiness, '', '']);
+            } else {
+                const defaultDb = storeContext.run('default', () => getDb());
+                const stmt = defaultDb.prepare(`
+                  INSERT INTO businesses (id, name, db_type, db_host, db_port, db_name, db_user, db_password)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                `);
+                stmt.run(id, name, 'postgres', '', '', dbNameForBusiness, '', '');
+            }
+          } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
           
           return res.json({ success: true, database: { id, name, db_type: 'postgres', db_name: dbNameForBusiness } });
         }
@@ -777,14 +930,33 @@ async function startServer() {
       }
 
       // SQLite fallback
-      const defaultDb = storeContext.run('default', () => getDb());
       try {
-        const stmt = defaultDb.prepare(`
-          INSERT INTO businesses (id, name, db_type, db_host, db_port, db_name, db_user, db_password)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-        stmt.run(id, name, 'sqlite', '', '', '', '', '');
-      } catch(e) {}
+        if (usePgMap['default'] && activePgPools['default']) {
+            await activePgPools['default'].query(`
+              CREATE TABLE IF NOT EXISTS businesses (
+                id VARCHAR PRIMARY KEY,
+                name VARCHAR NOT NULL,
+                db_type VARCHAR DEFAULT 'sqlite',
+                db_host VARCHAR,
+                db_port VARCHAR,
+                db_name VARCHAR,
+                db_user VARCHAR,
+                db_password VARCHAR
+              )
+            `);
+            await activePgPools['default'].query(`
+              INSERT INTO businesses (id, name, db_type, db_host, db_port, db_name, db_user, db_password)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            `, [id, name, 'sqlite', '', '', '', '', '']);
+        } else {
+            const defaultDb = storeContext.run('default', () => getDb());
+            const stmt = defaultDb.prepare(`
+              INSERT INTO businesses (id, name, db_type, db_host, db_port, db_name, db_user, db_password)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `);
+            stmt.run(id, name, 'sqlite', '', '', '', '', '');
+        }
+      } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
 
       const dbFile = path.join(process.cwd(), `database_${id}.sqlite`);
       const newDb = new DatabaseSync(dbFile);
@@ -939,7 +1111,7 @@ async function startServer() {
      if (backupData) {
         Object.assign(backupConfig, backupData);
      }
-  } catch(e) {}
+  } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
 
   const getBackupsDir = () => {
      return backupConfig.path && backupConfig.path.trim() !== '' 
@@ -1037,7 +1209,7 @@ async function startServer() {
                  } catch (e) {}
                }
              } else {
-               try { getDb().prepare('DELETE FROM store').run(); } catch(e) {}
+               try { getDb().prepare('DELETE FROM store').run(); } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
              }
 
              for (const [key, value] of Object.entries(backupData)) {
@@ -1168,7 +1340,7 @@ async function startServer() {
              try {
                 const col = (related.childTable === 'invoice_items' || related.childTable.endsWith('_invoice_items') || related.childTable.endsWith('_receipt_items') || related.childTable.endsWith('_remittance_items') || related.childTable.endsWith('_return_items') || related.childTable.endsWith('waste_items')) ? 'invoiceId' : (related.childTable === 'accounting_document_items' ? 'documentId' : 'stocktakingId');
                 await getActivePgPool().query(`DELETE FROM "${related.childTable}" WHERE "${col}" = $1`, [fId]);
-             } catch(e) {}
+             } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
              for (const it of related.items) {
                  await syncTableSchema(getActivePgPool(), related.childTable, it);
                  const itKeys = Object.keys(it);
@@ -1248,7 +1420,7 @@ async function startServer() {
              try {
                 const col = (related.childTable === 'invoice_items' || related.childTable.endsWith('_invoice_items') || related.childTable.endsWith('_receipt_items') || related.childTable.endsWith('_remittance_items') || related.childTable.endsWith('_return_items') || related.childTable.endsWith('waste_items')) ? 'invoiceId' : (related.childTable === 'accounting_document_items' ? 'documentId' : 'stocktakingId');
                 await getActivePgPool().query(`DELETE FROM "${related.childTable}" WHERE "${col}" = $1`, [fId]);
-             } catch(e) {}
+             } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
              for (const it of related.items) {
                  await syncTableSchema(getActivePgPool(), related.childTable, it);
                  const itKeys = Object.keys(it);
@@ -1324,13 +1496,13 @@ async function startServer() {
                try {
                  const decoded = jwt.verify(req.cookies.refreshToken, process.env.JWT_REFRESH_SECRET || 'super-secret-jwt-refresh-key-2024') as any;
                  if (decoded && decoded.username) userId = decoded.username;
-               } catch(e) {}
+               } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
             } else if (req.headers.authorization) {
                try {
                  const token = req.headers.authorization.split(' ')[1];
                  const decoded = jwt.verify(token, process.env.JWT_SECRET || 'super-secret-jwt-key-2024') as any;
                  if (decoded && decoded.username) userId = decoded.username;
-               } catch(e) {}
+               } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
             }
 
             const generateId = () => Math.random().toString(36).substring(2, 15);
@@ -1553,7 +1725,7 @@ async function startServer() {
            const res = await getActivePgPool().query('SELECT pg_database_size(current_database()) as size');
            if (res.rows.length > 0) totalSize = parseInt(res.rows[0].size, 10);
         }
-      } catch(e) {}
+      } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
       
       const rows = await getAllDbData();
       const collections = [];
@@ -1660,7 +1832,7 @@ async function startServer() {
        try {
            await fsPromises.access(DB_CONFIG_FILE);
            configExists = true;
-       } catch(e) {}
+       } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
        
        const usingEnvVars = !!(process.env.SQL_HOST || process.env.DATABASE_URL);
        
