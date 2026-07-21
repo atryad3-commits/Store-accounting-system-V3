@@ -1579,6 +1579,7 @@ const handleBarcodeScan = (code: string) => {
     }
   };
 
+
 const [productCategories, setProductCategories] = useState<any[]>([]);
 
 const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -6005,6 +6006,16 @@ const renderTabContent = () => {
     handleBulkImportItems,
     handleBarcodeScan,
     productCategories,
+    selectedProductCategory,
+    setSelectedProductCategory,
+    productCurrentPage,
+    setProductCurrentPage,
+    productPageSize,
+    setProductPageSize,
+    historyProductId,
+    setHistoryProductId,
+    handleEditProduct,
+    calculateProductCurrentStock,
     isCategoryModalOpen,
     setIsCategoryModalOpen,
     newCatName,
