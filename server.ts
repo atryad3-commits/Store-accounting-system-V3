@@ -713,6 +713,24 @@ async function startServer() {
          db_password: db.db_password
       }));
 
+      // Ensure 'default' store is correctly represented
+      if (!mergedMap.has('default')) {
+          mergedMap.set('default', {
+              id: 'default',
+              name: 'کسب و کار اصلی',
+              db_type: usePgMap['default'] ? 'postgres' : 'sqlite'
+          });
+      } else {
+          const def = mergedMap.get('default');
+          if (usePgMap['default']) {
+              def.db_type = 'postgres';
+          }
+          if (def.name === 'فروشگاه اصلی') {
+              def.name = 'کسب و کار اصلی';
+          }
+          mergedMap.set('default', def);
+      }
+
       res.json({ success: true, databases: Array.from(mergedMap.values()) });
     } catch (e) {
       res.status(500).json({ error: e.message });

@@ -95,32 +95,32 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-md flex justify-center items-center p-4 z-50 rtl overflow-hidden" dir="rtl">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-3xl animate-pulse pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-slate-800/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-slate-800/5 rounded-full blur-3xl animate-pulse pointer-events-none" />
       
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl relative z-10 border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden"
+        className="bg-white rounded-xl shadow-2xl w-full max-w-4xl relative z-10 border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden"
       >
         {/* Header */}
         <div className="flex-shrink-0 p-8 border-b border-slate-100 bg-white relative z-20">
           {onClose && (
             <button 
               onClick={onClose}
-              className="absolute top-8 left-8 p-2.5 text-slate-400 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              className="absolute top-8 left-8 p-2.5 text-slate-400 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
               <X className="w-5 h-5" />
             </button>
           )}
           
           <div className="flex flex-col sm:flex-row items-center gap-6">
-            <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center shadow-inner shrink-0 relative overflow-hidden">
+            <div className="w-20 h-20 bg-blue-50 text-blue-700 rounded-xl flex items-center justify-center shadow-inner shrink-0 relative overflow-hidden">
               <div className="absolute inset-0 bg-white/20 transform -rotate-45 translate-x-4"></div>
               <Building2 className="w-10 h-10 relative z-10" />
             </div>
             <div className="text-center sm:text-right flex-1">
-              <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">مدیریت کسب و کارها</h2>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2 tracking-tight">مدیریت کسب و کارها</h2>
               <p className="text-slate-500 text-lg">فروشگاه یا شرکت خود را انتخاب کنید. هر محیط دارای دیتابیس کاملا ایزوله است.</p>
             </div>
           </div>
@@ -137,7 +137,7 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
                 exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                 className="overflow-hidden"
               >
-                <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl border border-rose-100 flex items-center gap-4 shadow-sm">
+                <div className="p-4 bg-rose-50 text-rose-600 rounded-xl border border-rose-100 flex items-center gap-4 shadow-sm">
                   <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
                     <X className="w-5 h-5 text-rose-600" />
                   </div>
@@ -163,7 +163,7 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
               placeholder="جستجوی نام یا شناسه کسب و کار..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-4 pr-12 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-slate-700 shadow-sm"
+              className="w-full pl-4 pr-12 py-4 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-900/10 focus:border-blue-700 outline-none transition-all text-slate-700 shadow-sm"
             />
           </div>
 
@@ -176,15 +176,15 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
               return (
                 <div
                   key={store.id}
-                  className={`flex flex-col p-5 rounded-2xl border-2 transition-all bg-white relative group overflow-hidden
-                    ${isActive ? 'border-indigo-500 shadow-lg shadow-indigo-500/10' : 'border-slate-200/60 hover:border-indigo-300 hover:shadow-md'}`}
+                  className={`flex flex-col p-5 rounded-xl border-2 transition-all bg-white relative group overflow-hidden
+                    ${isActive ? 'border-blue-700 shadow-lg shadow-blue-900/10' : 'border-slate-200/60 hover:border-blue-300 hover:shadow-md'}`}
                 >
                   {isActive && (
-                    <div className="absolute top-0 right-0 left-0 h-1 bg-indigo-500" />
+                    <div className="absolute top-0 right-0 left-0 h-1 bg-blue-500" />
                   )}
                   
                   {isActive && (
-                    <div className="absolute -top-1 -right-1 bg-indigo-500 text-white text-xs font-bold px-3 py-1.5 rounded-bl-xl shadow-sm z-10 flex items-center gap-1.5">
+                    <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded-bl-xl shadow-sm z-10 flex items-center gap-1.5">
                       <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                       محیط فعال
                     </div>
@@ -196,14 +196,14 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
                         type="text"
                         value={editName}
                         onChange={e => setEditName(e.target.value)}
-                        className="flex-1 px-4 py-3 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-600 outline-none bg-indigo-50/30 text-indigo-900 font-bold"
+                        className="flex-1 px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none bg-blue-50/30 text-slate-900 font-bold"
                         autoFocus
                         onKeyDown={e => {
                           if (e.key === 'Enter') handleUpdate(store.id);
                           if (e.key === 'Escape') setEditingStoreId(null);
                         }}
                       />
-                      <button onClick={() => handleUpdate(store.id)} disabled={loading === store.id} className="p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors shadow-sm">
+                      <button onClick={() => handleUpdate(store.id)} disabled={loading === store.id} className="p-3 bg-blue-800 hover:bg-blue-900 text-white rounded-xl transition-colors shadow-sm">
                         <Check className="w-5 h-5" />
                       </button>
                       <button onClick={() => setEditingStoreId(null)} className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors">
@@ -213,15 +213,20 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
                   ) : (
                     <>
                       <div className="flex items-start gap-4 mb-5 mt-2">
-                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors shadow-sm shrink-0 border
-                          ${isActive ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-500 border-slate-100 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-hover:border-indigo-100'}`}>
+                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-colors shadow-sm shrink-0 border
+                          ${isActive ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-slate-50 text-slate-500 border-slate-100 group-hover:bg-blue-50 group-hover:text-blue-700 group-hover:border-blue-100'}`}>
                           <Database className="w-7 h-7" />
                         </div>
                         <div className="flex-1 text-right pt-1">
-                          <h3 className={`text-xl font-black truncate ${isActive ? 'text-indigo-900' : 'text-slate-800'}`}>
+                          <h3 className={`text-xl font-black truncate ${isActive ? 'text-slate-900' : 'text-slate-800'}`}>
                             {store.name}
                           </h3>
                           <div className="flex items-center gap-2 mt-1.5">
+                            {store.id === 'default' && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border bg-amber-50 text-amber-600 border-amber-200">
+                                کسب و کار اصلی
+                              </span>
+                            )}
                             <span className="text-xs text-slate-400 font-mono bg-slate-100 px-2 py-0.5 rounded-md truncate max-w-[120px]" title={store.id}>
                               ID: {store.id === 'default' ? 'default' : store.id.substring(0,8)+'...'}
                             </span>
@@ -238,7 +243,7 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
                             <>
                               <button 
                                 onClick={() => { setEditingStoreId(store.id); setEditName(store.name); }}
-                                className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors focus:outline-none"
+                                className="p-2.5 text-slate-400 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-colors focus:outline-none"
                                 title="ویرایش نام"
                               >
                                 <Edit2 className="w-4 h-4" />
@@ -260,7 +265,7 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
                           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all
                             ${isActive 
                               ? 'bg-slate-100 text-slate-400 cursor-default'
-                              : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-600/20 hover:shadow-lg hover:shadow-indigo-600/30 active:scale-[0.98]'}`}
+                              : 'bg-blue-800 text-white hover:bg-blue-900 shadow-md shadow-blue-900/20 hover:shadow-lg hover:shadow-blue-900/30 active:scale-[0.98]'}`}
                         >
                           {loading === store.id ? (
                             <Loader2 className="w-5 h-5 animate-spin" />
@@ -279,7 +284,7 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
             })}
             
             {filteredStores.length === 0 && (
-              <div className="col-span-full py-12 flex flex-col items-center justify-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
+              <div className="col-span-full py-12 flex flex-col items-center justify-center text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">
                  <Search className="w-12 h-12 mb-3 text-slate-300" />
                  <p className="text-lg font-medium">کسب و کاری یافت نشد</p>
                  <p className="text-sm mt-1">با این عبارت جستجو نتیجه‌ای نداشت.</p>
@@ -303,12 +308,12 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
                 if (e.key === 'Enter') handleCreate();
               }}
               placeholder="نام فروشگاه، شرکت یا پروژه جدید..."
-              className="flex-1 px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-lg font-medium text-slate-800 placeholder:text-slate-400"
+              className="flex-1 px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-blue-900/10 focus:border-blue-700 outline-none transition-all text-lg font-medium text-slate-800 placeholder:text-slate-400"
             />
             <button 
               onClick={handleCreate}
               disabled={creating || !newStoreName.trim()}
-              className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-100 disabled:text-emerald-400 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] min-w-[200px]"
+              className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-100 disabled:text-emerald-400 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] min-w-[200px]"
             >
               {creating ? <Loader2 className="w-6 h-6 animate-spin" /> : <Check className="w-6 h-6" />}
               {creating ? 'در حال ایجاد...' : 'ثبت و ایجاد'}

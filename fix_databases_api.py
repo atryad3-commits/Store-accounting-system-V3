@@ -1,58 +1,58 @@
-import sys
+import re
+
 with open('server.ts', 'r') as f:
     content = f.read()
 
-old_get_db = """function getDb() {
-  const storeId = storeContext.getStore() || 'default';
-  if (!dbs[storeId]) {
-    const dbFile = storeId === 'default' ? SQLITE_FILE : path.join(process.cwd(), `database_${storeId}.sqlite`);
-    dbs[storeId] = new DatabaseSync(dbFile);
-    dbs[storeId].exec(`
-      CREATE TABLE IF NOT EXISTS store (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL
-      )
-    `);
-  }
-  return dbs[storeId];
-}"""
+# Replace the part inside /api/databases
+old_code = """      const mergedMap = new Map();
+      dbsFromFiles.forEach(db => mergedMap.set(db.id, db));
+      dbsFromTable.forEach(db => mergedMap.set(db.id, {
+         id: db.id, 
+         name: db.name, 
+         db_type: db.db_type, 
+         db_host: db.db_host, 
+         db_port: db.db_port, 
+         db_name: db.db_name,
+         db_user: db.db_user,
+         db_password: db.db_password
+      }));
 
-new_get_db = """function getDb() {
-  const storeId = storeContext.getStore() || 'default';
-  if (!dbs[storeId]) {
-    const dbFile = storeId === 'default' ? SQLITE_FILE : path.join(process.cwd(), `database_${storeId}.sqlite`);
-    dbs[storeId] = new DatabaseSync(dbFile);
-    dbs[storeId].exec(`
-      CREATE TABLE IF NOT EXISTS store (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL
-      )
-    `);
-    if (storeId === 'default') {
-      dbs[storeId].exec(`
-        CREATE TABLE IF NOT EXISTS businesses (
-          id TEXT PRIMARY KEY,
-          name TEXT NOT NULL,
-          db_type TEXT DEFAULT 'sqlite',
-          db_host TEXT,
-          db_port TEXT,
-          db_name TEXT,
-          db_user TEXT,
-          db_password TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-    }
-  }
-  return dbs[storeId];
-}"""
+      res.json({ success: true, databases: Array.from(mergedMap.values()) });"""
 
-content = content.replace(old_get_db, new_get_db)
+new_code = """      const mergedMap = new Map();
+      dbsFromFiles.forEach(db => mergedMap.set(db.id, db));
+      dbsFromTable.forEach(db => mergedMap.set(db.id, {
+         id: db.id, 
+         name: db.name, 
+         db_type: db.db_type, 
+         db_host: db.db_host, 
+         db_port: db.db_port, 
+         db_name: db.db_name,
+         db_user: db.db_user,
+         db_password: db.db_password
+      }));
 
-api_block_start = "app.get('/api/databases', async (req, res) => {"
-api_block_end = "app.post('/api/databases', async (req, res) => {"
-end_index = content.find(api_block_end)
-if end_index != -1:
-    end_index = content.find("});", end_index) + 3
+      // Ensure 'default' store is correctly represented
+      if (!mergedMap.has('default')) {
+          mergedMap.set('default', {
+              id: 'default',
+              name: 'کسب و کار اصلی',
+              db_type: usePgMap['default'] ? 'postgres' : 'sqlite'
+          });
+      } else {
+          const def = mergedMap.get('default');
+          if (usePgMap['default']) {
+              def.db_type = 'postgres';
+          }
+          if (def.name === 'فروشگاه اصلی') {
+              def.name = 'کسب و کار اصلی';
+          }
+          mergedMap.set('default', def);
+      }
 
-# Wait, let's just do a manual replacement using regex or split.
+      res.json({ success: true, databases: Array.from(mergedMap.values()) });"""
+
+content = content.replace(old_code, new_code)
+
+with open('server.ts', 'w') as f:
+    f.write(content)
