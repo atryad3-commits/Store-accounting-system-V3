@@ -1,5 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
+import { AsyncLocalStorage } from 'node:async_hooks';
+const storeContext = new AsyncLocalStorage<string>();
+
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { exec } from 'child_process';
@@ -13,7 +16,21 @@ import cookieParser from 'cookie-parser';
 const DATA_FILE = path.join(process.cwd(), 'database.json');
 const SQLITE_FILE = path.join(process.cwd(), 'database.sqlite');
 
-let db: any;
+const dbs: Record<string, any> = {};
+function getDb() {
+  const storeId = storeContext.getStore() || 'default';
+  if (!dbs[storeId]) {
+    const dbFile = storeId === 'default' ? SQLITE_FILE : path.join(process.cwd(), `database_${storeId}.sqlite`);
+    dbs[storeId] = new DatabaseSync(dbFile);
+    dbs[storeId].exec(`
+      CREATE TABLE IF NOT EXISTS store (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    `);
+  }
+  return dbs[storeId];
+}
 let pgPool: any = null;
 let usePg = false;
 const DB_CONFIG_FILE = path.join(process.cwd(), 'db_config.json');
@@ -141,10 +158,10 @@ async function innerGetDbData(key: string) {
   } else {
     if (key === 'company_profile') {
         try {
-            db.prepare('CREATE TABLE IF NOT EXISTS system_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT)').run();
-            const rows = db.prepare('SELECT setting_key, setting_value FROM system_settings').all();
+            getDb().prepare('CREATE TABLE IF NOT EXISTS system_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT)').run();
+            const rows = getDb().prepare('SELECT setting_key, setting_value FROM system_settings').all();
             if (rows.length === 0) {
-               const oldRow = db.prepare('SELECT value FROM store WHERE key = ?').get('company_profile') as any;
+               const oldRow = getDb().prepare('SELECT value FROM store WHERE key = ?').get('company_profile') as any;
                return oldRow ? JSON.parse(oldRow.value) : null;
             }
             const obj = { id: 'singleton' };
@@ -155,7 +172,7 @@ async function innerGetDbData(key: string) {
             return obj;
         } catch(e) { return null; }
     }
-    const row = db.prepare('SELECT value FROM store WHERE key = ?').get(key) as any;
+    const row = getDb().prepare('SELECT value FROM store WHERE key = ?').get(key) as any;
     return row ? JSON.parse(row.value) : null;
   }
 }
@@ -212,9 +229,9 @@ async function innerSetDbData(key: string, data: any) {
     }
   } else {
     if (key === 'company_profile') {
-        db.prepare('CREATE TABLE IF NOT EXISTS system_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT)').run();
+        getDb().prepare('CREATE TABLE IF NOT EXISTS system_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT)').run();
         if (data && typeof data === 'object') {
-            const stmt = db.prepare('INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON CONFLICT(setting_key) DO UPDATE SET setting_value = excluded.setting_value');
+            const stmt = getDb().prepare('INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) ON CONFLICT(setting_key) DO UPDATE SET setting_value = excluded.setting_value');
             const keys = Object.keys(data);
             for (const k of keys) {
                 if (k === 'id') continue;
@@ -225,7 +242,7 @@ async function innerSetDbData(key: string, data: any) {
         }
     } else {
         const value = JSON.stringify(data);
-        db.prepare('INSERT INTO store (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, value);
+        getDb().prepare('INSERT INTO store (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(key, value);
     }
   }
 }
@@ -364,7 +381,7 @@ async function getAllDbData() {
     }
     return allData;
   } else {
-    const rows = db.prepare('SELECT key, value FROM store').all();
+    const rows = getDb().prepare('SELECT key, value FROM store').all();
     return rows.map((r: any) => {
       try {
         return { key: r.key, value: JSON.parse(r.value) };
@@ -398,12 +415,12 @@ async function migrateSqliteToPostgres() {
   if (!usePg || !pgPool) return;
     try {
       const res = await pgPool.query(`SELECT COUNT(*) as count FROM "users"`);
-      const hasSqliteData = db.prepare('SELECT count(*) as count FROM store').get() as any;
+      const hasSqliteData = getDb().prepare('SELECT count(*) as count FROM store').get() as any;
       if (parseInt(res.rows[0].count) === 0 && hasSqliteData && hasSqliteData.count > 0) {
         // Only migrate if Postgres has no users AND SQLite has data. To prevent accidental data wipe, we don't drop tables.
         console.log('Migrating from SQLite to Postgres...');
         tableSchemas.clear();
-        const sqliteRows = db.prepare('SELECT key, value FROM store').all();
+        const sqliteRows = getDb().prepare('SELECT key, value FROM store').all();
         for (const row of sqliteRows) {
           const key = row.key;
           if (KNOWN_TABLES.includes(key)) {
@@ -482,8 +499,8 @@ async function initDB() {
     }
   }
 
-  db = new DatabaseSync(SQLITE_FILE);
-  db.exec(`
+
+  getDb().exec(`
     CREATE TABLE IF NOT EXISTS store (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
@@ -493,8 +510,8 @@ async function initDB() {
   try {
     const raw = await fsPromises.readFile(DATA_FILE, 'utf-8');
     const legacyDB = JSON.parse(raw);
-    const getStmt = db.prepare('SELECT key FROM store WHERE key = ?');
-    const insertStmt = db.prepare('INSERT INTO store (key, value) VALUES (?, ?)');
+    const getStmt = getDb().prepare('SELECT key FROM store WHERE key = ?');
+    const insertStmt = getDb().prepare('INSERT INTO store (key, value) VALUES (?, ?)');
     for (const [key, value] of Object.entries(legacyDB)) {
       if (!getStmt.get(key)) {
         insertStmt.run(key, JSON.stringify(value));
@@ -511,7 +528,7 @@ async function initDB() {
     try {
       const configExists = await fsPromises.access(DB_CONFIG_FILE).then(() => true).catch(() => false);
       if (!configExists) {
-        const getStmt = db.prepare('SELECT value FROM store WHERE key = ?');
+        const getStmt = getDb().prepare('SELECT value FROM store WHERE key = ?');
         const usersRow = getStmt.get('users') as any;
         const profileRow = getStmt.get('company_profile') as any;
         if (usersRow && profileRow) {
@@ -538,6 +555,52 @@ async function startServer() {
   app.use(express.json({ limit: '50mb' }));
   app.use(express.text({ limit: '500mb', type: ['text/*', 'application/sql', 'application/json'] }));
   app.use(cookieParser());
+
+  app.get('/api/databases', async (req, res) => {
+    try {
+      const files = await fsPromises.readdir(process.cwd());
+      const dbs = files
+        .filter(f => f.startsWith('database') && f.endsWith('.sqlite'))
+        .map(f => {
+          if (f === 'database.sqlite') return { id: 'default', name: 'فروشگاه اصلی' };
+          const match = f.match(/^database_(.+)\.sqlite$/);
+          if (match) return { id: match[1], name: decodeURIComponent(match[1]) };
+          return null;
+        })
+        .filter(Boolean);
+      res.json({ success: true, databases: dbs });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post('/api/databases', async (req, res) => {
+    try {
+      const { name } = req.body;
+      if (!name) return res.status(400).json({ error: 'Name is required' });
+      const id = encodeURIComponent(name.replace(/\s+/g, '_'));
+      const dbFile = path.join(process.cwd(), `database_${id}.sqlite`);
+      // It will be created on next getDb() call. Just initialize it:
+      const newDb = new DatabaseSync(dbFile);
+      newDb.exec(`
+        CREATE TABLE IF NOT EXISTS store (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        )
+      `);
+      res.json({ success: true, database: { id, name } });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.use((req, res, next) => {
+    const storeId = req.headers['x-store-id'] || 'default';
+    storeContext.run(storeId as string, () => {
+      next();
+    });
+  });
+
 
   // === AUTHENTICATION & USERS === //
   const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-2024';
@@ -767,7 +830,7 @@ async function startServer() {
                  } catch (e) {}
                }
              } else {
-               try { db.prepare('DELETE FROM store').run(); } catch(e) {}
+               try { getDb().prepare('DELETE FROM store').run(); } catch(e) {}
              }
 
              for (const [key, value] of Object.entries(backupData)) {
@@ -1346,7 +1409,7 @@ async function startServer() {
           if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
             return res.status(400).json({ error: 'فرمت فایل پشتیبان معتبر نیست. فایل باید شامل یک شیء JSON با ساختار معتبر کلید-مقدار باشد.' });
           }
-          try { db.prepare('DELETE FROM store').run(); } catch (e) {}
+          try { getDb().prepare('DELETE FROM store').run(); } catch (e) {}
           for (const [key, value] of Object.entries(parsed)) {
             if (KNOWN_TABLES.includes(key)) {
               await setDbData(key, value);
@@ -1545,7 +1608,7 @@ async function startServer() {
          }
       } else {
         const isSelect = query.trim().toUpperCase().startsWith('SELECT');
-        const stmt = db.prepare(query);
+        const stmt = getDb().prepare(query);
         if (isSelect) {
           const results = stmt.all(...(params || []));
           res.json({ results });
@@ -1690,7 +1753,7 @@ async function startServer() {
   
   app.get('/api/migrate-postgres/tables', (req, res) => {
     try {
-      const stmt = db.prepare('SELECT key FROM store');
+      const stmt = getDb().prepare('SELECT key FROM store');
       const allRows = stmt.all();
       const tables = allRows.map(r => r.key).filter(k => KNOWN_TABLES.includes(k));
       res.json({ success: true, tables });
@@ -1711,7 +1774,7 @@ async function startServer() {
       const client = new Client({ connectionString });
       await client.connect();
 
-      const stmt = db.prepare('SELECT value FROM store WHERE key = ?');
+      const stmt = getDb().prepare('SELECT value FROM store WHERE key = ?');
       const row = stmt.get(table);
       if (!row) {
          await client.end();

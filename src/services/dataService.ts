@@ -25,6 +25,8 @@ export const getLocalData = async <T>(key: string, defaultValue: T, queryParams:
     const res = await fetch(fetchUrl, {
       cache: 'no-store',
       headers: {
+        'x-store-id': localStorage.getItem('activeStoreId') || 'default',
+
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'
@@ -98,7 +100,9 @@ export const addDatabaseLog = async (action: string, entityType: string, entityI
   try {
     await fetch('/api/data/database_logs', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'x-store-id': localStorage.getItem('activeStoreId') || 'default',
+ 'Content-Type': 'application/json' },
       body: JSON.stringify(logs)
     });
   } catch(e) {}
@@ -108,7 +112,9 @@ export const appendLocalData = async <T>(key: string, data: T): Promise<T> => {
   const processedData = await ensureFiscalYearId(key, data);
   const res = await fetch(`/api/data/${key}/append`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+        'x-store-id': localStorage.getItem('activeStoreId') || 'default',
+ 'Content-Type': 'application/json' },
     body: JSON.stringify(processedData)
   });
   if (!res.ok) throw new Error('Network response was not ok');
@@ -184,7 +190,9 @@ export const batchLocalData = async (operations: any[]): Promise<any> => {
   }
   const res = await fetch(`/api/data/batch`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+        'x-store-id': localStorage.getItem('activeStoreId') || 'default',
+ 'Content-Type': 'application/json' },
     body: JSON.stringify({ operations: processedOps })
   });
   if (!res.ok) throw new Error('Network response was not ok');
@@ -196,7 +204,9 @@ export const updateLocalData = async <T>(key: string, id: string | number, data:
   const processedData = await ensureFiscalYearId(key, data);
   const res = await fetch(`/api/data/${key}/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+        'x-store-id': localStorage.getItem('activeStoreId') || 'default',
+ 'Content-Type': 'application/json' },
     body: JSON.stringify(processedData)
   });
   if (!res.ok) throw new Error('Network response was not ok');
@@ -210,7 +220,9 @@ export const saveLocalData = async <T>(key: string, data: T, retries = 3): Promi
     const processedData = await ensureFiscalYearId(key, data);
     const res = await fetch(`/api/data/${key}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'x-store-id': localStorage.getItem('activeStoreId') || 'default',
+ 'Content-Type': 'application/json' },
       body: JSON.stringify(processedData)
     });
     if (!res.ok) throw new Error('Network response was not ok');
@@ -3256,7 +3268,9 @@ export const savePersonalNotes = async (notes: any[]): Promise<void> => {
 export const appendPersonalNote = async (note: any): Promise<any> => {
   return fetch('/api/data/personal_notes/append', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+        'x-store-id': localStorage.getItem('activeStoreId') || 'default',
+ 'Content-Type': 'application/json' },
     body: JSON.stringify(note)
   }).then(res => res.json());
 };
@@ -3264,7 +3278,9 @@ export const appendPersonalNote = async (note: any): Promise<any> => {
 export const updatePersonalNote = async (id: string, updates: any): Promise<any> => {
   return fetch(`/api/data/personal_notes/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+        'x-store-id': localStorage.getItem('activeStoreId') || 'default',
+ 'Content-Type': 'application/json' },
     body: JSON.stringify(updates)
   }).then(res => res.json());
 };
