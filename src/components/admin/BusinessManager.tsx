@@ -94,23 +94,23 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
   const activeStoreId = localStorage.getItem("activeStoreId");
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-md flex justify-center items-center p-4 z-50 rtl overflow-hidden" dir="rtl">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-slate-800/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-slate-800/5 rounded-full blur-3xl animate-pulse pointer-events-none" />
+    <div className="min-h-screen w-full bg-slate-50 flex justify-center items-start pt-8 sm:pt-12 pb-12 px-4 rtl" dir="rtl">
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
       
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-white rounded-xl shadow-2xl w-full max-w-4xl relative z-10 border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-2xl shadow-xl w-full max-w-5xl relative z-10 border border-slate-200 flex flex-col overflow-hidden min-h-[85vh]"
       >
         {/* Header */}
         <div className="flex-shrink-0 p-8 border-b border-slate-100 bg-white relative z-20">
           {onClose && (
             <button 
               onClick={onClose}
-              className="absolute top-8 left-8 p-2.5 text-slate-400 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="absolute top-8 left-8 px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             >
-              <X className="w-5 h-5" />
+              <ArrowRight className="w-4 h-4 rtl:-scale-x-100" />
+              بازگشت
             </button>
           )}
           
@@ -169,13 +169,13 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
 
           {/* Stores Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max pb-4">
-            {filteredStores.map((store: any) => {
+            {filteredStores.map((store: any, index: number) => {
               const isActive = activeStoreId === store.id;
               const isPostgres = store.db_type === 'postgres';
               
               return (
                 <div
-                  key={store.id}
+                  key={store.id || `store-${index}`}
                   className={`flex flex-col p-5 rounded-xl border-2 transition-all bg-white relative group overflow-hidden
                     ${isActive ? 'border-blue-700 shadow-lg shadow-blue-900/10' : 'border-slate-200/60 hover:border-blue-300 hover:shadow-md'}`}
                 >
