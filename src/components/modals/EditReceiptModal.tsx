@@ -71,18 +71,18 @@ export default function EditReceiptModal({
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!personId || !amount) {
-      alert('لطفاً اطلاعات الزامی را تکمیل کنید.');
+      showNotification('لطفاً اطلاعات الزامی را تکمیل کنید.', 'error');
       return;
     }
 
     if (method === 'cash') {
       if (!resourceId) {
-        alert('لطفاً منبع مالی (بانک یا صندوق) را انتخاب کنید.');
+        showNotification('لطفاً منبع مالی (بانک یا صندوق) را انتخاب کنید.', 'error');
         return;
       }
     } else {
       if (!checkNumber || !checkDueDate) {
-        alert('لطفاً مشخصات چک را کامل وارد نمایید.');
+        showNotification('لطفاً مشخصات چک را کامل وارد نمایید.', 'error');
         return;
       }
     }
@@ -123,7 +123,7 @@ export default function EditReceiptModal({
       onClose();
     } catch (err) {
       console.error(err);
-      alert('خطا در ثبت تغییرات رسید.');
+      showNotification('خطا در ثبت تغییرات رسید.', 'error');
     } finally {
       setLoading(false);
     }

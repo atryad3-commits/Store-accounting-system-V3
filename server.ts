@@ -740,6 +740,25 @@ async function startServer() {
           if (usePgMap['default']) {
               def.db_type = 'postgres';
           }
+          
+          // Fetch actual storeName from default db if possible
+          try {
+             if (usePgMap['default'] && activePgPools['default']) {
+                 const res = await activePgPools['default'].query("SELECT value FROM local_data WHERE key = 'store_settings'");
+                 if (res.rows.length > 0 && res.rows[0].value) {
+                     const settings = JSON.parse(res.rows[0].value);
+                     if (settings.storeName) def.name = settings.storeName;
+                 }
+             } else {
+                 const defaultDb = storeContext.run('default', () => getDb());
+                 const res = defaultDb.prepare("SELECT value FROM local_data WHERE key = 'store_settings'").get();
+                 if (res && res.value) {
+                     const settings = JSON.parse(res.value);
+                     if (settings.storeName) def.name = settings.storeName;
+                 }
+             }
+          } catch(e) {}
+          
           if (def.name === 'فروشگاه اصلی') {
               def.name = 'کسب و کار اصلی';
           }

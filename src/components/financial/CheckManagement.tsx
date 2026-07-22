@@ -26,7 +26,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
     if (showNotification) {
       showNotification(msg, type);
     } else {
-      alert(msg);
+      showNotification(msg, 'error');
     }
   };
   const [activeSubTab, setActiveSubTab] = useState<'checkbooks' | 'issued_checks' | 'received_checks' | 'check_calendar' | 'check_charts' | 'check_panel'>(
@@ -205,7 +205,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
   const handleIssueCheckSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!icCheckNumber || !icAmount || !icPayeeId || !icDueDate) {
-      alert('لطفاً اطلاعات ضروری را وارد کنید');
+      showNotification('لطفاً اطلاعات ضروری را وارد کنید', 'error');
       return;
     }
 
@@ -250,7 +250,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
   const handleReceiveCheckSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!rcCheckNumber || !rcAmount || !rcPayerId || !rcBankName || !rcDueDate) {
-      alert('لطفاً اطلاعات ضروری را وارد کنید');
+      showNotification('لطفاً اطلاعات ضروری را وارد کنید', 'error');
       return;
     }
 
@@ -782,7 +782,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                                   if (c.receiptNumber && onEditReceiptByCheck) {
                                     onEditReceiptByCheck(c, 'issued');
                                   } else {
-                                    alert("این چک بدون فرم رسید ثبت شده است و قابلیت ویرایش از طریق رسید را ندارد. در صورت نیاز آن را حذف کرده و مجدداً از طریق فرم رسید ثبت نمایید.");
+                                    showNotification('این چک بدون فرم رسید ثبت شده است و قابلیت ویرایش از طریق رسید را ندارد. در صورت نیاز آن را حذف کرده و مجدداً از طریق فرم رسید ثبت نمایید.', 'error');
                                   }
                                 }}
                                 className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-100 inline-block"
@@ -1051,7 +1051,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                                   if (c.receiptNumber && onEditReceiptByCheck) {
                                     onEditReceiptByCheck(c, 'received');
                                   } else {
-                                    alert("این چک بدون فرم رسید ثبت شده است و قابلیت ویرایش از طریق رسید را ندارد. در صورت نیاز آن را حذف کرده و مجدداً از طریق فرم رسید ثبت نمایید.");
+                                    showNotification('این چک بدون فرم رسید ثبت شده است و قابلیت ویرایش از طریق رسید را ندارد. در صورت نیاز آن را حذف کرده و مجدداً از طریق فرم رسید ثبت نمایید.', 'error');
                                   }
                                 }}
                                 className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-100 inline-block"

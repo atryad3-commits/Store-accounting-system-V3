@@ -476,12 +476,12 @@ export default function PersonIOModal({
                                               personCode: 13,
                                             });
                                           } else {
-                                            alert(
+                                            showNotification(
                                               "فرمت فایل پشتیبانی نمی‌شود. فایل خروجی استاندارد نیست.",
                                             );
                                           }
                                         } catch (err) {
-                                          alert(
+                                          showNotification(
                                             "خطا در خواندن فایل JSON. از صحت فایل مطمئن شوید.",
                                           );
                                         }
@@ -608,7 +608,7 @@ export default function PersonIOModal({
                                                 setParsedRows(matrix.slice(1));
                                               }
                                             } catch (err) {
-                                              alert(
+                                              showNotification(
                                                 "خطا در خواندن فایل. لطفاً فرمت مناسبی را انتخاب نماید.",
                                               );
                                             }

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Database, Plus, Check, Loader2, Trash2, Edit2, X, Building2, Search, ArrowLeft, Shield, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function BusinessManager({ availableStores, setAvailableStores, onSelectStore }: any) {
+export default function BusinessManager({ availableStores, setAvailableStores, onSelectStore, confirmAction, showNotification }: any) {
   const [newStoreName, setNewStoreName] = useState('');
   const [loading, setLoading] = useState<string | false>(false);
   const [creating, setCreating] = useState(false);
@@ -13,11 +13,10 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
   const [editName, setEditName] = useState('');
 
   const handleSelectStore = async (id: string, name: string) => {
-    if (!window.confirm(`آیا از ورود به کسب و کار «${name}» اطمینان دارید؟`)) return;
-    
-    setLoading(id);
-    setErrorMsg(null);
-    try {
+    confirmAction(`آیا از ورود به کسب و کار «${name}» اطمینان دارید؟`, async () => {
+      setLoading(id);
+      setErrorMsg(null);
+      try {
         const res = await fetch(`/api/databases/${id}/test-connection`);
         const data = await res.json();
         if (data.success) {
@@ -30,6 +29,7 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
         setErrorMsg('خطا در ارتباط با سرور');
         setLoading(false);
     }
+    });
   };
 
   const handleCreate = async () => {
@@ -185,86 +185,87 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
 
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar bg-slate-50/30">
             {filteredStores.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              
+              <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
+                <table className="w-full text-right border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 text-slate-600 border-b border-slate-200">
+                      <th className="p-4 font-semibold">نام کسب و کار</th>
+                      <th className="p-4 font-semibold text-center">شناسه (ID)</th>
+                      <th className="p-4 font-semibold text-center">نوع دیتابیس</th>
+                      <th className="p-4 font-semibold text-center">وضعیت</th>
+                      <th className="p-4 font-semibold text-center">عملیات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                 {filteredStores.map((store: any) => {
                   const isActive = store.id === activeStoreId;
                   const isEditing = editingStoreId === store.id;
                   
                   return (
-                    <motion.div 
+                    <tr 
                       key={store.id}
-                      layoutId={`store-${store.id}`}
                       onClick={() => !isEditing && handleSelectStore(store.id, store.name)}
-                      className={`group relative flex flex-col p-6 rounded-2xl border transition-all cursor-pointer overflow-hidden
-                        ${isActive 
-                          ? 'bg-blue-50/50 border-blue-200 shadow-md shadow-blue-500/5' 
-                          : 'bg-white border-slate-200 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-0.5'}`}
+                      className={`group transition-all cursor-pointer border-b last:border-b-0 border-slate-100 hover:bg-blue-50/50 ${isActive ? 'bg-blue-50/30' : ''}`}
                     >
-                      {/* Status indicator */}
-                      <div className={`absolute top-0 right-0 w-full h-1.5 transition-colors ${isActive ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-200'}`} />
-                      
-                      <div className="flex items-start justify-between mb-4 mt-2">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border shadow-sm transition-colors
-                          ${isActive ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-100 text-slate-600 border-slate-200 group-hover:bg-blue-50 group-hover:text-blue-600 group-hover:border-blue-200'}`}>
-                          <Database className="w-6 h-6" />
-                        </div>
-                        
-                        {isActive && (
-                          <span className="flex items-center gap-1.5 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-black border border-blue-200">
-                            <span className="relative flex h-2 w-2">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                      <td className="p-4 align-middle">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${isActive ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-100 text-slate-500 border-slate-200 group-hover:bg-white'}`}>
+                            <Database className="w-5 h-5" />
+                          </div>
+                          {isEditing ? (
+                            <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                              <input
+                                type="text"
+                                value={editName}
+                                onChange={e => setEditName(e.target.value)}
+                                className="w-full max-w-[200px] px-3 py-1.5 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-sm font-bold text-slate-800"
+                                autoFocus
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter') handleUpdate(e as any, store.id);
+                                  if (e.key === 'Escape') setEditingStoreId(null);
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <span className="font-bold text-slate-800 flex items-center gap-2">
+                              {store.name}
+                              {!isActive && store.id === 'default' && (
+                                <span className="bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded text-[10px] border border-amber-200 flex items-center gap-0.5"><Shield className="w-3 h-3"/> مرکزی</span>
+                              )}
                             </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4 align-middle text-center">
+                        <span className="text-xs font-mono bg-slate-100 text-slate-500 px-2 py-1 rounded border border-slate-200 inline-block">
+                          {store.id === 'default' ? 'default' : store.id.substring(0,8)+'...'}
+                        </span>
+                      </td>
+                      <td className="p-4 align-middle text-center">
+                        <span className="text-[11px] font-bold px-2 py-1 rounded bg-slate-50 text-slate-500 border border-slate-200 inline-block">
+                          {store.db_type === 'postgres' ? 'PostgreSQL' : 'SQLite'}
+                        </span>
+                      </td>
+                      <td className="p-4 align-middle text-center">
+                        {isActive ? (
+                          <span className="inline-flex items-center gap-1.5 bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-black border border-blue-200">
                             فعال
                           </span>
-                        )}
-                        {!isActive && store.id === 'default' && (
-                          <span className="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-1 rounded-lg text-[10px] font-bold border border-amber-200">
-                            <Shield className="w-3 h-3" />
-                            مرکزی
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex-1">
-                        {isEditing ? (
-                          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                            <input
-                              type="text"
-                              value={editName}
-                              onChange={e => setEditName(e.target.value)}
-                              className="flex-1 w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-black text-slate-800"
-                              autoFocus
-                              onKeyDown={e => {
-                                if (e.key === 'Enter') handleUpdate(e as any, store.id);
-                                if (e.key === 'Escape') setEditingStoreId(null);
-                              }}
-                            />
-                          </div>
                         ) : (
-                          <h3 className="text-xl font-black text-slate-800 line-clamp-1 mb-1" title={store.name}>
-                            {store.name}
-                          </h3>
+                          <span className="text-xs text-slate-400 font-medium group-hover:text-blue-500 transition-colors">
+                            {loading === store.id ? <Loader2 className="w-4 h-4 animate-spin inline-block" /> : 'ورود'}
+                          </span>
                         )}
-                        
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="text-xs font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md border border-slate-200 truncate" title={store.id}>
-                            ID: {store.id === 'default' ? 'default' : store.id.substring(0,8)+'...'}
-                          </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 border border-slate-200">
-                            {store.db_type === 'postgres' ? 'PostgreSQL' : 'SQLite'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      </td>
+                      <td className="p-4 align-middle text-center" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           {isEditing ? (
                             <>
-                              <button onClick={(e) => handleUpdate(e, store.id)} disabled={loading === store.id} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
+                              <button onClick={(e) => handleUpdate(e, store.id)} disabled={loading === store.id} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded transition-colors" title="ذخیره">
                                 <Check className="w-4 h-4" />
                               </button>
-                              <button onClick={(e) => { e.stopPropagation(); setEditingStoreId(null); }} className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">
+                              <button onClick={(e) => { e.stopPropagation(); setEditingStoreId(null); }} className="p-1.5 text-slate-500 hover:bg-slate-100 rounded transition-colors" title="انصراف">
                                 <X className="w-4 h-4" />
                               </button>
                             </>
@@ -272,14 +273,14 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
                             <>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); setEditingStoreId(store.id); setEditName(store.name); }}
-                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                                 title="ویرایش نام"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button 
                                 onClick={(e) => handleDelete(e, store.id)}
-                                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
                                 title="حذف کسب و کار"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -287,24 +288,14 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
                             </>
                           )}
                         </div>
-
-                        <div className={`text-sm font-bold flex items-center gap-1.5 transition-colors
-                          ${isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-blue-600'}`}>
-                          {loading === store.id ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                          ) : (
-                            <>
-                              {!isActive && 'ورود'}
-                              <ArrowLeft className={`w-4 h-4 ${isActive ? 'hidden' : ''}`} />
-                            </>
-                          )}
-                        </div>
-                      </div>
-
-                    </motion.div>
+                      </td>
+                    </tr>
                   );
                 })}
+                  </tbody>
+                </table>
               </div>
+
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-slate-400">
                  <Search className="w-16 h-16 mb-4 text-slate-300" />

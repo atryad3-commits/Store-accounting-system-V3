@@ -107,14 +107,14 @@ export default function LoansManager({
 
   const handleCreateLoan = async () => {
     if (!formData.personId || formData.amount === '' || formData.totalInstallments === '' || formData.installmentAmount === '' || !formData.accountId) {
-      alert('لطفا تمام فیلدهای ضروری را پر کنید.');
+      showNotification('لطفا تمام فیلدهای ضروری را پر کنید.', 'error');
       return;
     }
 
     try {
       await checkFinancialYear(formData.startDate);
     } catch (err: any) {
-      alert(err.message || 'تاریخ شروع خارج از سال مالی است.');
+      showNotification(err.message || 'تاریخ شروع خارج از سال مالی است.', 'error');
       return;
     }
 
@@ -191,7 +191,7 @@ export default function LoansManager({
       await saveLoans(newLoansList);
       await saveInstallments(newInstsList);
     } catch (err: any) {
-      alert(err.message || 'خطا در ذخیره وام');
+      showNotification(err.message || 'خطا در ذخیره وام', 'error');
       return;
     }
     
@@ -211,14 +211,14 @@ export default function LoansManager({
 
   const handlePayInstallment = async () => {
     if(!paymentForm.installmentId || paymentForm.amount === '' || !paymentForm.accountId) {
-       alert('اطلاعات پرداخت ناقص است.');
+       showNotification('اطلاعات پرداخت ناقص است.', 'error');
        return;
     }
 
     try {
       await checkFinancialYear(paymentForm.paymentDate);
     } catch (err: any) {
-      alert(err.message || 'تاریخ خارج از سال مالی است.');
+      showNotification(err.message || 'تاریخ خارج از سال مالی است.', 'error');
       return;
     }
 
@@ -275,7 +275,7 @@ export default function LoansManager({
       await saveLoans(updatedLoans);
       await saveInstallments(updatedInstallments);
     } catch (err: any) {
-      alert(err.message || 'خطا در ثبت پرداخت');
+      showNotification(err.message || 'خطا در ثبت پرداخت', 'error');
       return;
     }
     
@@ -727,7 +727,7 @@ export default function LoansManager({
                                                  <button
                                                    onClick={() => {
                                                       if(paymentForm.installmentId !== inst.id || !paymentForm.accountId) {
-                                                         alert('لطفا حساب پرداخت/دریافت را انتخاب کنید');
+                                                         showNotification('لطفا حساب پرداخت/دریافت را انتخاب کنید', 'error');
                                                          setPaymentForm({...paymentForm, installmentId: inst.id, amount: inst.amount});
                                                          return;
                                                       }

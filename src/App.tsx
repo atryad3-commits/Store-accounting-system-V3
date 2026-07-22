@@ -646,12 +646,14 @@ const appState = useAppController();
         formatCurrency,
         toPersianDigits,
         formatNumber,
-        renderTabContent
+        renderTabContent,
       } = appState;
 
 if (appState.isStoreSelectionOpen) {
     return (
       <BusinessManager 
+        confirmAction={confirmAction}
+        showNotification={showNotification}
         availableStores={appState.availableStores} 
         setAvailableStores={appState.setAvailableStores} 
         onSelectStore={(id: string) => {
@@ -1512,7 +1514,7 @@ if (requiresInitSetup && user) {
 
                       <button
                         onClick={() => {
-                           if(window.confirm('آیا از خروج از کسب و کار فعلی و رفتن به صفحه مدیریت کسب و کارها اطمینان دارید؟')) { appState.setIsStoreSelectionOpen(true); }
+                           appState.confirmAction('آیا از خروج از کسب و کار فعلی و رفتن به صفحه مدیریت کسب و کارها اطمینان دارید؟', () => { appState.setIsStoreSelectionOpen(true); })
                         }}
                         className="px-3 py-2 border rounded-xl transition-all cursor-pointer font-black gap-2 flex items-center text-xs shadow-3xs active:scale-95 text-slate-600 hover:text-indigo-700 bg-white border-indigo-200"
                         title="تغییر کسب و کار"
@@ -1841,7 +1843,7 @@ if (requiresInitSetup && user) {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                       >
-                        <FinancialTransfer />
+                        <FinancialTransfer showNotification={showNotification} />
                       </motion.div>
                     ) : activeTab === "invoice_allocation" ? (
                       <motion.div
@@ -1880,7 +1882,7 @@ if (requiresInitSetup && user) {
                         />
                       </motion.div>
                     ) : activeTab === "loans" ? (
-                      <LoansManager persons={persons} accounts={accounts}
+                      <LoansManager showNotification={showNotification} persons={persons} accounts={accounts}
                         loans={loans}
                         setLoans={setLoans}
                         installments={installments}
@@ -2983,7 +2985,7 @@ if (requiresInitSetup && user) {
                     />
                   )}
                   {isEditReceiptModalOpen && editingReceipt && (
-                    <EditReceiptModal persons={persons} accounts={accounts}
+                    <EditReceiptModal persons={persons} accounts={accounts} showNotification={showNotification}
                       isOpen={isEditReceiptModalOpen}
                       onClose={() => {
                         setIsEditReceiptModalOpen(false);

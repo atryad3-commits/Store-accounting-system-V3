@@ -10,7 +10,7 @@ import { getProductCategories, getStocktakings,
 } from "../../services/dataService";
 import { Stocktaking, StocktakingItem, Product, WarehouseStock } from "../../types";
 
-export default function FastStocktakingMobile() {
+export default function FastStocktakingMobile({ showNotification }: any) {
   const [stocktakingCode, setStocktakingCode] = useState(() => {
     const hash = window.location.hash;
     const match = hash.match(/id=([^&]+)/);
@@ -117,7 +117,7 @@ export default function FastStocktakingMobile() {
     if (!selectedProduct || !session || !countedQty) return;
     const qty = parseFloat(countedQty);
     if (isNaN(qty) || qty < 0) {
-      alert("تعداد نامعتبر است");
+      showNotification('تعداد نامعتبر است', 'error');
       return;
     }
 
@@ -157,7 +157,7 @@ export default function FastStocktakingMobile() {
       if (searchInputRef.current) searchInputRef.current.focus();
 
     } catch (err) {
-      alert("خطا در ذخیره اطلاعات");
+      showNotification('خطا در ذخیره اطلاعات', 'error');
     }
     setLoading(false);
   };

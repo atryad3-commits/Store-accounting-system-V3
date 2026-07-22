@@ -4,7 +4,7 @@ import { SwitchCamera, CheckCircle, ArrowRightLeft } from 'lucide-react';
 import { getAccounts, getCashboxes, updateAccount, updateCashbox, addTransaction } from '../../services/dataService';
 import { Account, Cashbox } from '../../types';
 
-export default function FinancialTransfer() {
+export default function FinancialTransfer({ showNotification }: any) {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [cashboxes, setCashboxes] = useState<Cashbox[]>([]);
   
@@ -32,8 +32,8 @@ export default function FinancialTransfer() {
 
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fromId || !toId || !amount || amount <= 0) return alert('اطلاعات نامعتبر است');
-    if (fromType === toType && fromId === toId) return alert('مبدا و مقصد نمی‌تواند یکسان باشد');
+    if (!fromId || !toId || !amount || amount <= 0) return showNotification('اطلاعات نامعتبر است', 'error');
+    if (fromType === toType && fromId === toId) return showNotification('مبدا و مقصد نمی‌تواند یکسان باشد', 'error');
     
     if (window.confirm('آیا از انتقال وجه اطمینان دارید؟')) {
        // Decrease from
