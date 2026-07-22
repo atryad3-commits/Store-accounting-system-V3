@@ -8,6 +8,7 @@ import persian_fa from "react-date-object/locales/persian_fa";
 import { numToPersianWords, toPersianDigits } from '../../utils/format';
 
 interface EditReceiptModalProps {
+  showNotification: (message: string, type?: "success" | "error" | "info" | "warning") => void;
   isOpen: boolean;
   onClose: () => void;
   receipt: any;
@@ -28,7 +29,8 @@ export default function EditReceiptModal({
   cashboxes,
   checkbooks,
   storeSettings,
-  onSave
+  onSave,
+  showNotification
 }: EditReceiptModalProps) {
   const [personId, setPersonId] = useState('');
   const [method, setMethod] = useState<'cash' | 'check'>('cash');

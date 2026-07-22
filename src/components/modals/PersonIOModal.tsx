@@ -478,11 +478,13 @@ export default function PersonIOModal({
                                           } else {
                                             showNotification(
                                               "فرمت فایل پشتیبانی نمی‌شود. فایل خروجی استاندارد نیست.",
+                                              "error"
                                             );
                                           }
                                         } catch (err) {
                                           showNotification(
                                             "خطا در خواندن فایل JSON. از صحت فایل مطمئن شوید.",
+                                            "error"
                                           );
                                         }
                                       };
@@ -610,6 +612,7 @@ export default function PersonIOModal({
                                             } catch (err) {
                                               showNotification(
                                                 "خطا در خواندن فایل. لطفاً فرمت مناسبی را انتخاب نماید.",
+                                                "error"
                                               );
                                             }
                                           };

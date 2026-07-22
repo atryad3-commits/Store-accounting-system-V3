@@ -652,7 +652,6 @@ const appState = useAppController();
 if (appState.isStoreSelectionOpen) {
     return (
       <BusinessManager 
-        confirmAction={confirmAction}
         showNotification={showNotification}
         availableStores={appState.availableStores} 
         setAvailableStores={appState.setAvailableStores} 

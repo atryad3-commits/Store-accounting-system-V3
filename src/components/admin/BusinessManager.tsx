@@ -1,13 +1,25 @@
 import React, { useState, useMemo } from 'react';
 import { Database, Plus, Check, Loader2, Trash2, Edit2, X, Building2, Search, ArrowLeft, Shield, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ConfirmModal from '../modals/ConfirmModal';
 
-export default function BusinessManager({ availableStores, setAvailableStores, onSelectStore, confirmAction, showNotification }: any) {
+export default function BusinessManager({ availableStores, setAvailableStores, onSelectStore, showNotification }: any) {
   const [newStoreName, setNewStoreName] = useState('');
   const [loading, setLoading] = useState<string | false>(false);
   const [creating, setCreating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [confirmState, setConfirmState] = useState<{
+    isOpen: boolean;
+    message: string;
+    onConfirm: () => Promise<void> | void;
+    details?: React.ReactNode;
+    loading?: boolean;
+  }>({ isOpen: false, message: "", onConfirm: () => {} });
+
+  const confirmAction = (message: string, onConfirm: () => Promise<void> | void, details?: React.ReactNode) => {
+    setConfirmState({ isOpen: true, message, onConfirm, details, loading: false });
+  };
   
   const [editingStoreId, setEditingStoreId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
@@ -57,16 +69,17 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (!confirm('آیا از حذف این کسب و کار اطمینان دارید؟ تمام اطلاعات آن از بین خواهد رفت.')) return;
-    try {
-      const res = await fetch(`/api/databases/${id}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (data.success) {
-        setAvailableStores(availableStores.filter((s: any) => s.id !== id));
+    confirmAction('آیا از حذف این کسب و کار اطمینان دارید؟ تمام اطلاعات آن از بین خواهد رفت.', async () => {
+      try {
+        const res = await fetch(`/api/databases/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          setAvailableStores(availableStores.filter((s: any) => s.id !== id));
+        }
+      } catch (e) {
+        setErrorMsg('خطا در حذف کسب و کار');
       }
-    } catch (e) {
-      setErrorMsg('خطا در حذف کسب و کار');
-    }
+    });
   };
 
   const handleUpdate = async (e: React.MouseEvent, id: string) => {
@@ -307,6 +320,7 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
         </div>
 
       </div>
+      <ConfirmModal confirmState={confirmState} setConfirmState={setConfirmState} />
     </div>
   );
 }

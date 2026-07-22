@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { saveLoans, saveInstallments, addTransaction, checkFinancialYear } from '../../services/dataService';
 
 interface LoansManagerProps {
+  showNotification: (message: string, type?: "success" | "error" | "info" | "warning") => void;
   loans: Loan[];
   setLoans: React.Dispatch<React.SetStateAction<Loan[]>>;
   installments: Installment[];
