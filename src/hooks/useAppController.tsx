@@ -1109,6 +1109,7 @@ const [invoiceNumber, setInvoiceNumber] = useState("");
 const [sellerInvoiceNumber, setSellerInvoiceNumber] = useState("");
 
 const [date, setDate] = useState<Date | any>(new Date());
+const [invoiceDueDate, setInvoiceDueDate] = useState<Date | any | null>(null);
 
 const [customerId, setCustomerId] = useState<string | number | "">("");
 
@@ -1289,6 +1290,7 @@ useEffect(() => {
         invoiceTitle,
         invoiceDescription,
         invoiceNote,
+        invoiceDueDate,
         activeTab,
         autoSaveInvoiceId,
       };
@@ -1404,7 +1406,8 @@ useEffect(() => {
     invoiceTitle,
     invoiceDescription,
     invoiceNote,
-    activeTab,
+        invoiceDueDate,
+        activeTab,
     editingInvoiceId,
     invoiceWarehouseId,
     date,
@@ -1438,6 +1441,7 @@ const restoreDraft = () => {
         setExchangeRateInput(parsed.exchangeRateInput || "1");
         setInvoiceDescription(parsed.invoiceDescription || "");
         setInvoiceNote(parsed.invoiceNote || "");
+        setInvoiceDueDate(parsed.invoiceDueDate ? new Date(parsed.invoiceDueDate) : null);
         setAutoSaveInvoiceId(parsed.autoSaveInvoiceId || null);
 
         // Timeout to let activeTab's effect finish, then override
@@ -4493,6 +4497,7 @@ const saveInvoiceData = async (
             typeof date.toDate === "function"
               ? date.toDate().toISOString()
               : new Date(date).toISOString(),
+          dueDate: invoiceDueDate ? (typeof invoiceDueDate.toDate === "function" ? invoiceDueDate.toDate().toISOString() : new Date(invoiceDueDate).toISOString()) : null,
                       
           customerId,
           sourceInvoiceId,
@@ -5247,9 +5252,10 @@ const handleInvoicePreviewTrigger = () => {
       type: invoiceType,
       currency: invoiceCurrency,
       date:
-        typeof date.toDate === "function"
-          ? date.toDate().toISOString()
-          : new Date(date).toISOString(),
+            typeof date.toDate === "function"
+              ? date.toDate().toISOString()
+              : new Date(date).toISOString(),
+          dueDate: invoiceDueDate ? (typeof invoiceDueDate.toDate === "function" ? invoiceDueDate.toDate().toISOString() : new Date(invoiceDueDate).toISOString()) : null,
               
       customerId,
       
@@ -5781,7 +5787,7 @@ const renderTabContent = () => {
 
       case "create_sale":
         return (
-          <SaleInvoiceCreate setIsPersonModalOpen={setIsPersonModalOpen} hasDraft={hasDraft} restoreDraft={restoreDraft} clearDraft={clearDraft} successMsg={successMsg} editingInvoiceId={editingInvoiceId} invoiceNumber={invoiceNumber} toPersianDigits={toPersianDigits} date={date} setDate={setDate} persian={persian} persian_fa={persian_fa} items={items} handleItemChange={handleItemChange} products={products} handleRemoveItem={handleRemoveItem} calculateFinalTotal={calculateFinalTotal} storeSettings={storeSettings} CurrencyInput={CurrencyInput} Package={Package} invoiceWarehouseId={invoiceWarehouseId} setInvoiceWarehouseId={setInvoiceWarehouseId} warehouses={warehouses} FastBarcodeScanner={FastBarcodeScanner} handleFastBarcodeScan={handleFastBarcodeScan} SearchableSelect={SearchableSelect} handleFastAddProduct={handleFastAddProduct} setIsScannerOpen={setIsScannerOpen} ScanLine={ScanLine} setIsProductModalOpen={setIsProductModalOpen} Box={Box} invoiceTitle={invoiceTitle} invoiceMode={invoiceMode} setInvoiceMode={setInvoiceMode} setInvoiceNumber={setInvoiceNumber} setInvoiceTitle={setInvoiceTitle} User={User} activePersonsOnly={activePersonsOnly} getRoleName={getRoleName} customerId={customerId} setCustomerId={setCustomerId} renderPersonInfoBox={renderPersonInfoBox} overallDiscountPercent={overallDiscountPercent} setOverallDiscountPercent={setOverallDiscountPercent} formatCurrency={formatCurrency} invoiceOriginalTotal={invoiceOriginalTotal} invoiceCurrency={invoiceCurrency} invoiceTotalDiscount={invoiceTotalDiscount} numToPersianWords={numToPersianWords} submitting={submitting} saveInvoiceData={saveInvoiceData} handleInvoicePreviewTrigger={handleInvoicePreviewTrigger} formatNumber={formatNumber} Plus={Plus} Trash2={Trash2} CheckCircle={CheckCircle} History={History} Save={Save} ShoppingCart={ShoppingCart} RefreshCw={RefreshCw} FileText={FileText} Info={Info} Tag={Tag} invoiceType={invoiceType} setInvoiceType={setInvoiceType} DatePicker={DatePicker} invoiceDescription={invoiceDescription} setInvoiceDescription={setInvoiceDescription} invoiceNote={invoiceNote} setInvoiceNote={setInvoiceNote} calculateProductCurrentStock={calculateProductCurrentStock} formatProductStockDetails={formatProductStockDetails} activeTab={activeTab} calculateSubtotal={calculateSubtotal} />
+          <SaleInvoiceCreate invoiceDueDate={invoiceDueDate} setInvoiceDueDate={setInvoiceDueDate} setIsPersonModalOpen={setIsPersonModalOpen} hasDraft={hasDraft} restoreDraft={restoreDraft} clearDraft={clearDraft} successMsg={successMsg} editingInvoiceId={editingInvoiceId} invoiceNumber={invoiceNumber} toPersianDigits={toPersianDigits} date={date} setDate={setDate} persian={persian} persian_fa={persian_fa} items={items} handleItemChange={handleItemChange} products={products} handleRemoveItem={handleRemoveItem} calculateFinalTotal={calculateFinalTotal} storeSettings={storeSettings} CurrencyInput={CurrencyInput} Package={Package} invoiceWarehouseId={invoiceWarehouseId} setInvoiceWarehouseId={setInvoiceWarehouseId} warehouses={warehouses} FastBarcodeScanner={FastBarcodeScanner} handleFastBarcodeScan={handleFastBarcodeScan} SearchableSelect={SearchableSelect} handleFastAddProduct={handleFastAddProduct} setIsScannerOpen={setIsScannerOpen} ScanLine={ScanLine} setIsProductModalOpen={setIsProductModalOpen} Box={Box} invoiceTitle={invoiceTitle} invoiceMode={invoiceMode} setInvoiceMode={setInvoiceMode} setInvoiceNumber={setInvoiceNumber} setInvoiceTitle={setInvoiceTitle} User={User} activePersonsOnly={activePersonsOnly} getRoleName={getRoleName} customerId={customerId} setCustomerId={setCustomerId} renderPersonInfoBox={renderPersonInfoBox} overallDiscountPercent={overallDiscountPercent} setOverallDiscountPercent={setOverallDiscountPercent} formatCurrency={formatCurrency} invoiceOriginalTotal={invoiceOriginalTotal} invoiceCurrency={invoiceCurrency} invoiceTotalDiscount={invoiceTotalDiscount} numToPersianWords={numToPersianWords} submitting={submitting} saveInvoiceData={saveInvoiceData} handleInvoicePreviewTrigger={handleInvoicePreviewTrigger} formatNumber={formatNumber} Plus={Plus} Trash2={Trash2} CheckCircle={CheckCircle} History={History} Save={Save} ShoppingCart={ShoppingCart} RefreshCw={RefreshCw} FileText={FileText} Info={Info} Tag={Tag} invoiceType={invoiceType} setInvoiceType={setInvoiceType} DatePicker={DatePicker} invoiceDescription={invoiceDescription} setInvoiceDescription={setInvoiceDescription} invoiceNote={invoiceNote} setInvoiceNote={setInvoiceNote} calculateProductCurrentStock={calculateProductCurrentStock} formatProductStockDetails={formatProductStockDetails} activeTab={activeTab} calculateSubtotal={calculateSubtotal} />
         );
 
       case "list_sale":

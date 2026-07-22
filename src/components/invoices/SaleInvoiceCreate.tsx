@@ -83,6 +83,8 @@ export default function SaleInvoiceCreate(props: any) {
     invoiceType,
     setInvoiceType,
     DatePicker,
+    invoiceDueDate,
+    setInvoiceDueDate,
     invoiceDescription,
     setInvoiceDescription,
     invoiceNote,
@@ -228,8 +230,7 @@ export default function SaleInvoiceCreate(props: any) {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-slate-600 mb-2 flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4 text-indigo-500" /> تاریخ صدور
-                    فاکتور
+                    <Calendar className="w-4 h-4 text-indigo-500" /> تاریخ صدور فاکتور
                   </label>
                   <div className="relative">
                     <DatePicker
@@ -254,6 +255,37 @@ export default function SaleInvoiceCreate(props: any) {
                     </div>
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                    <CalendarIcon className="w-4 h-4 text-rose-500" /> تاریخ سررسید (اختیاری)
+                  </label>
+                  <div className="relative">
+                    <DatePicker
+                      value={invoiceDueDate}
+                      onChange={setInvoiceDueDate}
+                      calendar={
+                        storeSettings?.calendarType === "gregorian"
+                          ? undefined
+                          : persian
+                      }
+                      locale={
+                        storeSettings?.calendarType === "gregorian"
+                          ? undefined
+                          : persian_fa
+                      }
+                      calendarPosition="bottom-right"
+                      inputClass="w-full pl-11 pr-10 p-3 bg-rose-50/30 hover:bg-rose-50 border border-rose-100 rounded-xl focus:ring-2 focus:ring-rose-500 focus:bg-white text-rose-950 font-sans font-black text-center transition-all cursor-pointer outline-none text-sm"
+                      containerClassName="w-full"
+                      placeholder="انتخاب سررسید"
+                    />
+                    {invoiceDueDate && <button onClick={() => setInvoiceDueDate(null)} className="absolute right-2 top-1/2 -translate-y-1/2 text-rose-400 hover:text-rose-600 p-1"><X className="w-4 h-4" /></button>}
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-rose-500">
+                      <CalendarIcon className="w-5 h-5" />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="lg:col-span-2">
                   <label className="block text-sm font-bold text-slate-600 mb-2 flex items-center gap-1.5">
                     <User className="w-4 h-4 text-indigo-500" /> مشتری (طرف

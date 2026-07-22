@@ -526,6 +526,17 @@ export default function InvoicesList(props: any) {
                                   {formatDateDisplay(inv.date || inv.jalaliDate, storeSettings?.calendarType)}
                                 </span>
                               </div>
+                              {inv.dueDate && (
+                                <div
+                                  className="flex items-center gap-1.5 justify-start text-xs font-bold text-slate-650 mt-1"
+                                  dir="rtl"
+                                >
+                                  <Calendar className="w-3.5 h-3.5 text-rose-500" />
+                                  <span className="font-sans font-black text-[10px] text-rose-600">
+                                    سررسید: {formatDateDisplay(inv.dueDate, storeSettings?.calendarType)}
+                                  </span>
+                                </div>
+                              )}
                             </td>
                             {activeTab.includes("warehouse") ? (
                               <td className="p-4 font-bold text-indigo-900 text-center">

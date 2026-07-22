@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Database, Plus, Check, Loader2, ArrowRight, Trash2, Edit2, X, Building2, Server, Search, Info } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { Database, Plus, Check, Loader2, Trash2, Edit2, X, Building2, Search, ArrowLeft, Shield, AlertTriangle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export default function BusinessManager({ availableStores, setAvailableStores, onSelectStore, onClose }: any) {
+export default function BusinessManager({ availableStores, setAvailableStores, onSelectStore }: any) {
   const [newStoreName, setNewStoreName] = useState('');
   const [loading, setLoading] = useState<string | false>(false);
   const [creating, setCreating] = useState(false);
@@ -12,7 +12,9 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
   const [editingStoreId, setEditingStoreId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
 
-  const handleSelectStore = async (id: string) => {
+  const handleSelectStore = async (id: string, name: string) => {
+    if (!window.confirm(`آیا از ورود به کسب و کار «${name}» اطمینان دارید؟`)) return;
+    
     setLoading(id);
     setErrorMsg(null);
     try {
@@ -53,7 +55,8 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
     if (!confirm('آیا از حذف این کسب و کار اطمینان دارید؟ تمام اطلاعات آن از بین خواهد رفت.')) return;
     try {
       const res = await fetch(`/api/databases/${id}`, { method: 'DELETE' });
@@ -66,7 +69,8 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
     }
   };
 
-  const handleUpdate = async (id: string) => {
+  const handleUpdate = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
     if (!editName.trim()) return;
     try {
       const res = await fetch(`/api/databases/${id}`, {
@@ -94,42 +98,44 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
   const activeStoreId = localStorage.getItem("activeStoreId");
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 flex justify-center items-start pt-8 sm:pt-12 pb-12 px-4 rtl" dir="rtl">
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen w-full bg-slate-50 flex flex-col pt-8 pb-12 px-4 sm:px-8 rtl" dir="rtl">
       
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-xl w-full max-w-5xl relative z-10 border border-slate-200 flex flex-col overflow-hidden min-h-[85vh]"
-      >
-        {/* Header */}
-        <div className="flex-shrink-0 p-8 border-b border-slate-100 bg-white relative z-20">
-          {onClose && (
-            <button 
-              onClick={onClose}
-              className="absolute top-8 left-8 px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-            >
-              <ArrowRight className="w-4 h-4 rtl:-scale-x-100" />
-              بازگشت
-            </button>
-          )}
+      <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
+          <div className="flex items-center gap-5">
+            <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/30">
+              <Building2 className="w-8 h-8" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">پرتال کسب و کارها</h1>
+              <p className="text-slate-500 mt-1.5 font-medium text-lg">انتخاب، ایجاد و مدیریت یکپارچه محیط‌های کاری</p>
+            </div>
+          </div>
           
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            <div className="w-20 h-20 bg-blue-50 text-blue-700 rounded-xl flex items-center justify-center shadow-inner shrink-0 relative overflow-hidden">
-              <div className="absolute inset-0 bg-white/20 transform -rotate-45 translate-x-4"></div>
-              <Building2 className="w-10 h-10 relative z-10" />
-            </div>
-            <div className="text-center sm:text-right flex-1">
-              <h2 className="text-2xl font-bold text-slate-900 mb-2 tracking-tight">مدیریت کسب و کارها</h2>
-              <p className="text-slate-500 text-lg">فروشگاه یا شرکت خود را انتخاب کنید. هر محیط دارای دیتابیس کاملا ایزوله است.</p>
-            </div>
+          <div className="flex bg-white rounded-xl shadow-sm border border-slate-200 p-2 lg:w-[400px]">
+            <input 
+              type="text" 
+              value={newStoreName}
+              onChange={e => setNewStoreName(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') handleCreate();
+              }}
+              placeholder="نام کسب و کار جدید..." 
+              className="flex-1 bg-transparent px-3 outline-none text-slate-800 font-bold placeholder:font-normal placeholder:text-slate-400"
+            />
+            <button 
+              onClick={handleCreate}
+              disabled={creating || !newStoreName.trim()}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-blue-600/20"
+            >
+              {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              ایجاد
+            </button>
           </div>
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto bg-slate-50/50 p-6 sm:p-8 flex flex-col custom-scrollbar">
-          
-          <AnimatePresence>
+        <AnimatePresence>
             {errorMsg && (
               <motion.div 
                 initial={{ opacity: 0, height: 0, marginBottom: 0 }}
@@ -151,110 +157,129 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
                 </div>
               </motion.div>
             )}
-          </AnimatePresence>
+        </AnimatePresence>
 
-          {/* Search Bar */}
-          <div className="relative mb-6 shrink-0">
-            <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-slate-400" />
+        {/* Content Table / List */}
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden">
+          
+          <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <Database className="w-5 h-5 text-blue-500" />
+              لیست دیتابیس‌ها و کسب و کارها
+              <span className="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-xs font-bold mr-2">{availableStores.length}</span>
+            </h2>
+            
+            <div className="relative w-full sm:w-72">
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-slate-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="جستجو..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+              />
             </div>
-            <input
-              type="text"
-              placeholder="جستجوی نام یا شناسه کسب و کار..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-4 pr-12 py-4 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-900/10 focus:border-blue-700 outline-none transition-all text-slate-700 shadow-sm"
-            />
           </div>
 
-          {/* Stores Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 auto-rows-max pb-4">
-            {filteredStores.map((store: any, index: number) => {
-              const isActive = activeStoreId === store.id;
-              const isPostgres = store.db_type === 'postgres';
-              
-              return (
-                <div
-                  key={store.id || `store-${index}`}
-                  className={`flex flex-col p-5 rounded-xl border-2 transition-all bg-white relative group overflow-hidden
-                    ${isActive ? 'border-blue-700 shadow-lg shadow-blue-900/10' : 'border-slate-200/60 hover:border-blue-300 hover:shadow-md'}`}
-                >
-                  {isActive && (
-                    <div className="absolute top-0 right-0 left-0 h-1 bg-blue-500" />
-                  )}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar bg-slate-50/30">
+            {filteredStores.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {filteredStores.map((store: any) => {
+                  const isActive = store.id === activeStoreId;
+                  const isEditing = editingStoreId === store.id;
                   
-                  {isActive && (
-                    <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-bold px-3 py-1.5 rounded-bl-xl shadow-sm z-10 flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                      محیط فعال
-                    </div>
-                  )}
-                  
-                  {editingStoreId === store.id ? (
-                    <div className="flex items-center gap-2 flex-1 mt-3">
-                      <input
-                        type="text"
-                        value={editName}
-                        onChange={e => setEditName(e.target.value)}
-                        className="flex-1 px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-600 outline-none bg-blue-50/30 text-slate-900 font-bold"
-                        autoFocus
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') handleUpdate(store.id);
-                          if (e.key === 'Escape') setEditingStoreId(null);
-                        }}
-                      />
-                      <button onClick={() => handleUpdate(store.id)} disabled={loading === store.id} className="p-3 bg-blue-800 hover:bg-blue-900 text-white rounded-xl transition-colors shadow-sm">
-                        <Check className="w-5 h-5" />
-                      </button>
-                      <button onClick={() => setEditingStoreId(null)} className="p-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors">
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex items-start gap-4 mb-5 mt-2">
-                        <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-colors shadow-sm shrink-0 border
-                          ${isActive ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-slate-50 text-slate-500 border-slate-100 group-hover:bg-blue-50 group-hover:text-blue-700 group-hover:border-blue-100'}`}>
-                          <Database className="w-7 h-7" />
+                  return (
+                    <motion.div 
+                      key={store.id}
+                      layoutId={`store-${store.id}`}
+                      onClick={() => !isEditing && handleSelectStore(store.id, store.name)}
+                      className={`group relative flex flex-col p-6 rounded-2xl border transition-all cursor-pointer overflow-hidden
+                        ${isActive 
+                          ? 'bg-blue-50/50 border-blue-200 shadow-md shadow-blue-500/5' 
+                          : 'bg-white border-slate-200 hover:border-blue-300 hover:shadow-lg hover:shadow-blue-500/5 hover:-translate-y-0.5'}`}
+                    >
+                      {/* Status indicator */}
+                      <div className={`absolute top-0 right-0 w-full h-1.5 transition-colors ${isActive ? 'bg-blue-500' : 'bg-transparent group-hover:bg-blue-200'}`} />
+                      
+                      <div className="flex items-start justify-between mb-4 mt-2">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border shadow-sm transition-colors
+                          ${isActive ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-100 text-slate-600 border-slate-200 group-hover:bg-blue-50 group-hover:text-blue-600 group-hover:border-blue-200'}`}>
+                          <Database className="w-6 h-6" />
                         </div>
-                        <div className="flex-1 text-right pt-1">
-                          <h3 className={`text-xl font-black truncate ${isActive ? 'text-slate-900' : 'text-slate-800'}`}>
+                        
+                        {isActive && (
+                          <span className="flex items-center gap-1.5 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-black border border-blue-200">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                            </span>
+                            فعال
+                          </span>
+                        )}
+                        {!isActive && store.id === 'default' && (
+                          <span className="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-1 rounded-lg text-[10px] font-bold border border-amber-200">
+                            <Shield className="w-3 h-3" />
+                            مرکزی
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex-1">
+                        {isEditing ? (
+                          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                            <input
+                              type="text"
+                              value={editName}
+                              onChange={e => setEditName(e.target.value)}
+                              className="flex-1 w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-black text-slate-800"
+                              autoFocus
+                              onKeyDown={e => {
+                                if (e.key === 'Enter') handleUpdate(e as any, store.id);
+                                if (e.key === 'Escape') setEditingStoreId(null);
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <h3 className="text-xl font-black text-slate-800 line-clamp-1 mb-1" title={store.name}>
                             {store.name}
                           </h3>
-                          <div className="flex items-center gap-2 mt-1.5">
-                            {store.id === 'default' ? (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border bg-amber-50 text-amber-600 border-amber-200">
-                                کسب و کار اصلی
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border bg-emerald-50 text-emerald-600 border-emerald-200">
-                                شعبه / شرکت فرعی
-                              </span>
-                            )}
-                            <span className="text-xs text-slate-400 font-mono bg-slate-100 px-2 py-0.5 rounded-md truncate max-w-[120px]" title={store.id}>
-                              ID: {store.id === 'default' ? 'default' : store.id.substring(0,8)+'...'}
-                            </span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border $'bg-sky-50 text-sky-600 border-sky-100'`}>
-                              'PostgreSQL'
-                            </span>
-                          </div>
+                        )}
+                        
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-xs font-mono bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md border border-slate-200 truncate" title={store.id}>
+                            ID: {store.id === 'default' ? 'default' : store.id.substring(0,8)+'...'}
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 border border-slate-200">
+                            {store.db_type === 'postgres' ? 'PostgreSQL' : 'SQLite'}
+                          </span>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100/80">
-                        <div className="flex items-center gap-1.5 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                          {store.id !== 'default' && (
+
+                      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {isEditing ? (
+                            <>
+                              <button onClick={(e) => handleUpdate(e, store.id)} disabled={loading === store.id} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); setEditingStoreId(null); }} className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">
+                                <X className="w-4 h-4" />
+                              </button>
+                            </>
+                          ) : (
                             <>
                               <button 
-                                onClick={() => { setEditingStoreId(store.id); setEditName(store.name); }}
-                                className="p-2.5 text-slate-400 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-colors focus:outline-none"
+                                onClick={(e) => { e.stopPropagation(); setEditingStoreId(store.id); setEditName(store.name); }}
+                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                 title="ویرایش نام"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button 
-                                onClick={() => handleDelete(store.id)}
-                                className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors focus:outline-none"
+                                onClick={(e) => handleDelete(e, store.id)}
+                                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                                 title="حذف کسب و کار"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -262,69 +287,35 @@ export default function BusinessManager({ availableStores, setAvailableStores, o
                             </>
                           )}
                         </div>
-                        
-                        <button 
-                          onClick={() => handleSelectStore(store.id)}
-                          disabled={loading === store.id || isActive}
-                          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all
-                            ${isActive 
-                              ? 'bg-slate-100 text-slate-400 cursor-default'
-                              : 'bg-blue-800 text-white hover:bg-blue-900 shadow-md shadow-blue-900/20 hover:shadow-lg hover:shadow-blue-900/30 active:scale-[0.98]'}`}
-                        >
+
+                        <div className={`text-sm font-bold flex items-center gap-1.5 transition-colors
+                          ${isActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-blue-600'}`}>
                           {loading === store.id ? (
                             <Loader2 className="w-5 h-5 animate-spin" />
                           ) : (
                             <>
-                              {isActive ? 'در حال استفاده' : 'ورود به سیستم'}
-                              {!isActive && <ArrowRight className="w-4 h-4" />}
+                              {!isActive && 'ورود'}
+                              <ArrowLeft className={`w-4 h-4 ${isActive ? 'hidden' : ''}`} />
                             </>
                           )}
-                        </button>
+                        </div>
                       </div>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-            
-            {filteredStores.length === 0 && (
-              <div className="col-span-full py-12 flex flex-col items-center justify-center text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">
-                 <Search className="w-12 h-12 mb-3 text-slate-300" />
-                 <p className="text-lg font-medium">کسب و کاری یافت نشد</p>
-                 <p className="text-sm mt-1">با این عبارت جستجو نتیجه‌ای نداشت.</p>
+
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                 <Search className="w-16 h-16 mb-4 text-slate-300" />
+                 <p className="text-xl font-medium text-slate-600">کسب و کاری یافت نشد</p>
+                 <p className="text-base mt-2">با این عبارت جستجو نتیجه‌ای نداشت.</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Footer / Create Section */}
-        <div className="flex-shrink-0 bg-white border-t border-slate-100 p-6 sm:px-8 sm:py-6 relative z-20">
-          <label className="block text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-            <Plus className="w-4 h-4 text-emerald-500" />
-            ایجاد کسب و کار جدید
-          </label>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input 
-              type="text" 
-              value={newStoreName}
-              onChange={e => setNewStoreName(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') handleCreate();
-              }}
-              placeholder="نام فروشگاه، شرکت یا پروژه جدید..."
-              className="flex-1 px-5 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-blue-900/10 focus:border-blue-700 outline-none transition-all text-lg font-medium text-slate-800 placeholder:text-slate-400"
-            />
-            <button 
-              onClick={handleCreate}
-              disabled={creating || !newStoreName.trim()}
-              className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-100 disabled:text-emerald-400 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] min-w-[200px]"
-            >
-              {creating ? <Loader2 className="w-6 h-6 animate-spin" /> : <Check className="w-6 h-6" />}
-              {creating ? 'در حال ایجاد...' : 'ثبت و ایجاد'}
-            </button>
-          </div>
-        </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

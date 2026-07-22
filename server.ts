@@ -813,8 +813,7 @@ async function startServer() {
       const { id } = req.params;
       const { name, db_type, db_host, db_port, db_name, db_user, db_password } = req.body;
       if (!name) return res.status(400).json({ error: 'Name is required' });
-      if (id === 'default') return res.status(400).json({ error: 'Cannot rename default store' });
-      
+            
       let existing = null;
       if (usePgMap['default'] && activePgPools['default']) {
           const r = await activePgPools['default'].query("SELECT * FROM businesses WHERE id = $1", [id]);
@@ -825,7 +824,15 @@ async function startServer() {
           existing = checkStmt.get(id);
       }
 
-      if (existing) {
+      if (existing || id === 'default') {
+        if (!existing) {
+           if (usePgMap['default'] && activePgPools['default']) {
+               await activePgPools['default'].query('INSERT INTO businesses (id, name, db_type) VALUES (, , )', [id, name, db_type || 'sqlite']);
+           } else {
+               const defaultDb = storeContext.run('default', () => getDb());
+               defaultDb.prepare('INSERT INTO businesses (id, name, db_type) VALUES (?, ?, ?)').run(id, name, db_type || 'sqlite');
+           }
+        } else {
         if (usePgMap['default'] && activePgPools['default']) {
             await activePgPools['default'].query(`
               UPDATE businesses SET 
@@ -853,7 +860,8 @@ async function startServer() {
             `);
             stmt.run(name, db_type, db_host, db_port, db_name, db_user, db_password, id);
         }
-        res.json({ success: true, database: { id, name, db_type: db_type || existing.db_type, db_host, db_port, db_name, db_user, db_password } });
+        }
+        res.json({ success: true, database: { id, name, db_type: db_type || (existing && existing.db_type) || 'sqlite', db_host, db_port, db_name, db_user, db_password } });
       } else {
         // Fallback for file-only databases being renamed
         const newId = encodeURIComponent(name.replace(/\s+/g, '_'));
