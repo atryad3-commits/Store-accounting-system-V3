@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { LogIn, ArrowLeft, BookOpen, Bell, Activity, Newspaper, ChevronLeft, ShieldCheck, Search, Database, Package } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toPersianDigits } from '../utils/format';
+import QuickPriceInquiry from './inventory/QuickPriceInquiry';
+import { useAuth } from '../context/AuthContext';
 
 export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void }) {
+  const { user } = useAuth();
   const [businesses, setBusinesses] = useState<any[]>([]);
   const [selectedBusiness, setSelectedBusiness] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  
+  const [storeProducts, setStoreProducts] = useState<any[]>([]);
+  const [storeSettings, setStoreSettings] = useState<any>({});
+  const [isLoadingStore, setIsLoadingStore] = useState(false);
 
   useEffect(() => {
     const fetchBusinesses = async () => {
@@ -25,33 +29,39 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
     fetchBusinesses();
   }, []);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedBusiness || !searchQuery.trim()) return;
-    
-    setIsSearching(true);
-    try {
-      const res = await fetch('/api/data/products', {
-        headers: {
-          'x-store-id': selectedBusiness
-        }
-      });
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        const q = searchQuery.toLowerCase();
-        const results = data.filter((p: any) => 
-          p.name?.toLowerCase().includes(q) || 
-          p.barcode?.includes(q) || 
-          p.code?.includes(q)
-        );
-        setSearchResults(results.slice(0, 10)); // max 10 results
-      }
-    } catch (e) {
-      console.error("Search failed", e);
-    } finally {
-      setIsSearching(false);
+  useEffect(() => {
+    if (!selectedBusiness) {
+      setStoreProducts([]);
+      setStoreSettings({});
+      return;
     }
-  };
+
+    const fetchStoreData = async () => {
+      setIsLoadingStore(true);
+      try {
+        const [productsRes, settingsRes] = await Promise.all([
+          fetch('/api/data/products', { headers: { 'x-store-id': selectedBusiness } }),
+          fetch('/api/data/settings', { headers: { 'x-store-id': selectedBusiness } })
+        ]);
+        
+        const productsData = await productsRes.json();
+        const settingsData = await settingsRes.json();
+        
+        if (Array.isArray(productsData)) {
+          setStoreProducts(productsData);
+        }
+        if (settingsData && !Array.isArray(settingsData)) {
+          setStoreSettings(settingsData);
+        }
+      } catch (e) {
+        console.error("Failed to fetch store data", e);
+      } finally {
+        setIsLoadingStore(false);
+      }
+    };
+
+    fetchStoreData();
+  }, [selectedBusiness]);
 
   const news = [
     {
@@ -100,13 +110,15 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
             </div>
 
             <div className="flex items-center gap-4">
-              <button 
-                onClick={onLoginClick}
-                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg"
-              >
-                <LogIn className="w-5 h-5" />
-                ورود به سیستم
-              </button>
+              {!user && (
+                <button 
+                  onClick={onLoginClick}
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg"
+                >
+                  <LogIn className="w-5 h-5" />
+                  ورود به سیستم
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -133,13 +145,15 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
               نرم‌افزار جامع حسابداری و مدیریت مالی، با رابط کاربری مدرن، امنیت بالا و ابزارهای تحلیلی پیشرفته، مسیر موفقیت کسب‌و‌کار شما را هموار می‌کند.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                onClick={onLoginClick}
-                className="flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-indigo-600/20"
-              >
-                ورود به پنل کاربری
-                <ArrowLeft className="w-6 h-6" />
-              </button>
+              {!user && (
+                <button 
+                  onClick={onLoginClick}
+                  className="flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-indigo-600/20"
+                >
+                  ورود به پنل کاربری
+                  <ArrowLeft className="w-6 h-6" />
+                </button>
+              )}
               <a 
                 href="#news"
                 className="flex items-center justify-center gap-3 bg-white hover:bg-slate-50 text-slate-700 px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-sm border border-slate-200"

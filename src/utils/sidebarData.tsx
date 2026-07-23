@@ -36,6 +36,7 @@ export const allSidebarGroups: SidebarGroup[] = [
     icon: <Activity className="w-5 h-5" />,
     items: [
       { id: "personal_notes", label: "یادداشت‌های شخصی", roles: ["admin", "accountant", "manager", "cashier", "viewer"] },
+      { id: "welcome_page", label: "صفحه اصلی (خوش‌آمدگویی)", roles: ["admin", "accountant", "manager", "cashier", "viewer"] },
     ],
   },
 
