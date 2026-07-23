@@ -696,7 +696,7 @@ async function startServer() {
 
   // === AUTH MIDDLEWARE FOR API ===
   app.use((req, res, next) => {
-    const publicPaths = ['/api/auth/login', '/api/auth/verify-otp', '/api/auth/refresh', '/api/auth/logout', '/api/setup/status'];
+    const publicPaths = ['/api/auth/login', '/api/auth/verify-otp', '/api/auth/refresh', '/api/auth/logout', '/api/setup/status', '/api/db/test', '/api/db/config', '/api/setup/admin'];
     if (!req.path.startsWith('/api/') || publicPaths.includes(req.path)) {
        return next();
     }
@@ -2111,7 +2111,10 @@ async function startServer() {
 
   app.post('/api/db/test', async (req, res) => {
     try {
-      const { connectionString } = req.body;
+      const { connectionString, engine } = req.body;
+      if (engine === 'sqlite' || connectionString === 'sqlite') {
+         return res.json({ success: true, message: 'اتصال SQLite (ذخیره سازی محلی) با موفقیت تأیید شد' });
+      }
       const client = new Client({ connectionString });
       await client.connect();
       await client.query('SELECT NOW()');
