@@ -7,6 +7,7 @@ import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import CustomDatePicker from "../ui/CustomDatePicker";
+import { productSchema } from "../../schemas/validation";
 import CurrencyInput from "../ui/CurrencyInput";
 const DatePicker = CustomDatePicker;
 
@@ -203,6 +204,13 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
         imageUrl: newProductImageUrl,
         isActive: newProductIsActive,
       };
+
+      const validation = productSchema.safeParse(payload);
+      if (!validation.success) {
+        customAlert((validation.error as any).errors[0].message);
+        setSubmittingProduct(false);
+        return;
+      }
 
       if (isEdit) {
         await updateProduct(editingProductId.toString(), payload);

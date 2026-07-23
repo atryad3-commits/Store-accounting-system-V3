@@ -19,6 +19,7 @@ export default function FastProductCreateModal({
   const [purchasePrice, setPurchasePrice] = useState("");
   const [sellPrice, setSellPrice] = useState("");
   const [stock, setStock] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [category, setCategory] = useState("");
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
@@ -74,6 +75,7 @@ export default function FastProductCreateModal({
 
     const newProduct = {
       name: name.trim(),
+        imageUrl: imageUrl.trim(),
       barcode: barcode.trim(),
       purchasePrice: purchasePrice ? Number(purchasePrice) : 0,
       price: sellPrice ? Number(sellPrice) : 0,
@@ -93,6 +95,7 @@ export default function FastProductCreateModal({
         setPurchasePrice("");
         setSellPrice("");
         setStock("");
+            setImageUrl("");
         // category is kept intentionally for sequential product additions
         
         // Focus barcode again

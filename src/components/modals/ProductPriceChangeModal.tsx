@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { X, Save, Calendar, Tag, AlertCircle } from 'lucide-react';
+import { updateProduct, appendLocalData, generateId } from '../../services/dataService';
 const addCommas = (num: number | string) => {
   if (!num) return "";
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -28,7 +29,6 @@ const CurrencyInput = ({ value, onChange, placeholder, className }: any) => {
   );
 };
 
-import { updateProduct, appendLocalData, generateId } from '../../services/dataService';
 
 interface ProductPriceChangeModalProps {
   product: any;

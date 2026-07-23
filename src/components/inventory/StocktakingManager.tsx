@@ -4,9 +4,9 @@ import { getStocktakings, addStocktaking, updateStocktaking, deleteStocktaking, 
 import DatePickerModule, { Calendar as RMCalendar } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
-const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 import { Stocktaking, StocktakingItem, Product, Warehouse, WarehouseStock } from '../../types';
 import FastProductCreateModal from '../products/FastProductCreateModal';
+const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 
 interface Props {
   showNotification?: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void;

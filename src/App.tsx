@@ -1,48 +1,9 @@
-import BusinessManager from "./components/admin/BusinessManager";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { SystemUpdatePage } from "./components/admin/SystemUpdatePage";
 import { PersonalNotesManager } from "./components/notes/PersonalNotesManager";
-import FastStocktakingMobile from "./components/inventory/FastStocktakingMobile";
-import PricingWizardModal from './components/modals/PricingWizardModal';
-import ReceiptsList from './components/financial/ReceiptsList';
-import InvoicesList from './components/invoices/InvoicesList';
-import CurrencyInput from './components/common/CurrencyInput';
-import FastBarcodeScanner from './components/common/FastBarcodeScanner';
-import PersonLedgerActionsDropdown from './components/persons/PersonLedgerActionsDropdown';
-import ChangelogModal from './components/ChangelogModal';
 import changelogData from './data/changelog.json';
-import ReceiveReceiptModal from "./components/financial/ReceiveReceiptModal";
-import PayReceiptModal from "./components/financial/PayReceiptModal";
-import AccountsManager from "./components/accounts/AccountsManager";
-import CashboxesManager from "./components/accounts/CashboxesManager";
-import PersonsManager from "./components/persons/PersonsManager";
-import DebtorsNotification from "./components/DebtorsNotification";
-import BeautifulLoading from "./components/BeautifulLoading";
-import DataReconciliation from "./components/DataReconciliation";
-import CreateSalaryPayroll from './components/payroll/CreateSalaryPayroll';
-import ListSalaryPayroll from './components/payroll/ListSalaryPayroll';
-import React, { useState, useEffect, useMemo, useRef } from "react";
-
-import ProductsTab from "./components/products/ProductsTab";
-import PersonOpeningBalances from "./components/persons/PersonOpeningBalances";
-import PersonLedger from "./components/persons/PersonLedger";
-import SettingsTab from "./components/admin/SettingsTab";
+import React, { useState, useEffect, useMemo, useRef, Suspense } from "react";
 import SidebarNavigation from "./components/SidebarNavigation";
-import WelcomePage from "./components/WelcomePage";
-import MobileRestrictedMenu from "./components/MobileRestrictedMenu";
-import MinimalMobilePersonModal from "./components/modals/MinimalMobilePersonModal";
-
-import WarehouseManager from './components/warehouses/WarehouseManager';
-
-import PersonGroupsManager from "./components/persons/PersonGroupsManager";
-import PersonRolesManager from "./components/persons/PersonRolesManager";
-
-// { useState, useEffect, useMemo, useRef } from "react";
-import WarehouseDocCreate from './components/warehouses/WarehouseDocCreate';
-import SaleInvoiceCreate from './components/invoices/SaleInvoiceCreate';
-import CalculatorModal from "./components/modals/CalculatorModal";
-import SaleReturnInvoiceCreate from './components/invoices/SaleReturnInvoiceCreate';
-import PurchaseInvoiceCreate from './components/invoices/PurchaseInvoiceCreate';
-import PurchaseReturnInvoiceCreate from './components/invoices/PurchaseReturnInvoiceCreate';
 import Barcode from "react-barcode";
 import {
   Building,
@@ -156,20 +117,10 @@ import {
   toPersianDigits,
   formatDateDisplay, convertToGregorian, customPersonFilter,
 } from "./utils/format";
-import CustomDatePicker from "./components/ui/CustomDatePicker";
-const DatePicker = CustomDatePicker;
 import html2pdf from "html2pdf.js";
 import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
-
-import ProductFormModal from "./components/modals/ProductFormModal";
-import PersonFormModal from "./components/modals/PersonFormModal";
-import AccountFormModal from "./components/modals/AccountFormModal";
-import CashboxFormModal from "./components/modals/CashboxFormModal";
-import WarehouseFormModal from "./components/modals/WarehouseFormModal";
-import SmsPanel from "./components/admin/SmsPanel";
-
 import Select from "react-select";
 import { useAuth } from "./context/AuthContext";
 import {
@@ -257,55 +208,6 @@ import {
   closeFinancialYear,
   getAccountingDocuments,
 } from "./services/dataService";
-import ModuleSelector from "./components/ui/ModuleSelector";
-import DatabaseReconciliation from "./components/admin/DatabaseReconciliation";
-import DatabaseDashboard from "./components/admin/DatabaseDashboard";
-import SystemChecklist from "./components/admin/SystemChecklist";
-import SystemLogs from "./components/admin/SystemLogs";
-import DatabaseLogs from "./components/admin/DatabaseLogs";
-
-import GroupPriceUpdateWizard from "./components/modals/GroupPriceUpdateWizard";
-import ProductPriceChangeModal from "./components/modals/ProductPriceChangeModal";
-import PrintBarcodeModal from "./components/modals/PrintBarcodeModal";
-import ProductCardModal from "./components/modals/ProductCardModal";
-import ProductLastPricesView from "./components/reports/ProductLastPricesView";
-import QuickPriceInquiry from "./components/inventory/QuickPriceInquiry";
-import CheckManagement from "./components/financial/CheckManagement";
-import PersonNotesAndAttachments from "./components/financial/PersonNotesAndAttachments";
-import InvoiceAllocation from "./components/financial/InvoiceAllocation";
-
-import SearchableSelect from "./components/ui/SearchableSelect";
-import BarcodeScannerModal from "./components/modals/BarcodeScannerModal";
-import EditReceiptModal from "./components/modals/EditReceiptModal";
-import FinancialTransfer from "./components/financial/FinancialTransfer";
-import QuickRefund from "./components/financial/QuickRefund";
-import UserManager from "./components/admin/UserManager";
-import ProfileModal from "./components/auth/ProfileModal";
-import InventoryReport from "./components/reports/InventoryReport";
-import KardexReport from "./components/reports/KardexReport";
-import CRMDashboard from "./components/crm/CRMDashboard";
-import SystemDiagnostics from "./components/admin/SystemDiagnostics";
-import StocktakingManager from "./components/inventory/StocktakingManager";
-import AnalyticalDashboard from "./components/reports/AnalyticalDashboard";
-import FinancialDashboard from "./components/reports/FinancialDashboard";
-import DebtsCreditsReport from "./components/reports/DebtsCreditsReport";
-import LoansManager from "./components/loans/LoansManager";
-import ChartOfAccounts from "./components/accounting/ChartOfAccounts";
-import AccountingDocsList from "./components/accounting/AccountingDocsList";
-import AccountingDocCreate from "./components/accounting/AccountingDocCreate";
-import AccountingDocView from "./components/accounting/AccountingDocView";
-import AccountingAutoSync from "./components/accounting/AccountingAutoSync";
-import AccountingVerification from "./components/accounting/AccountingVerification";
-import OpeningBalances from "./components/accounting/OpeningBalances";
-import FinancialYearManager from "./components/accounting/FinancialYearManager";
-import WarehousePrintTemplate from "./components/print/WarehousePrintTemplate";
-import InvoicePrintTemplate from "./components/print/InvoicePrintTemplate";
-import AIProductSearchModal from "./components/products/AIProductSearchModal";
-import BulkProductImportModal from "./components/products/BulkProductImportModal";
-import FastProductCreateModal from "./components/products/FastProductCreateModal";
-import PersonProfileView from "./components/persons/PersonProfileView";
-import PersonIOModal from "./components/modals/PersonIOModal";
-import ProductCategoriesView from "./components/products/ProductCategoriesView";
 import {
   Person,
   PersonGroup,
@@ -317,8 +219,107 @@ import {
   WarehouseStock,
 } from "./types";
 import appVersion from "./version.json";
-import OrderList from "./components/inventory/OrderList";
 import { useAppController } from "./hooks/useAppController";
+const BusinessManager = React.lazy(() => import('./components/admin/BusinessManager'));
+const FastStocktakingMobile = React.lazy(() => import('./components/inventory/FastStocktakingMobile'));
+const PricingWizardModal = React.lazy(() => import('./components/modals/PricingWizardModal'));
+const ReceiptsList = React.lazy(() => import('./components/financial/ReceiptsList'));
+const InvoicesList = React.lazy(() => import('./components/invoices/InvoicesList'));
+const CurrencyInput = React.lazy(() => import('./components/common/CurrencyInput'));
+const FastBarcodeScanner = React.lazy(() => import('./components/common/FastBarcodeScanner'));
+const PersonLedgerActionsDropdown = React.lazy(() => import('./components/persons/PersonLedgerActionsDropdown'));
+const ChangelogModal = React.lazy(() => import('./components/ChangelogModal'));
+const ReceiveReceiptModal = React.lazy(() => import('./components/financial/ReceiveReceiptModal'));
+const PayReceiptModal = React.lazy(() => import('./components/financial/PayReceiptModal'));
+const AccountsManager = React.lazy(() => import('./components/accounts/AccountsManager'));
+const CashboxesManager = React.lazy(() => import('./components/accounts/CashboxesManager'));
+const PersonsManager = React.lazy(() => import('./components/persons/PersonsManager'));
+const DebtorsNotification = React.lazy(() => import('./components/DebtorsNotification'));
+const BeautifulLoading = React.lazy(() => import('./components/BeautifulLoading'));
+const DataReconciliation = React.lazy(() => import('./components/DataReconciliation'));
+const CreateSalaryPayroll = React.lazy(() => import('./components/payroll/CreateSalaryPayroll'));
+const ListSalaryPayroll = React.lazy(() => import('./components/payroll/ListSalaryPayroll'));
+
+const ProductsTab = React.lazy(() => import('./components/products/ProductsTab'));
+const PersonOpeningBalances = React.lazy(() => import('./components/persons/PersonOpeningBalances'));
+const PersonLedger = React.lazy(() => import('./components/persons/PersonLedger'));
+const SettingsTab = React.lazy(() => import('./components/admin/SettingsTab'));
+const WelcomePage = React.lazy(() => import('./components/WelcomePage'));
+const MobileRestrictedMenu = React.lazy(() => import('./components/MobileRestrictedMenu'));
+const MinimalMobilePersonModal = React.lazy(() => import('./components/modals/MinimalMobilePersonModal'));
+
+const WarehouseManager = React.lazy(() => import('./components/warehouses/WarehouseManager'));
+
+const PersonGroupsManager = React.lazy(() => import('./components/persons/PersonGroupsManager'));
+const PersonRolesManager = React.lazy(() => import('./components/persons/PersonRolesManager'));
+
+// { useState, useEffect, useMemo, useRef } from "react";
+const WarehouseDocCreate = React.lazy(() => import('./components/warehouses/WarehouseDocCreate'));
+const SaleInvoiceCreate = React.lazy(() => import('./components/invoices/SaleInvoiceCreate'));
+const CalculatorModal = React.lazy(() => import('./components/modals/CalculatorModal'));
+const SaleReturnInvoiceCreate = React.lazy(() => import('./components/invoices/SaleReturnInvoiceCreate'));
+const PurchaseInvoiceCreate = React.lazy(() => import('./components/invoices/PurchaseInvoiceCreate'));
+const PurchaseReturnInvoiceCreate = React.lazy(() => import('./components/invoices/PurchaseReturnInvoiceCreate'));
+const CustomDatePicker = React.lazy(() => import('./components/ui/CustomDatePicker'));
+const DatePicker = CustomDatePicker;
+
+const ProductFormModal = React.lazy(() => import('./components/modals/ProductFormModal'));
+const PersonFormModal = React.lazy(() => import('./components/modals/PersonFormModal'));
+const AccountFormModal = React.lazy(() => import('./components/modals/AccountFormModal'));
+const CashboxFormModal = React.lazy(() => import('./components/modals/CashboxFormModal'));
+const WarehouseFormModal = React.lazy(() => import('./components/modals/WarehouseFormModal'));
+const SmsPanel = React.lazy(() => import('./components/admin/SmsPanel'));
+
+const ModuleSelector = React.lazy(() => import('./components/ui/ModuleSelector'));
+const DatabaseReconciliation = React.lazy(() => import('./components/admin/DatabaseReconciliation'));
+const DatabaseDashboard = React.lazy(() => import('./components/admin/DatabaseDashboard'));
+const SystemChecklist = React.lazy(() => import('./components/admin/SystemChecklist'));
+const SystemLogs = React.lazy(() => import('./components/admin/SystemLogs'));
+const DatabaseLogs = React.lazy(() => import('./components/admin/DatabaseLogs'));
+
+const GroupPriceUpdateWizard = React.lazy(() => import('./components/modals/GroupPriceUpdateWizard'));
+const ProductPriceChangeModal = React.lazy(() => import('./components/modals/ProductPriceChangeModal'));
+const PrintBarcodeModal = React.lazy(() => import('./components/modals/PrintBarcodeModal'));
+const ProductCardModal = React.lazy(() => import('./components/modals/ProductCardModal'));
+const ProductLastPricesView = React.lazy(() => import('./components/reports/ProductLastPricesView'));
+const QuickPriceInquiry = React.lazy(() => import('./components/inventory/QuickPriceInquiry'));
+const CheckManagement = React.lazy(() => import('./components/financial/CheckManagement'));
+const PersonNotesAndAttachments = React.lazy(() => import('./components/financial/PersonNotesAndAttachments'));
+const InvoiceAllocation = React.lazy(() => import('./components/financial/InvoiceAllocation'));
+
+const SearchableSelect = React.lazy(() => import('./components/ui/SearchableSelect'));
+const BarcodeScannerModal = React.lazy(() => import('./components/modals/BarcodeScannerModal'));
+const EditReceiptModal = React.lazy(() => import('./components/modals/EditReceiptModal'));
+const FinancialTransfer = React.lazy(() => import('./components/financial/FinancialTransfer'));
+const QuickRefund = React.lazy(() => import('./components/financial/QuickRefund'));
+const UserManager = React.lazy(() => import('./components/admin/UserManager'));
+const ProfileModal = React.lazy(() => import('./components/auth/ProfileModal'));
+const InventoryReport = React.lazy(() => import('./components/reports/InventoryReport'));
+const KardexReport = React.lazy(() => import('./components/reports/KardexReport'));
+const CRMDashboard = React.lazy(() => import('./components/crm/CRMDashboard'));
+const SystemDiagnostics = React.lazy(() => import('./components/admin/SystemDiagnostics'));
+const StocktakingManager = React.lazy(() => import('./components/inventory/StocktakingManager'));
+const AnalyticalDashboard = React.lazy(() => import('./components/reports/AnalyticalDashboard'));
+const FinancialDashboard = React.lazy(() => import('./components/reports/FinancialDashboard'));
+const DebtsCreditsReport = React.lazy(() => import('./components/reports/DebtsCreditsReport'));
+const LoansManager = React.lazy(() => import('./components/loans/LoansManager'));
+const ChartOfAccounts = React.lazy(() => import('./components/accounting/ChartOfAccounts'));
+const AccountingDocsList = React.lazy(() => import('./components/accounting/AccountingDocsList'));
+const AccountingDocCreate = React.lazy(() => import('./components/accounting/AccountingDocCreate'));
+const AccountingDocView = React.lazy(() => import('./components/accounting/AccountingDocView'));
+const AccountingAutoSync = React.lazy(() => import('./components/accounting/AccountingAutoSync'));
+const AccountingVerification = React.lazy(() => import('./components/accounting/AccountingVerification'));
+const OpeningBalances = React.lazy(() => import('./components/accounting/OpeningBalances'));
+const FinancialYearManager = React.lazy(() => import('./components/accounting/FinancialYearManager'));
+const WarehousePrintTemplate = React.lazy(() => import('./components/print/WarehousePrintTemplate'));
+const InvoicePrintTemplate = React.lazy(() => import('./components/print/InvoicePrintTemplate'));
+const AIProductSearchModal = React.lazy(() => import('./components/products/AIProductSearchModal'));
+const BulkProductImportModal = React.lazy(() => import('./components/products/BulkProductImportModal'));
+const FastProductCreateModal = React.lazy(() => import('./components/products/FastProductCreateModal'));
+const PersonProfileView = React.lazy(() => import('./components/persons/PersonProfileView'));
+const PersonIOModal = React.lazy(() => import('./components/modals/PersonIOModal'));
+const ProductCategoriesView = React.lazy(() => import('./components/products/ProductCategoriesView'));
+const OrderList = React.lazy(() => import('./components/inventory/OrderList'));
 
 
 
@@ -1661,6 +1662,7 @@ if (requiresInitSetup && user) {
                   <div
                     className={`mx-auto transition-all duration-300 print:max-w-none print:w-full print:px-0 ${isFullWidth ? "max-w-full xl:px-14" : "max-w-6xl"}`}
                   >
+                    <Suspense fallback={<div className="flex h-full items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>}>
                     {activeTab === "products" ? (
                       <ProductsTab
                         {...appState}
@@ -2165,6 +2167,7 @@ if (requiresInitSetup && user) {
                         </motion.div>
                       </AnimatePresence>
                     )}
+                    </Suspense>
                   </div>
                 </main>
 

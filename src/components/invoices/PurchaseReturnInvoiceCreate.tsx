@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from 'react';
 import { motion } from 'framer-motion';
 import DatePicker from 'react-multi-date-picker';
@@ -9,6 +8,7 @@ import {
   ShoppingCart, Building2, UserCircle, Hash, Percent,
   Calendar, CreditCard, Banknote, FileText, Truck
 , UserPlus } from 'lucide-react';
+// @ts-nocheck
 
       export default function PurchaseReturnInvoiceCreate(props: any) {
   const {

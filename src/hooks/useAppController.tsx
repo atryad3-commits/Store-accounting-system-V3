@@ -1,5 +1,4 @@
 import CustomDatePicker from "../components/ui/CustomDatePicker";
-const DatePicker = CustomDatePicker;
 import { SystemUpdatePage } from "../components/admin/SystemUpdatePage";
 import { PersonalNotesManager } from "../components/notes/PersonalNotesManager";
 import FastStocktakingMobile from "../components/inventory/FastStocktakingMobile";
@@ -151,7 +150,6 @@ import {
   toPersianDigits,
   formatDateDisplay, convertToGregorian, customPersonFilter,
 } from "../utils/format";
-
 import html2pdf from "html2pdf.js";
 import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
@@ -308,6 +306,8 @@ import {
 } from "../types";
 import appVersion from "../version.json";
 import OrderList from "../components/inventory/OrderList";
+const DatePicker = CustomDatePicker;
+
 
 
 

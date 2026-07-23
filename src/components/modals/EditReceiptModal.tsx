@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Save, User, DollarSign, Calendar, CreditCard, Wallet, Tag } from 'lucide-react';
 import DatePickerModule from "react-multi-date-picker";
-const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { numToPersianWords, toPersianDigits } from '../../utils/format';
+const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 
 interface EditReceiptModalProps {
   showNotification: (message: string, type?: "success" | "error" | "info" | "warning") => void;

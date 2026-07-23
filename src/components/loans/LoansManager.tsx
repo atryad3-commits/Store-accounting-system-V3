@@ -5,6 +5,9 @@ import { Plus, Percent, Edit2, Trash2, Search, CheckCircle, ChevronDown, Chevron
 import { motion, AnimatePresence } from 'motion/react';
 import { saveLoans, saveInstallments, addTransaction, checkFinancialYear } from '../../services/dataService';
 
+
+
+
 interface LoansManagerProps {
   showNotification: (message: string, type?: "success" | "error" | "info" | "warning") => void;
   loans: Loan[];
@@ -27,7 +30,7 @@ export default function LoansManager({
   accounts,
   setAccounts,
   transactions,
-  setTransactions,
+  setTransactions, showNotification,
 }: LoansManagerProps) {
   const [activeTab, setActiveTab] = useState<'list' | 'create'>('list');
   const [expandedLoanId, setExpandedLoanId] = useState<string | number | null>(null);

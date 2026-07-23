@@ -1,7 +1,30 @@
-window.addEventListener("error", (e) => { fetch("/api/data/system_logs/append", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ action: "FRONTEND_ERROR", entityType: "error", entityId: "1", oldData: e.message, newData: e.error?.stack }) }); });
-import {StrictMode, useState} from 'react';
+import {StrictMode, useState, useEffect} from 'react';
+import * as Sentry from "@sentry/react";
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx'
+import 'vazirmatn/Vazirmatn-font-face.css';
+import '@fontsource/jetbrains-mono';
+import './styles/index.css';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { AuthProvider } from './context/AuthContext';
+import { BrowserRouter } from 'react-router-dom';
+import InitialSetupWizard from './components/InitialSetupWizard';
+window.addEventListener("error", (e) => { fetch("/api/data/system_logs/append", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ action: "FRONTEND_ERROR", entityType: "error", entityId: "1", oldData: e.message, newData: e.error?.stack }) }); });
+
+if ((import.meta as any).env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: (import.meta as any).env.VITE_SENTRY_DSN,
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration(),
+    ],
+    tracesSampleRate: 1.0,
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1.0,
+  });
+}
+
 
 const originalConsoleError = console.error;
 console.error = (...args) => {
@@ -11,11 +34,6 @@ console.error = (...args) => {
   originalConsoleError(...args);
 };
 ;
-import 'vazirmatn/Vazirmatn-font-face.css';
-import '@fontsource/jetbrains-mono';
-import './styles/index.css';
-import { AuthProvider } from './context/AuthContext';
-import InitialSetupWizard from './components/InitialSetupWizard';
 
 // Add global form validation message localization
 document.addEventListener('invalid', (e) => {
@@ -50,6 +68,16 @@ document.addEventListener('change', (e) => {
   }
 }, true);
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
+
 const Root = () => {
   const [setupComplete, setSetupComplete] = useState(false);
 
@@ -58,9 +86,16 @@ const Root = () => {
       {!setupComplete ? (
         <InitialSetupWizard onComplete={() => setSetupComplete(true)} />
       ) : (
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </BrowserRouter>
+          {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} position="bottom" />}
+        </QueryClientProvider>
+
       )}
     </>
   );

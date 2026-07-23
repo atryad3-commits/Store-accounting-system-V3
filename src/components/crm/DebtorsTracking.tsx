@@ -20,6 +20,9 @@ import { CSS } from '@dnd-kit/utilities';
 import { Trash2, Plus, X, Search, Phone, User, Calendar, Save, ListFilter, UserPlus, Users, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getDebtorsTrackings, saveDebtorsTrackings, getCrmColumns, saveCrmColumns } from '../../services/dataService';
+import DatePicker from 'react-multi-date-picker';
+import persian from 'react-date-object/calendars/persian';
+import persian_fa from 'react-date-object/locales/persian_fa';
 
 
 
@@ -58,9 +61,6 @@ function DroppableColumn({ id, items, children, className }: any) {
   );
 }
 
-import DatePicker from 'react-multi-date-picker';
-import persian from 'react-date-object/calendars/persian';
-import persian_fa from 'react-date-object/locales/persian_fa';
 
 export default function DebtorsTracking({ persons, showNotification, storeSettings, confirmAction }: any) {
   const [columns, setColumns] = useState<any[]>([]);

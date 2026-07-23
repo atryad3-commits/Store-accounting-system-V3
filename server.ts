@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import * as Sentry from "@sentry/node";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
 import express from 'express';
 import { AsyncLocalStorage } from 'node:async_hooks';
 const storeContext = new AsyncLocalStorage<string>();
@@ -10,6 +12,9 @@ import fsPromises from 'fs/promises';
 import { DatabaseSync } from 'node:sqlite';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { z } from "zod";
+import { validateData } from './src/schemas/validation';
+
 import { Client, Pool } from 'pg';
 import cookieParser from 'cookie-parser';
 
@@ -665,6 +670,17 @@ async function initDB() {
   }
 }
 
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    integrations: [
+      nodeProfilingIntegration(),
+    ],
+    tracesSampleRate: 1.0,
+    profilesSampleRate: 1.0,
+  });
+}
+
 async function startServer() {
   await initDB();
   const app = express();
@@ -673,6 +689,42 @@ async function startServer() {
   app.use(express.json({ limit: '50mb' }));
   app.use(express.text({ limit: '500mb', type: ['text/*', 'application/sql', 'application/json'] }));
   app.use(cookieParser());
+
+  // === AUTH MIDDLEWARE FOR API ===
+  app.use((req, res, next) => {
+    const publicPaths = ['/api/auth/login', '/api/auth/verify-otp', '/api/auth/refresh', '/api/auth/logout', '/api/setup/status'];
+    if (!req.path.startsWith('/api/') || publicPaths.includes(req.path)) {
+       return next();
+    }
+    
+    let token = null;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+       token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies && req.cookies.refreshToken) {
+       token = req.cookies.refreshToken; // Fallback for some routes if needed
+    }
+    
+    if (!token) {
+       return res.status(401).json({ error: 'عدم احراز هویت' });
+    }
+    
+    try {
+       const JWT_SECRET_MW = process.env.JWT_SECRET || 'super-secret-jwt-key-2024';
+       const JWT_REFRESH_MW = process.env.JWT_REFRESH_SECRET || 'super-secret-jwt-refresh-key-2024';
+       
+       try {
+           const decoded = jwt.verify(token, JWT_SECRET_MW);
+           req.user = decoded;
+       } catch (err) {
+           const decoded = jwt.verify(token, JWT_REFRESH_MW);
+           req.user = decoded;
+       }
+       next();
+    } catch(e) {
+       return res.status(401).json({ error: 'توکن نامعتبر است' });
+    }
+  });
+  // ================================
 
     app.post('/api/generate_demo_data', async (req, res) => {
     res.json({ success: true, message: 'Demo data generation not available in this environment.' });
@@ -1081,7 +1133,19 @@ async function startServer() {
     }
   });
 
+
+  const loginSchema = z.object({
+    username: z.string().min(3),
+    password: z.string().min(4),
+  });
+  
   app.post('/api/auth/login', async (req, res) => {
+    try {
+      loginSchema.parse(req.body);
+    } catch (e) {
+      return res.status(400).json({ error: 'داده‌های ورودی نامعتبر است', details: e.errors });
+    }
+
     const { username, password } = req.body;
     const users = await getUsers();
     
@@ -1384,6 +1448,13 @@ async function startServer() {
   app.post('/api/data/:key/append', async (req, res) => {
     const { key } = req.params;
     const newItem = req.body;
+    
+    // Zod Validation
+    const validationResult = validateData(key, newItem);
+    if (!validationResult.success) {
+      return res.status(400).json({ error: 'Validation failed', details: validationResult.error.errors });
+    }
+
     try {
       if (!newItem.id) newItem.id = Math.random().toString(36).substring(2, 15);
       
@@ -1544,6 +1615,14 @@ async function startServer() {
   app.post('/api/data/:key', async (req, res) => {
     const { key } = req.params;
     const data = req.body;
+
+    // Zod Validation
+    if (key !== 'system_logs') {
+      const validationResult = validateData(key, data);
+      if (!validationResult.success) {
+        return res.status(400).json({ error: 'Validation failed', details: validationResult.error.errors });
+      }
+    }
 
     // Do not log changes to system_logs themselves
     if (key !== 'system_logs' && Array.isArray(data)) {
@@ -2282,6 +2361,11 @@ async function startServer() {
   });
 
   // Vite middleware for development
+  // Sentry error handler should be before any other error middleware and after all controllers
+  if (process.env.SENTRY_DSN) {
+    Sentry.setupExpressErrorHandler(app);
+  }
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

@@ -1,0 +1,318 @@
+import { getStoreSettings } from './settingsService';
+import { ensureLedgerAccount, getIssuedChecks, getReceivedChecks } from './accountingService';
+import { getTransactions } from './invoiceService';
+import { getInvoices } from './invoiceService';
+
+import { 
+  getLocalData, 
+  saveLocalData, 
+  updateLocalData, 
+  appendLocalData, 
+  batchLocalData, 
+  generateId, 
+  parseToGregorianDate, 
+  generateDocNumber, 
+  updateDocCounter, 
+  getDatabaseLogs, 
+  addDatabaseLog, 
+  getSystemLogs, 
+  addSystemLog,
+  ensureFiscalYearId
+} from './coreService';
+import { CompanySettings } from '../types';
+import { convertToGregorian } from '../utils/format';
+
+
+export const getPersonGroups = async () => {
+  const groups = await getLocalData<any[]>('person_groups', []);
+  return groups.sort((a, b) => b.createdAt - a.createdAt);
+};
+
+export const addPersonGroup = async (group: any) => {
+  const now = Date.now();
+  const newGroup = { ...group, id: generateId(), createdAt: now, updatedAt: now };
+  await appendLocalData('person_groups', newGroup);
+  return newGroup;
+};
+
+export const updatePersonGroup = async (id: string, group: any) => {
+  return await updateLocalData('person_groups', id, { ...group, updatedAt: Date.now() });
+};
+
+export const deletePersonGroup = async (id: string) => {
+  await batchLocalData([{ type: 'delete', key: 'person_groups', id }]);
+};
+
+export const getPersonRoles = async () => {
+  const roles = await getLocalData<any[]>('person_roles', []);
+  if (roles.length === 0) {
+    // initialize defaults
+    const defaults = [
+      { id: 'customer', name: 'مشتری', code: '10', color: 'bg-emerald-50 text-emerald-800 border-emerald-100', createdAt: Date.now() },
+      { id: 'supplier', name: 'تامین کننده', code: '20', color: 'bg-orange-50 text-orange-850 border-orange-100', createdAt: Date.now() },
+      { id: 'employee', name: 'کارمند', code: '30', color: 'bg-purple-50 text-purple-800 border-purple-100', createdAt: Date.now() }
+    ];
+    await saveLocalData('person_roles', defaults);
+    return defaults;
+  }
+  return roles.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+};
+
+export const addPersonRole = async (role: any) => {
+  const now = Date.now();
+  const newRole = { ...role, id: generateId(), createdAt: now, updatedAt: now };
+  await appendLocalData('person_roles', newRole);
+  return newRole;
+};
+
+export const updatePersonRole = async (id: string, role: any) => {
+  return await updateLocalData('person_roles', id, { ...role, updatedAt: Date.now() });
+};
+
+export const deletePersonRole = async (id: string) => {
+  await batchLocalData([{ type: 'delete', key: 'person_roles', id }]);
+};
+
+export const getPersonContacts = async () => {
+  return await getLocalData<any[]>('person_contacts', []);
+};
+
+export const savePersonContacts = async (contacts: any[]) => {
+  await saveLocalData('person_contacts', contacts);
+};
+
+export const getPersonBankAccounts = async () => {
+  return await getLocalData<any[]>('person_bank_accounts', []);
+};
+
+export const savePersonBankAccounts = async (accounts: any[]) => {
+  await saveLocalData('person_bank_accounts', accounts);
+};
+
+export const getPersons = async () => {
+  const persons = await getLocalData<any[]>('persons', []);
+  const contacts = await getLocalData<any[]>('person_contacts', []);
+  const bankAccounts = await getLocalData<any[]>('person_bank_accounts', []);
+  
+  const formattedPersons = (persons || []).map(p => {
+     p.contacts = contacts.filter(c => String(c.personId) === String(p.id));
+     p.bankAccounts = bankAccounts.filter(b => String(b.personId) === String(p.id));
+     return p;
+  });
+  
+  return formattedPersons.filter(p => !p.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
+};
+
+export const addPerson = async (person: any) => {
+  const persons = await getLocalData<any[]>('persons', []);
+  const roles = await getPersonRoles();
+  
+  const roleId = person.role;
+  const roleObj = roles.find(r => r.id === roleId); // Try to find dynamic role
+  
+  // if not found, maybe fallback to standard code mapping '10', '20', '30'
+  let roleCodePrefix = '10';
+  if (roleObj && roleObj.code) {
+    roleCodePrefix = roleObj.code;
+  } else if (roleId === 'supplier') {
+    roleCodePrefix = '20';
+  } else if (roleId === 'employee') {
+    roleCodePrefix = '30';
+  }
+  
+  let maxSuffix = 0;
+  for (const p of persons) {
+    if (p.role === roleId && p.personCode && p.personCode.startsWith(roleCodePrefix)) {
+      const suffix = Number(p.personCode.substring(roleCodePrefix.length));
+      if (!isNaN(suffix) && suffix > maxSuffix) {
+        maxSuffix = suffix;
+      }
+    }
+  }
+
+  const nextSuffix = (maxSuffix + 1).toString().padStart(4, '0'); // e.g. 0001
+  let finalPersonCode = `${roleCodePrefix}${nextSuffix}`;
+
+  // Check if there is specific configuration for Person Code in settings
+  const settings = await getStoreSettings();
+  if (settings && (settings as any).prefix_person !== undefined) {
+    finalPersonCode = await generateDocNumber('person');
+  }
+
+  // --- Handle Ledger Accounts for the Person ---
+  let parentCode = '12';
+  let parentNature = 'debit';
+  let subsidiaryCode = '1201';
+  let subAccTitle = 'مشتریان';
+  if (roleId === 'supplier') {
+    parentCode = '21';
+    parentNature = 'credit';
+    subsidiaryCode = '2101';
+    subAccTitle = 'تامین‌کنندگان';
+  } else if (roleId === 'employee') {
+    parentCode = '21';
+    parentNature = 'credit';
+    subsidiaryCode = '2102';
+    subAccTitle = 'کارکنان';
+  }
+  
+  let finalAccountingCode = await ensureLedgerAccount(
+    person,
+    parentCode,
+    subsidiaryCode,
+    subAccTitle,
+    person.alias || person.name,
+    parentNature
+  );
+
+  const now = Date.now();
+  const { contacts, bankAccounts, ...personData } = person;
+  const newPerson = { ...personData, personCode: finalPersonCode, accountingCode: finalAccountingCode, id: generateId(), createdAt: now, updatedAt: now };
+  await appendLocalData('persons', newPerson);
+  
+  if (contacts && contacts.length > 0) {
+      const allContacts = await getLocalData<any[]>('person_contacts', []);
+      await saveLocalData('person_contacts', [...allContacts, ...contacts.map((c: any) => ({...c, id: c.id || generateId(), personId: newPerson.id}))]);
+  }
+  if (bankAccounts && bankAccounts.length > 0) {
+      const allBanks = await getLocalData<any[]>('person_bank_accounts', []);
+      await saveLocalData('person_bank_accounts', [...allBanks, ...bankAccounts.map((b: any) => ({...b, id: b.id || generateId(), personId: newPerson.id}))]);
+  }
+
+  if (newPerson.personCode) {
+      await updateDocCounter('person', newPerson.personCode);
+  }
+  
+  if (typeof addSystemLog !== 'undefined') {
+    await addSystemLog('ADD_' + 'Person'.toUpperCase(), 'ثبت رکورد جدید در persons', 'Person', newPerson.id);
+  }
+
+  return newPerson;
+};
+
+export const updatePerson = async (id: string, person: any) => {
+  if (person.personCode) {
+      await updateDocCounter('person', person.personCode);
+  }
+  const persons = await getLocalData<any[]>('persons', []);
+  const index = persons.findIndex((p: any) => String(p.id) === String(id));
+  if (index !== -1) {
+    const oldPerson = persons[index];
+    const { contacts, bankAccounts, ...personData } = person;
+    const updatedPerson = { ...oldPerson, ...personData, updatedAt: Date.now() };
+
+    if (contacts) {
+       const allContacts = await getLocalData<any[]>('person_contacts', []);
+       const filteredContacts = allContacts.filter(c => String(c.personId) !== String(id));
+       await saveLocalData('person_contacts', [...filteredContacts, ...contacts.map((c: any) => ({...c, id: c.id || generateId(), personId: id}))]);
+    }
+
+    if (bankAccounts) {
+       const allBanks = await getLocalData<any[]>('person_bank_accounts', []);
+       const filteredBanks = allBanks.filter(b => String(b.personId) !== String(id));
+       await saveLocalData('person_bank_accounts', [...filteredBanks, ...bankAccounts.map((b: any) => ({...b, id: b.id || generateId(), personId: id}))]);
+    }
+
+    // Ensure Ledger Account exists
+    let parentCode = '12';
+    let parentNature = 'debit';
+    const roleId = updatedPerson.role;
+    let subsidiaryCode = '1201';
+    let subAccTitle = 'مشتریان';
+    if (roleId === 'supplier') {
+      parentCode = '21';
+      parentNature = 'credit';
+      subsidiaryCode = '2101';
+      subAccTitle = 'تامین‌کنندگان';
+    } else if (roleId === 'employee') {
+      parentCode = '21';
+      parentNature = 'credit';
+      subsidiaryCode = '2102';
+      subAccTitle = 'کارکنان';
+    }
+    
+    let finalAccountingCode = await ensureLedgerAccount(
+      updatedPerson,
+      parentCode,
+      subsidiaryCode,
+      subAccTitle,
+      updatedPerson.alias || updatedPerson.name,
+      parentNature
+    );
+    updatedPerson.accountingCode = finalAccountingCode;
+
+    await updateLocalData('persons', id, updatedPerson);
+  
+  if (typeof addSystemLog !== 'undefined') {
+    await addSystemLog('UPDATE_' + 'Person'.toUpperCase(), 'ویرایش رکورد در persons', 'Person', id);
+  }
+
+    return updatedPerson;
+  }
+  return null;
+};
+
+export const deletePerson = async (id: string) => {
+  // Check relations
+  const invoices = await getInvoices();
+  if (invoices.some(inv => String(inv.customerId) === String(id))) {
+    throw new Error('این شخص دارای فاکتور ثبت شده است و قابل حذف نیست.');
+  }
+  const transactions = await getTransactions();
+  if (transactions.some(t => String(t.personId) === String(id))) {
+    throw new Error('این شخص دارای سند دریافت/پرداخت است و قابل حذف نیست.');
+  }
+  const issuedChecks = await getIssuedChecks();
+  if (issuedChecks.some(c => String(c.payeeId) === String(id))) {
+    throw new Error('این شخص دارای چک پرداختی است و قابل حذف نیست.');
+  }
+  const receivedChecks = await getReceivedChecks();
+  if (receivedChecks.some(c => String(c.payerId) === String(id))) {
+    throw new Error('این شخص دارای چک دریافتی است و قابل حذف نیست.');
+  }
+
+  const persons = await getLocalData<any[]>('persons', []);
+  // Instead of physical delete, maybe just soft delete if needed, but user says "هیچ چیز به صورت فیزیکی حذف نشود".
+  // Actually, we can do soft delete by setting isDeleted = true. Or just keep it as is if there are no relations, we can physically delete it, since it has no relations. The user says "هیچ چیز به صورت فیزیکی حذف نشود". So let's soft delete.
+  const index = persons.findIndex((p: any) => String(p.id) === String(id));
+  if (index !== -1) {
+    persons[index].isDeleted = true;
+    await updateLocalData('persons', id, persons[index]);
+  }
+};
+
+export const getPersonFollowUps = async () => {
+  const followUps = await getLocalData<any[]>('person_follow_ups', []);
+  return followUps.sort((a, b) => b.createdAt - a.createdAt);
+};
+
+export const addPersonFollowUp = async (followUp: any) => {
+  const followUps = await getPersonFollowUps();
+  const newFollowUp = { ...followUp, id: generateId(), createdAt: Date.now(), updatedAt: Date.now() };
+  followUps.push(newFollowUp);
+  await saveLocalData('person_follow_ups', followUps);
+  return newFollowUp;
+};
+
+export const updatePersonFollowUp = async (id: string | number, followUp: any) => {
+  const followUps = await getPersonFollowUps();
+  const index = followUps.findIndex((p: any) => String(p.id) === String(id));
+  if (index !== -1) {
+    followUps[index] = { ...followUps[index], ...followUp, updatedAt: Date.now() };
+    await saveLocalData('person_follow_ups', followUps);
+  }
+};
+
+export const deletePersonFollowUp = async (id: string | number) => {
+  const followUps = await getPersonFollowUps();
+  await saveLocalData('person_follow_ups', followUps.filter((p: any) => String(p.id) !== String(id)));
+};
+
+export const getDebtorsTrackings = async () => {
+  return await getLocalData<any[]>('debtors_trackings', []);
+};
+
+export const saveDebtorsTrackings = async (data: any[]) => {
+  await saveLocalData('debtors_trackings', data);
+};
+

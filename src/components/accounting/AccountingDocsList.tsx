@@ -5,9 +5,9 @@ import { FileText, Plus, Search, Eye, Edit2, Trash2 } from 'lucide-react';
 import { getAccountingDocuments, getLedgerAccounts, getStoreSettings, deleteAccountingDocument } from '../../services/dataService';
 import { AccountingDocument, LedgerAccount, CompanySettings } from '../../types';
 import CustomDatePicker from "../ui/CustomDatePicker";
-const DatePicker = CustomDatePicker;
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+const DatePicker = CustomDatePicker;
 
 export default function AccountingDocsList({ onNavigateToCreate, onNavigateToView, onNavigateToEdit, showNotification }: any) {
   const [docs, setDocs] = useState<AccountingDocument[]>([]);
