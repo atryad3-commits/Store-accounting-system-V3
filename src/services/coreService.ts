@@ -95,7 +95,12 @@ export const getLocalData = async <T>(key: string, defaultValue: T, queryParams:
         'Expires': '0'
       }
     });
-    if (!res.ok) throw new Error('Network response was not ok');
+    if (!res.ok) {
+      if (res.status === 401) {
+        return defaultValue;
+      }
+      throw new Error('Network response was not ok');
+    }
     const data = await res.json();
     const finalData = (data !== null && data !== undefined) ? data : defaultValue;
     if (Array.isArray(defaultValue) && !Array.isArray(finalData)) { return defaultValue; }
@@ -127,7 +132,10 @@ export const saveLocalData = async <T>(key: string, data: T, retries = 3): Promi
  'Content-Type': 'application/json' },
       body: JSON.stringify(processedData)
     });
-    if (!res.ok) throw new Error('Network response was not ok');
+    if (!res.ok) {
+      if (res.status === 401) return;
+      throw new Error('Network response was not ok');
+    }
     invalidateCache(key);
   } catch (error) {
     if (retries > 0) {
@@ -147,7 +155,10 @@ export const updateLocalData = async <T>(key: string, id: string | number, data:
  'Content-Type': 'application/json' },
     body: JSON.stringify(processedData)
   });
-  if (!res.ok) throw new Error('Network response was not ok');
+  if (!res.ok) {
+    if (res.status === 401) return data as T;
+    throw new Error('Network response was not ok');
+  }
   invalidateCache(key);
   const result = await res.json();
   return result.data;
@@ -162,7 +173,10 @@ export const appendLocalData = async <T>(key: string, data: T): Promise<T> => {
  'Content-Type': 'application/json' },
     body: JSON.stringify(processedData)
   });
-  if (!res.ok) throw new Error('Network response was not ok');
+  if (!res.ok) {
+    if (res.status === 401) return data as T;
+    throw new Error('Network response was not ok');
+  }
   invalidateCache(key);
   const result = await res.json();
   return result.data;
@@ -185,7 +199,10 @@ export const batchLocalData = async (operations: any[]): Promise<any> => {
  'Content-Type': 'application/json' },
     body: JSON.stringify({ operations: processedOps })
   });
-  if (!res.ok) throw new Error('Network response was not ok');
+  if (!res.ok) {
+    if (res.status === 401) return { success: false };
+    throw new Error('Network response was not ok');
+  }
   operations.forEach(op => invalidateCache(op.key));
   return await res.json();
 };

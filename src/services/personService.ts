@@ -252,6 +252,13 @@ export const updatePerson = async (id: string, person: any) => {
   return null;
 };
 
+export const savePerson = async (person: any) => {
+  if (person.id) {
+    return updatePerson(String(person.id), person);
+  }
+  return addPerson(person);
+};
+
 export const deletePerson = async (id: string) => {
   // Check relations
   const invoices = await getInvoices();

@@ -20,7 +20,9 @@ import BeautifulLoading from "../components/BeautifulLoading";
 import DataReconciliation from "../components/DataReconciliation";
 import CreateSalaryPayroll from '../components/payroll/CreateSalaryPayroll';
 import ListSalaryPayroll from '../components/payroll/ListSalaryPayroll';
+import { useStore } from '../store';
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import ProductsTab from "../components/products/ProductsTab";
 import PersonOpeningBalances from "../components/persons/PersonOpeningBalances";
 import PersonLedger from "../components/persons/PersonLedger";
@@ -316,7 +318,8 @@ const isFastStocktaking = window.location.hash.startsWith('#fast-stocktaking');
 
 if (isFastStocktaking) { /* handled in App.tsx */ }
 
-const [activeFinancialYear, setActiveFinancialYearState] =
+  const { activeStoreId, setActiveStoreId, availableStores, setAvailableStores, isStoreSelectionOpen, setIsStoreSelectionOpen } = useStore();
+  const [activeFinancialYear, setActiveFinancialYearState] =
     useState<any>(null);
 
 const [hasCheckedFinancialYears, setHasCheckedFinancialYears] =
@@ -354,113 +357,23 @@ const confirmAction = (message: string, onConfirm: () => Promise<void> | void, d
 const { user, loading: authLoading, signIn, signOut } = useAuth();
 
 
-const [activeStoreId, setActiveStoreId] = useState<string | null>(localStorage.getItem("activeStoreId"));
-const [availableStores, setAvailableStores] = useState<any[]>([]);
-const [isStoreSelectionOpen, setIsStoreSelectionOpen] = useState(!localStorage.getItem("activeStoreId"));
+// Removed activeStoreId state
+// Removed availableStores state
+// Removed isStoreSelectionOpen state
 
 useEffect(() => {
   fetch('/api/databases').then(r => r.json()).then(d => {
     if (d.success) setAvailableStores(d.databases);
   }).catch(() => {});
 }, []);
-const [activeTab, setRawActiveTab] = useState<
-    | "create_sale"
-    | "debts_credits"
-    | "create_purchase"
-    | "list_sale"
-    | "list_purchase"
-    | "create_receive_receipt"
-    | "list_receive_receipt"
-    | "create_pay_receipt"
-    | "list_pay_receipt"
-    | "create_salary_payroll"
-    | "list_salary_payroll"
-    | "create_warehouse_doc"
-    | "list_warehouse_docs"
-    | "products"
-    | "welcome_page"
-    | "product_view"
-    | "product_categories"
-    | "persons"
-    | "person_profile"
-    | "person_opening_balances"
-    | "person_groups"
-    | "person_roles"
-    | "accounts"
-    | "cashboxes"
-    | "warehouses"
-    | "update"
-    | "personal_notes"
-    | "settings"
-    | "sms_panel"
-    | "financial_report"
-    | "analytical_dashboard"
-    | "crm_dashboard"
-    | "person_ledger"
-    | "inventory_report"
-    | "order_list"
-    | "kardex"
-    | "checklist"
-    | "database"
-    | "users_manager"
-    | "system_diagnostics"
-    | "data_reconciliation"
-    | "check_panel"
-    | "checkbooks"
-    | "issued_checks"
-    | "received_checks"
-    | "check_calendar"
-    | "check_charts"
-    | "transfer"
-    | "invoice_allocation"
-    | "quick_refund"
-    | "quick_price_inquiry"
-    | "create_sale_return"
-    | "create_purchase_return"
-    | "list_sale_return"
-    | "list_purchase_return"
-    | "loans"
-    | "system_logs"
-    | "database_logs"
-    | "stocktaking"
-    | "financial_years"
-    | "chart_of_accounts"
-    | "accounting_docs_list"
-    | "accounting_doc_create"
-    | "accounting_doc_view"
-    | "accounting_auto_sync"
-    | "accounting_verification"
-    | "accounting_opening_balances"
-    | "kardex"
-    | "product_last_prices"
-  >("welcome_page");
 
-useEffect(() => {
-    const handlePopState = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (hash) {
-        setRawActiveTab(hash as any);
-      }
-    };
-    window.addEventListener('hashchange', handlePopState);
-    window.addEventListener('popstate', handlePopState);
-    
-    const initialHash = window.location.hash.replace('#', '');
-    if (initialHash) {
-       setRawActiveTab(initialHash as any);
-    }
-    
-    return () => {
-       window.removeEventListener('hashchange', handlePopState);
-       window.removeEventListener('popstate', handlePopState);
-    }
-  }, []);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const activeTab = location.pathname.substring(1) || "welcome_page";
+  const setRawActiveTab = (tab: string) => navigate("/" + tab);
 
-useEffect(() => {
-    if (activeTab && window.location.hash !== `#${activeTab}`) {
-      window.history.pushState(null, '', `#${activeTab}`);
-    }
-  }, [activeTab]);
+
+// Hash routing replaced by React Router
 
 const setActiveTab = (tab: any, force: boolean = false) => {
     if (tab === activeTab) return;

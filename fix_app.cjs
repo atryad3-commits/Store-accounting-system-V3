@@ -1,32 +1,17 @@
 const fs = require('fs');
+
 let appTsx = fs.readFileSync('src/App.tsx', 'utf8');
 
-// Separate all import statements and place them at the very top.
-let lines = appTsx.split('\n');
-let imports = [];
-let others = [];
-let inImport = false;
-let currentImport = '';
+const routesEnd = '</Routes>';
+const nextGoodComponent = '<PricingWizardModal';
 
-for (let line of lines) {
-  if (line.trim().startsWith('import ') || line.trim().startsWith('import\t')) {
-    if (line.includes(';') || line.includes('from') || line.endsWith('}')) {
-      imports.push(line);
-    } else {
-      inImport = true;
-      currentImport = line;
-    }
-  } else if (inImport) {
-    currentImport += '\n' + line;
-    if (line.includes(';') || line.includes('from') || line.endsWith('}')) {
-      imports.push(currentImport);
-      inImport = false;
-      currentImport = '';
-    }
-  } else {
-    others.push(line);
-  }
+const routesIndex = appTsx.indexOf(routesEnd);
+const nextIndex = appTsx.indexOf(nextGoodComponent);
+
+if (routesIndex !== -1 && nextIndex !== -1) {
+    const newAppTsx = appTsx.substring(0, routesIndex + routesEnd.length) + 
+      `\n                    </Suspense>\n                  </div>\n                </main>\n` + 
+      appTsx.substring(nextIndex);
+    fs.writeFileSync('src/App.tsx', newAppTsx);
+    console.log("Fixed broken JSX in App.tsx");
 }
-
-fs.writeFileSync('src/App.tsx', imports.join('\n') + '\n' + others.join('\n'));
-console.log("Fixed App.tsx");

@@ -1112,7 +1112,22 @@ async function startServer() {
   const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'super-secret-jwt-refresh-key-2024';
 
   const getUsers = async () => {
-    return (await getDbData('users')) || [];
+    let users = (await getDbData('users')) || [];
+    if (!Array.isArray(users) || users.length === 0) {
+      const hashedPassword = await bcrypt.hash('admin', 10);
+      const defaultAdmin = {
+        id: 'admin-default',
+        username: 'admin',
+        password: hashedPassword,
+        name: 'مدیر سیستم',
+        role: 'admin',
+        isActive: true,
+        createdAt: Date.now()
+      };
+      users = [defaultAdmin];
+      await setDbData('users', users);
+    }
+    return users;
   };
 
   const saveUsers = async (users) => {

@@ -1,4 +1,4 @@
-import { pgTable, serial, text, varchar, timestamp, json, integer, boolean, numeric } from "drizzle-orm/pg-core";
+const schemaContent = `import { pgTable, serial, text, varchar, timestamp, json, integer, boolean, numeric } from "drizzle-orm/pg-core";
 
 // Core Users Table
 export const users = pgTable('users', {
@@ -138,3 +138,8 @@ export const warehouseStocks = pgTable('warehouse_stocks', {
   productId: varchar('product_id', { length: 50 }).notNull(),
   stock: numeric('stock').default('0'),
 });
+`;
+
+const fs = require('fs');
+fs.writeFileSync('src/db/schema.ts', schemaContent);
+console.log('Schema written');
