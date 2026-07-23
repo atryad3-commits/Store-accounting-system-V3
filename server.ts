@@ -243,7 +243,7 @@ async function innerGetDbData(key: string) {
             if (typeof row[k] === 'string' && (row[k].startsWith('{') || row[k].startsWith('['))) {
                try {
                   row[k] = JSON.parse(row[k]);
-               } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+               } catch(e) { /* ignore non-JSON string */ }
             }
          }
          return row;
@@ -904,7 +904,7 @@ async function startServer() {
       if (existing || id === 'default') {
         if (!existing) {
            if (usePgMap['default'] && activePgPools['default']) {
-               await activePgPools['default'].query('INSERT INTO businesses (id, name, db_type) VALUES (, , )', [id, name, db_type || 'sqlite']);
+               await activePgPools['default'].query('INSERT INTO businesses (id, name, db_type) VALUES ($1, $2, $3)', [id, name, db_type || 'sqlite']);
            } else {
                const defaultDb = storeContext.run('default', () => getDb());
                defaultDb.prepare('INSERT INTO businesses (id, name, db_type) VALUES (?, ?, ?)').run(id, name, db_type || 'sqlite');
@@ -1666,13 +1666,13 @@ async function startServer() {
                try {
                  const decoded = jwt.verify(req.cookies.refreshToken, process.env.JWT_REFRESH_SECRET || 'super-secret-jwt-refresh-key-2024') as any;
                  if (decoded && decoded.username) userId = decoded.username;
-               } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+               } catch(e) { /* ignore expired token */ }
             } else if (req.headers.authorization) {
                try {
                  const token = req.headers.authorization.split(' ')[1];
                  const decoded = jwt.verify(token, process.env.JWT_SECRET || 'super-secret-jwt-key-2024') as any;
                  if (decoded && decoded.username) userId = decoded.username;
-               } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+               } catch(e) { /* ignore expired token */ }
             }
 
             const generateId = () => Math.random().toString(36).substring(2, 15);
