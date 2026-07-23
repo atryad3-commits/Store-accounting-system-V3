@@ -6077,6 +6077,8 @@ const renderTabContent = () => {
     fetchAccounts,
     handleDeleteAccount,
     fetchCashboxes,
+    fetchWarehouses,
+    setSalaryPersonId,
     fetchTransactions,
     fetchAccountingDocuments,
     confirmReceiptSubmit,

@@ -599,6 +599,7 @@ const appState = useAppController();
         viewingProduct,
         setViewingProduct,
         editingProductId,
+        setEditingProductId,
         editingPersonId,
         setEditingPersonId,
         editingAccountId,
@@ -628,6 +629,8 @@ const appState = useAppController();
         fetchAccounts,
         handleDeleteAccount,
         fetchCashboxes,
+        fetchWarehouses,
+        setSalaryPersonId,
         fetchTransactions,
         fetchAccountingDocuments,
         confirmReceiptSubmit,
@@ -2118,6 +2121,141 @@ if (requiresInitSetup && user) {
 
 
     
+          {isPersonModalOpen && (
+            <PersonFormModal
+              isOpen={isPersonModalOpen}
+              onClose={() => {
+                setIsPersonModalOpen(false);
+                setEditingPersonId(null);
+              }}
+              editingPersonId={editingPersonId}
+              persons={persons}
+              personGroups={personGroups}
+              personRoles={personRoles}
+              storeSettings={storeSettings}
+              activeTab={activeTab}
+              setReceiptPersonId={setReceiptPersonId}
+              setCustomerId={setCustomerId}
+              setSalaryPersonId={setSalaryPersonId}
+              deletePerson={deletePerson}
+              fetchPersons={fetchPersons}
+              setActiveTab={setActiveTab}
+              setLedgerPersonId={setLedgerPersonId}
+              onSuccess={(addedPerson) => {
+                fetchPersons?.();
+                showNotification('اطلاعات شخص با موفقیت ثبت شد', 'success');
+                setIsPersonModalOpen(false);
+                setEditingPersonId(null);
+              }}
+              showNotification={showNotification}
+              confirmAction={confirmAction}
+            />
+          )}
+
+          {isPersonIOModalOpen && (
+            <PersonIOModal
+              isOpen={isPersonIOModalOpen}
+              onClose={() => setIsPersonIOModalOpen(false)}
+              action={personIOAction}
+              setAction={setPersonIOAction}
+              persons={persons}
+              storeSettings={storeSettings}
+              addPerson={addPerson}
+              showNotification={showNotification}
+              confirmAction={confirmAction}
+              getRoleName={getRoleName}
+              fetchPersons={fetchPersons}
+            />
+          )}
+
+          {isProductModalOpen && (
+            <ProductFormModal
+              isOpen={isProductModalOpen}
+              onClose={() => {
+                setIsProductModalOpen(false);
+                setEditingProductId(null);
+              }}
+              editingProductId={editingProductId}
+              products={products}
+              productCategories={productCategories}
+              warehouses={warehouses}
+              storeSettings={storeSettings}
+              onSuccess={() => {
+                fetchProducts?.();
+                showNotification('اطلاعات کالا با موفقیت ثبت شد', 'success');
+                setIsProductModalOpen(false);
+                setEditingProductId(null);
+              }}
+              showNotification={showNotification}
+              confirmAction={confirmAction}
+              activeTab={activeTab}
+              handleFastAddProduct={handleFastAddProduct}
+            />
+          )}
+
+          {isAccountModalOpen && (
+            <AccountFormModal
+              isOpen={isAccountModalOpen}
+              onClose={() => {
+                setIsAccountModalOpen(false);
+                setEditingAccountId(null);
+              }}
+              editingAccountId={editingAccountId}
+              accounts={accounts}
+              storeSettings={storeSettings}
+              onSuccess={() => {
+                fetchAccounts?.();
+                showNotification('اطلاعات حساب با موفقیت ثبت شد', 'success');
+                setIsAccountModalOpen(false);
+                setEditingAccountId(null);
+              }}
+              showNotification={showNotification}
+              confirmAction={confirmAction}
+            />
+          )}
+
+          {isCashboxModalOpen && (
+            <CashboxFormModal
+              isOpen={isCashboxModalOpen}
+              onClose={() => {
+                setIsCashboxModalOpen(false);
+                setEditingCashboxId(null);
+              }}
+              editingCashboxId={editingCashboxId}
+              cashboxes={cashboxes}
+              storeSettings={storeSettings}
+              onSuccess={() => {
+                fetchCashboxes?.();
+                showNotification('اطلاعات صندوق با موفقیت ثبت شد', 'success');
+                setIsCashboxModalOpen(false);
+                setEditingCashboxId(null);
+              }}
+              showNotification={showNotification}
+              confirmAction={confirmAction}
+            />
+          )}
+
+          {isWarehouseModalOpen && (
+            <WarehouseFormModal
+              isOpen={isWarehouseModalOpen}
+              onClose={() => {
+                setIsWarehouseModalOpen(false);
+                setEditingWarehouseId(null);
+              }}
+              editingWarehouseId={editingWarehouseId}
+              warehouses={warehouses}
+              storeSettings={storeSettings}
+              onSuccess={() => {
+                fetchWarehouses?.();
+                showNotification('اطلاعات انبار با موفقیت ثبت شد', 'success');
+                setIsWarehouseModalOpen(false);
+                setEditingWarehouseId(null);
+              }}
+              showNotification={showNotification}
+              confirmAction={confirmAction}
+            />
+          )}
+
           <CalculatorModal isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
         </>
       );
