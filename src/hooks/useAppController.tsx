@@ -433,7 +433,7 @@ const [activeTab, setRawActiveTab] = useState<
     | "accounting_opening_balances"
     | "kardex"
     | "product_last_prices"
-  >("financial_report");
+  >("welcome_page");
 
 useEffect(() => {
     const handlePopState = () => {
