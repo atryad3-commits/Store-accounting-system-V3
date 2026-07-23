@@ -1453,7 +1453,7 @@ if (requiresInitSetup && user) {
                   className={`flex flex-col sticky top-0 z-[60] print:hidden ${isGmailTheme ? "bg-[#f6f8fc]" : "bg-white border-b border-gray-100 shadow-sm"}`}
                 >
                   <div
-                    className={`hidden md:flex flex-row items-center justify-between p-4 sticky top-0 ${
+                    className={`hidden md:flex flex-row items-center justify-between p-4 relative z-[70] ${
                       isGmailTheme
                         ? "bg-[#f6f8fc] border-none"
                         : "bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-xs"
@@ -1527,11 +1527,10 @@ if (requiresInitSetup && user) {
                       <div className="relative" ref={headerMenuRef}>
                         <button
                           onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
-                          className="px-3 py-2 border rounded-xl transition-all cursor-pointer font-black gap-2 flex items-center text-xs shadow-3xs active:scale-95 text-slate-600 hover:text-indigo-700 hover:bg-indigo-50 bg-white border-slate-200"
+                          className={`w-10 h-10 border rounded-xl transition-all cursor-pointer flex items-center justify-center shadow-3xs active:scale-95 ${isHeaderMenuOpen ? "bg-indigo-50 border-indigo-200 text-indigo-700" : "bg-white border-slate-200 text-slate-600 hover:text-indigo-700 hover:bg-indigo-50"}`}
+                          title="تنظیمات و مدیریت"
                         >
-                          <Settings className="w-4 h-4" />
-                          <span className="hidden sm:inline-block">تنظیمات و مدیریت</span>
-                          <ChevronDown className={`w-4 h-4 transition-transform ${isHeaderMenuOpen ? "rotate-180" : ""}`} />
+                          <Settings className={`w-5 h-5 transition-transform duration-500 ${isHeaderMenuOpen ? "rotate-90" : ""}`} />
                         </button>
                         
                         <AnimatePresence>
@@ -1637,7 +1636,7 @@ if (requiresInitSetup && user) {
                     </div>
                   </div>
 
-                  <div className="block">
+                  <div className="block relative z-[60]">
                   <SidebarNavigation
                     mode="horizontal"
                     user={user}
