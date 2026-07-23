@@ -184,89 +184,35 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
                 </div>
               </div>
               
-              <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-4">
-                <div className="md:col-span-4">
-                  <label className="block text-sm font-bold text-slate-700 mb-2">انتخاب کسب‌و‌کار</label>
-                  <div className="relative">
-                    <Database className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <select
-                      value={selectedBusiness}
-                      onChange={(e) => {
-                        setSelectedBusiness(e.target.value);
-                        setSearchResults([]);
-                      }}
-                      className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 pl-4 pr-10 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none appearance-none font-medium transition-all"
-                    >
-                      <option value="">لطفاً یک کسب‌و‌کار انتخاب کنید...</option>
-                      {businesses.map((b, idx) => (
-                        <option key={`bus-${idx}`} value={b.id}>{b.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="md:col-span-8">
-                  <label className="block text-sm font-bold text-slate-700 mb-2">جستجوی کالا (نام، بارکد یا کد)</label>
-                  <form onSubmit={handleSearch} className="flex gap-3">
-                    <div className="relative flex-1">
-                      <Package className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                      <input
-                        type="text"
-                        disabled={!selectedBusiness}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder={selectedBusiness ? "نام کالا، بارکد یا کد کالا را وارد کنید..." : "ابتدا یک کسب‌و‌کار انتخاب کنید..."}
-                        className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 pl-4 pr-10 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none font-medium transition-all disabled:opacity-50"
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={!selectedBusiness || !searchQuery.trim() || isSearching}
-                      className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 min-w-[120px]"
-                    >
-                      {isSearching ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <>جستجو</>
-                      )}
-                    </button>
-                  </form>
+              <div className="relative z-10 mb-6">
+                <div className="relative">
+                  <Database className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <select
+                    value={selectedBusiness}
+                    onChange={(e) => setSelectedBusiness(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 pl-4 pr-10 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none appearance-none font-medium transition-all"
+                  >
+                    <option value="">لطفاً یک کسب‌و‌کار انتخاب کنید...</option>
+                    {businesses.map((b, idx) => (
+                      <option key={`bus-${idx}`} value={b.id}>{b.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
-              {/* Search Results */}
-              {searchResults.length > 0 && (
-                <div className="mt-8 border-t border-slate-100 pt-6">
-                  <h4 className="text-sm font-bold text-slate-500 mb-4">نتایج جستجو:</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {searchResults.map((product, idx) => (
-                      <div key={`search-${idx}`} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex items-start gap-4">
-                        <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
-                          <Package className="w-6 h-6 text-indigo-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h5 className="font-bold text-slate-900 truncate" title={product.name}>{product.name}</h5>
-                          <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
-                            {product.code && <span>کد: {toPersianDigits(product.code)}</span>}
-                            {product.code && product.barcode && <span className="w-1 h-1 bg-slate-300 rounded-full" />}
-                            {product.barcode && <span>بارکد: {toPersianDigits(product.barcode)}</span>}
-                          </div>
-                          <div className="mt-3 flex items-baseline gap-1">
-                            <span className="text-lg font-black text-emerald-600">{toPersianDigits(Number(product.salePrice).toLocaleString())}</span>
-                            <span className="text-xs font-bold text-emerald-700/70">ریال</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              {isLoadingStore ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                 </div>
-              )}
-              
-              {searchResults.length === 0 && searchQuery && !isSearching && (
-                 <div className="mt-8 border-t border-slate-100 pt-8 text-center">
-                    <p className="text-slate-500 font-medium">کالایی با این مشخصات یافت نشد.</p>
-                 </div>
-              )}
+              ) : selectedBusiness && storeProducts.length > 0 ? (
+                <div className="-mx-6 -mb-6 bg-slate-50/50 rounded-b-3xl">
+                  <QuickPriceInquiry products={storeProducts} settings={storeSettings} />
+                </div>
+              ) : selectedBusiness ? (
+                <div className="text-center py-8 text-slate-500">
+                  محصولی در این کسب‌و‌کار یافت نشد.
+                </div>
+              ) : null}
             </div>
           </div>
 
