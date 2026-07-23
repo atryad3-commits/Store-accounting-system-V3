@@ -27,6 +27,7 @@ import PersonOpeningBalances from "./components/persons/PersonOpeningBalances";
 import PersonLedger from "./components/persons/PersonLedger";
 import SettingsTab from "./components/admin/SettingsTab";
 import SidebarNavigation from "./components/SidebarNavigation";
+import WelcomePage from "./components/WelcomePage";
 import MobileRestrictedMenu from "./components/MobileRestrictedMenu";
 import MinimalMobilePersonModal from "./components/modals/MinimalMobilePersonModal";
 
@@ -870,13 +871,14 @@ if (requiresInitSetup && user) {
       </div>
     );
   }
+  
+  if (activeTab === "welcome_page") {
+    return <WelcomePage onLoginClick={() => setActiveTab("financial_report")} />;
+  }
 
-
-
-
-      return (
-        <>
-          <DebtorsNotification persons={persons} 
+  return (
+    <>
+      <DebtorsNotification persons={persons} 
             settings={storeSettings} 
             
             calculatePersonBalance={calculatePersonBalance} 

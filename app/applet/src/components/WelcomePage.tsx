@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LogIn, ArrowLeft, BookOpen, Bell, Activity, Newspaper, ChevronLeft, ShieldCheck, Search, Database, Package } from 'lucide-react';
+import { LogIn, ArrowLeft, ArrowRight, ShieldCheck, Zap, BookOpen, Bell, CheckCircle, Activity, ChevronLeft, Database, Search, User as UserIcon, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toPersianDigits } from '../utils/format';
 import QuickPriceInquiry from './inventory/QuickPriceInquiry';
@@ -13,7 +13,8 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
   const [storeProducts, setStoreProducts] = useState<any[]>([]);
   const [storeSettings, setStoreSettings] = useState<any>({});
   const [isLoadingStore, setIsLoadingStore] = useState(false);
-  const [showFullPricePage, setShowFullPricePage] = useState(false);
+  
+  const [currentView, setCurrentView] = useState<'home' | 'price_inquiry'>('home');
 
   useEffect(() => {
     const fetchBusinesses = async () => {
@@ -24,7 +25,7 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
           setBusinesses(data.databases);
         }
       } catch (e) {
-        console.error("Failed to fetch businesses", e);
+        console.error("Failed to fetch databases", e);
       }
     };
     fetchBusinesses();
@@ -88,20 +89,20 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
     }
   ];
 
-  if (showFullPricePage && selectedBusiness) {
+  if (currentView === 'price_inquiry') {
     return (
       <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col" dir="rtl">
-        <nav className="w-full bg-white border-b border-slate-200 sticky top-0 z-50 shrink-0">
+        <nav className="w-full bg-white border-b border-slate-200 sticky top-0 z-50 shrink-0 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div className="flex items-center justify-between h-20">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white">
-                  <Database className="w-5 h-5" />
+                  <Search className="w-5 h-5" />
                 </div>
-                <h1 className="text-xl font-black text-slate-900">استعلام قیمت</h1>
+                <h1 className="text-xl font-black text-slate-900">استعلام قیمت کالا</h1>
               </div>
               <button 
-                onClick={() => setShowFullPricePage(false)}
+                onClick={() => setCurrentView('home')}
                 className="flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm transition-all"
               >
                 بازگشت به سایت
@@ -110,10 +111,50 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
             </div>
           </div>
         </nav>
-        <div className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 overflow-y-auto">
-           <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-             <QuickPriceInquiry products={storeProducts} settings={storeSettings} />
-           </div>
+        <div className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 overflow-y-auto flex flex-col gap-6">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6 relative z-10">
+              <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
+                <Database className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-slate-900">انتخاب کسب‌و‌کار</h3>
+                <p className="text-slate-500 text-sm mt-1">لطفاً برای مشاهده قیمت‌ها، کسب‌و‌کار مورد نظر را انتخاب کنید.</p>
+              </div>
+            </div>
+            
+            <div className="relative z-10">
+              <div className="relative">
+                <Database className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <select
+                  value={selectedBusiness}
+                  onChange={(e) => setSelectedBusiness(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 pl-4 pr-10 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none appearance-none font-medium transition-all"
+                >
+                  <option value="">لطفاً یک کسب‌و‌کار انتخاب کنید...</option>
+                  {businesses.map((b, idx) => (
+                    <option key={`bus-${idx}`} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {isLoadingStore ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : selectedBusiness && storeProducts.length > 0 ? (
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+              <QuickPriceInquiry products={storeProducts} settings={storeSettings} />
+            </div>
+          ) : selectedBusiness ? (
+            <div className="text-center py-8 text-slate-500 bg-white rounded-3xl shadow-sm border border-slate-200">
+              محصولی در این کسب‌و‌کار یافت نشد.
+            </div>
+          ) : null}
         </div>
       </div>
     );
@@ -133,9 +174,10 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
                 سیستم جامع <span className="text-indigo-600">تراز</span>
               </h1>
             </div>
-            
+
             <div className="hidden md:flex space-x-8 space-x-reverse">
               <a href="#" className="text-slate-600 hover:text-indigo-600 font-bold transition-colors">صفحه اصلی</a>
+              <button onClick={() => setCurrentView('price_inquiry')} className="text-slate-600 hover:text-indigo-600 font-bold transition-colors cursor-pointer">استعلام قیمت</button>
               <a href="#news" className="text-slate-600 hover:text-indigo-600 font-bold transition-colors">اخبار و مقالات</a>
               <a href="#links" className="text-slate-600 hover:text-indigo-600 font-bold transition-colors">لینک‌های مهم</a>
               <a href="#" className="text-slate-600 hover:text-indigo-600 font-bold transition-colors">پشتیبانی</a>
@@ -143,12 +185,12 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
 
             <div className="flex items-center gap-4">
               {user ? (
-                <button
+                <button 
                   onClick={onLoginClick}
-                  className="flex items-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-6 py-2.5 rounded-xl font-bold transition-all border border-indigo-100"
+                  className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-md hover:shadow-lg"
                 >
-                  <span className="truncate max-w-[120px]">{user.name || user.username}</span>
-                  <ArrowLeft className="w-5 h-5" />
+                  <UserIcon className="w-5 h-5" />
+                  {user.name}
                 </button>
               ) : (
                 <button 
@@ -190,7 +232,7 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
                   onClick={onLoginClick}
                   className="flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-indigo-600/20"
                 >
-                  داشبورد کسب‌و‌کار من
+                  ورود به پنل کاربری ({user.name})
                   <ArrowLeft className="w-6 h-6" />
                 </button>
               ) : (
@@ -202,12 +244,13 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
                   <ArrowLeft className="w-6 h-6" />
                 </button>
               )}
-              <a 
-                href="#news"
+              <button 
+                onClick={() => setCurrentView('price_inquiry')}
                 className="flex items-center justify-center gap-3 bg-white hover:bg-slate-50 text-slate-700 px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-sm border border-slate-200"
               >
-                مشاهده آخرین اخبار
-              </a>
+                استعلام قیمت کالا
+                <Search className="w-5 h-5 text-slate-400" />
+              </button>
             </div>
           </motion.div>
         </div>
@@ -217,70 +260,20 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-          {/* Price Inquiry Section */}
-          <div id="inquiry" className="lg:col-span-3 space-y-8 mb-8">
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-              
-              <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6 relative z-10">
-                <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
-                  <Search className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-slate-900">استعلام سریع قیمت کالا</h3>
-                  <p className="text-slate-500 text-sm mt-1">بدون نیاز به ورود به سیستم، قیمت کالاها را در کسب‌وکارهای مختلف جستجو کنید.</p>
-                </div>
-              </div>
-              
-              <div className="relative z-10 mb-6">
-                <div className="relative">
-                  <Database className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                  <select
-                    value={selectedBusiness}
-                    onChange={(e) => setSelectedBusiness(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl py-3 pl-4 pr-10 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none appearance-none font-medium transition-all"
-                  >
-                    <option value="">لطفاً یک کسب‌و‌کار انتخاب کنید...</option>
-                    {businesses.map((b, idx) => (
-                      <option key={`bus-${idx}`} value={b.id}>{b.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {isLoadingStore ? (
-                <div className="flex justify-center items-center py-12">
-                  <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                </div>
-              ) : selectedBusiness && storeProducts.length > 0 ? (
-                <div className="mt-8 flex justify-center">
-                  <button 
-                    onClick={() => setShowFullPricePage(true)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-xl shadow-indigo-600/20 flex items-center gap-2"
-                  >
-                    <Search className="w-5 h-5" />
-                    ورود به صفحه تمام‌صفحه استعلام قیمت
-                  </button>
-                </div>
-              ) : selectedBusiness ? (
-                <div className="text-center py-8 text-slate-500">
-                  محصولی در این کسب‌و‌کار یافت نشد.
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          
-          {/* News / Blog Section (Takes up 2 columns on lg) */}
+          {/* News List */}
           <div id="news" className="lg:col-span-2 space-y-8">
-            <div className="flex items-center gap-3 border-b border-slate-200 pb-4">
-              <div className="w-10 h-10 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center">
-                <Newspaper className="w-5 h-5" />
-              </div>
-              <h3 className="text-2xl font-black text-slate-900">اخبار و اطلاعیه‌ها</h3>
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <h3 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                <div className="w-3 h-8 bg-indigo-600 rounded-full"></div>
+                آخرین اخبار و اطلاعیه‌ها
+              </h3>
+              <button className="text-indigo-600 font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
+                مشاهده همه
+                <ArrowLeft className="w-4 h-4" />
+              </button>
             </div>
             
-            <div className="space-y-6">
+            <div className="grid gap-6">
               {news.map((item, index) => (
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
@@ -288,9 +281,9 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                   key={item.id} 
-                  className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-shadow group"
+                  className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow group cursor-pointer"
                 >
-                  <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center justify-between mb-4">
                     <span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg text-xs font-bold">
                       {item.category}
                     </span>
@@ -320,20 +313,23 @@ export default function WelcomePage({ onLoginClick }: { onLoginClick: () => void
                 </div>
                 <h3 className="text-xl font-black text-slate-900">لینک‌های مهم</h3>
               </div>
-              
+                
               <div className="space-y-3">
                 {[
                   { title: "راهنمای جامع کار با سیستم", icon: BookOpen },
                   { title: "قوانین و مقررات استفاده", icon: ShieldCheck },
                   { title: "سوالات متداول (FAQ)", icon: Bell },
-                  { title: "دانلود کاتالوگ امکانات", icon: ArrowLeft },
+                  { title: "گزارش مشکلات فنی", icon: AlertCircle }
                 ].map((link, idx) => (
-                  <a key={idx} href="#" className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-indigo-600 transition-colors border border-transparent hover:border-slate-100">
-                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500">
-                      <link.icon className="w-4 h-4" />
+                  <button key={idx} className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 text-right group transition-colors border border-transparent hover:border-slate-100">
+                    <div className="flex items-center gap-3">
+                      <div className="text-slate-400 group-hover:text-indigo-600 transition-colors">
+                        <link.icon className="w-5 h-5" />
+                      </div>
+                      <span className="font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{link.title}</span>
                     </div>
-                    <span className="font-bold text-sm">{link.title}</span>
-                  </a>
+                    <ChevronLeft className="w-4 h-4 text-slate-300 group-hover:text-indigo-600 transition-colors group-hover:-translate-x-1" />
+                  </button>
                 ))}
               </div>
             </div>

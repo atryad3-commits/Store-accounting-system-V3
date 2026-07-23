@@ -378,6 +378,7 @@ const [activeTab, setRawActiveTab] = useState<
     | "create_warehouse_doc"
     | "list_warehouse_docs"
     | "products"
+    | "welcome_page"
     | "product_view"
     | "product_categories"
     | "persons"
