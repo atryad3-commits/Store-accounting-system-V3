@@ -12,17 +12,21 @@ import { BrowserRouter } from 'react-router-dom';
 import InitialSetupWizard from './components/InitialSetupWizard';
 window.addEventListener("error", (e) => { fetch("/api/data/system_logs/append", { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ action: "FRONTEND_ERROR", entityType: "error", entityId: "1", oldData: e.message, newData: e.error?.stack }) }); });
 
-if ((import.meta as any).env.VITE_SENTRY_DSN) {
-  Sentry.init({
-    dsn: (import.meta as any).env.VITE_SENTRY_DSN,
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration(),
-    ],
-    tracesSampleRate: 1.0,
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1.0,
-  });
+if ((import.meta as any).env.VITE_SENTRY_DSN && String((import.meta as any).env.VITE_SENTRY_DSN).startsWith('http')) {
+  try {
+    Sentry.init({
+      dsn: (import.meta as any).env.VITE_SENTRY_DSN,
+      integrations: [
+        Sentry.browserTracingIntegration(),
+        Sentry.replayIntegration(),
+      ],
+      tracesSampleRate: 1.0,
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 1.0,
+    });
+  } catch (e) {
+    console.error("Failed to initialize Sentry:", e);
+  }
 }
 
 

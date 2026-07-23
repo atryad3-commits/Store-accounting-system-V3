@@ -670,15 +670,19 @@ async function initDB() {
   }
 }
 
-if (process.env.SENTRY_DSN) {
-  Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    integrations: [
-      nodeProfilingIntegration(),
-    ],
-    tracesSampleRate: 1.0,
-    profilesSampleRate: 1.0,
-  });
+if (process.env.SENTRY_DSN && String(process.env.SENTRY_DSN).startsWith('http')) {
+  try {
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      integrations: [
+        nodeProfilingIntegration(),
+      ],
+      tracesSampleRate: 1.0,
+      profilesSampleRate: 1.0,
+    });
+  } catch (e) {
+    console.error("Failed to initialize Sentry on backend:", e);
+  }
 }
 
 async function startServer() {
@@ -2362,7 +2366,7 @@ async function startServer() {
 
   // Vite middleware for development
   // Sentry error handler should be before any other error middleware and after all controllers
-  if (process.env.SENTRY_DSN) {
+  if (process.env.SENTRY_DSN && String(process.env.SENTRY_DSN).startsWith('http')) {
     Sentry.setupExpressErrorHandler(app);
   }
 
