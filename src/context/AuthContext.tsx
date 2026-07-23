@@ -3,6 +3,7 @@ import { User, UserRole } from '../types';
 import { Lock, User as UserIcon, LogIn, AlertCircle, KeyRound, Zap, ArrowRight, ClipboardList, ShieldCheck, LineChart, LayoutDashboard,
   Layers, ArrowLeft } from 'lucide-react';
 import FastProductCreateModal from '../components/products/FastProductCreateModal';
+import WelcomePage from "../components/WelcomePage";
 import SystemChecklist from '../components/admin/SystemChecklist';
 import { addProduct } from '../services/dataService';
 
@@ -28,6 +29,7 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [showLogin, setShowLogin] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -166,6 +168,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           </div>
         </div>
       );
+    }
+
+
+    if (!showLogin) {
+      return <WelcomePage onLoginClick={() => setShowLogin(true)} />;
     }
 
     return (

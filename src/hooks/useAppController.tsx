@@ -1495,8 +1495,11 @@ const [notification, setNotification] = useState<{
 const showNotification = (
     message: string,
     type: "success" | "error" | "info" | "warning" = "info",
+    skipAudio: boolean = false
   ) => {
-    playAudioFeedback(type);
+    if (!skipAudio) {
+      playAudioFeedback(type);
+    }
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 4000);
   };
@@ -1586,10 +1589,12 @@ const handleBarcodeScan = (code: string) => {
     setIsScannerOpen(false);
     const product = products.find((p) => p.barcode === code);
     if (product) {
+      playAudioFeedback("scan" as any);
       handleFastAddProduct(String(product.id));
-      showNotification("کالا با موفقیت اضافه شد", "success");
+      showNotification("کالا با موفقیت اضافه شد", "success", true);
     } else {
-      showNotification("کالا با این بارکد یافت نشد", "error");
+      playAudioFeedback("scan_error" as any);
+      showNotification("کالا با این بارکد یافت نشد", "error", true);
     }
   };
 
@@ -3852,10 +3857,12 @@ const handleFastAddProduct = (
 const handleFastBarcodeScan = (code: string) => {
     const product = products.find((p) => p.barcode === code || p.code === code);
     if (product) {
+      playAudioFeedback("scan" as any);
       handleFastAddProduct(String(product.id), product);
-      showNotification(`کالا "${product.name}" اضافه شد`, "success");
+      showNotification(`کالا "${product.name}" اضافه شد`, "success", true);
     } else {
-      showNotification("کالایی با این بارکد/کد یافت نشد", "error");
+      playAudioFeedback("scan_error" as any);
+      showNotification("کالایی با این بارکد/کد یافت نشد", "error", true);
     }
   };
 

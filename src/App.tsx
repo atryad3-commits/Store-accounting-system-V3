@@ -2678,7 +2678,7 @@ if (requiresInitSetup && user) {
                                   : (products || []).filter((p) => p.type !== "service")
                                 )
                                 .map((prod, idx) => (
-                                  <tr key={prod.id || idx} className="break-inside-avoid">
+                                  <tr key={`prod-${idx}`} className="break-inside-avoid">
                                     <td className="border border-gray-400 print:border-black p-3 text-center font-bold text-gray-700">
                                       {toPersianDigits(idx + 1)}
                                     </td>
@@ -3102,7 +3102,7 @@ if (requiresInitSetup && user) {
                  ) : (
                     <div className="space-y-3">
                       {personBankAccounts.map((account, index) => (
-                        <div key={account.id || index} className="p-4 bg-gray-50 rounded-xl border border-gray-200 relative group">
+                        <div key={`account-${index}`} className="p-4 bg-gray-50 rounded-xl border border-gray-200 relative group">
                           <button
                              type="button"
                              onClick={() => setPersonBankAccounts(personBankAccounts.filter((_, i) => i !== index))}

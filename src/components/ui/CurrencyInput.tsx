@@ -21,7 +21,7 @@ export default function CurrencyInput({ value, onChange, placeholder, className,
       onChange={(e) => {
         const clean = removeCommas(e.target.value).replace(/[^0-9-]/g, "");
         setLocalVal(addCommas(clean));
-        onChange(clean);
+        onChange({ target: { value: clean } });
       }}
     />
   );

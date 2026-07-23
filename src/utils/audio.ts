@@ -1,4 +1,4 @@
-export const playAudioFeedback = (type: "success" | "error" | "info" | "warning") => {
+export const playAudioFeedback = (type: "success" | "error" | "info" | "warning" | "scan" | "scan_error") => {
   try {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioContext) return;
@@ -28,7 +28,14 @@ export const playAudioFeedback = (type: "success" | "error" | "info" | "warning"
 
     const now = ctx.currentTime;
 
-    if (type === "success") {
+    if (type === "scan") {
+      // Classic barcode scanner beep (high pitch, short duration)
+      playTone(1500, 'sine', now, 0.1, 0.15);
+    } else if (type === "scan_error") {
+      // Classic barcode scanner error (double low beep)
+      playTone(300, 'square', now, 0.15, 0.1);
+      playTone(300, 'square', now + 0.2, 0.15, 0.1);
+    } else if (type === "success") {
       // Satisfying ascending chime (C4, E4, G4, C5) - Indicates successful recording
       playTone(261.63, 'sine', now, 0.2, 0.1);
       playTone(329.63, 'sine', now + 0.1, 0.2, 0.1);
