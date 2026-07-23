@@ -586,7 +586,17 @@ export default function ProductsTab(props: any) {
                                         </div>
                                       </td>
                                       <td className="py-4 px-6">
-                                        <div className="flex flex-col gap-1.5 items-start">
+                                        <div className="flex gap-3 items-center">
+                                          {p.imageUrl ? (
+                                            <div className="w-10 h-10 rounded border border-gray-200 overflow-hidden shrink-0">
+                                              <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                            </div>
+                                          ) : (
+                                            <div className="w-10 h-10 rounded border border-gray-100 bg-gray-50 flex items-center justify-center shrink-0 text-gray-400">
+                                              <Package className="w-5 h-5" />
+                                            </div>
+                                          )}
+                                          <div className="flex flex-col gap-1.5 items-start">
                                           <button
                                             onClick={() => {
                                               setViewingProduct(p);
@@ -596,6 +606,7 @@ export default function ProductsTab(props: any) {
                                           >
                                             {p.name}
                                           </button>
+                                        </div>
                                         </div>
                                       </td>
                                       <td className="py-4 px-6">

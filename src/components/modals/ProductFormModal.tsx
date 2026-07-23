@@ -55,6 +55,7 @@ export default function ProductFormModal({
   const [newProductUnitRatio, setNewProductUnitRatio] = useState("");
   const [productFormTab, setProductFormTab] = useState<"general" | "inventory" | "sales" | "price_history" | "financial" | "history">("general");
   const [newProductDesc, setNewProductDesc] = useState("");
+  const [newProductImageUrl, setNewProductImageUrl] = useState("");
   const [newProductIsActive, setNewProductIsActive] = useState(true);
   const [submittingProduct, setSubmittingProduct] = useState(false);
   
@@ -84,6 +85,7 @@ export default function ProductFormModal({
           setNewProductSecondaryUnit(product.secondaryUnit || "");
           setNewProductUnitRatio(product.unitRatio ? String(product.unitRatio) : "");
           setNewProductDesc(product.description || "");
+          setNewProductImageUrl(product.imageUrl || "");
           setNewProductIsActive(product.isActive !== false);
           
           if (product.id) {
@@ -105,6 +107,7 @@ export default function ProductFormModal({
         setNewProductSecondaryUnit("");
         setNewProductUnitRatio("");
         setNewProductDesc("");
+        setNewProductImageUrl("");
         setNewProductIsActive(true);
         setCurrentProductPriceHistory([]);
       }
@@ -197,6 +200,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
         secondaryUnit: newProductSecondaryUnit,
         unitRatio: Number(newProductUnitRatio || 1),
         description: newProductDesc,
+        imageUrl: newProductImageUrl,
         isActive: newProductIsActive,
       };
 
@@ -238,6 +242,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
       setNewProductSecondaryUnit("");
       setNewProductUnitRatio("");
       setNewProductDesc("");
+        setNewProductImageUrl("");
       setNewProductIsActive(true);
       setProductFormTab("general");
       
@@ -733,6 +738,29 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
                                 rows={3}
                                 placeholder="توضیحات کالا که ممکن است در فاکتور چاپ شود..."
                               />
+                            </div>
+
+                            <div className="w-full">
+                              <label className="block text-sm font-bold text-gray-700 mb-2">
+                                آدرس تصویر کالا
+                              </label>
+                              <div className="flex gap-2 items-center">
+                                <input
+                                  type="text"
+                                  value={newProductImageUrl}
+                                  onChange={(e) =>
+                                    setNewProductImageUrl(e.target.value)
+                                  }
+                                  className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-colors text-gray-900 text-left"
+                                  placeholder="https://example.com/image.jpg"
+                                  dir="ltr"
+                                />
+                                {newProductImageUrl && (
+                                  <div className="w-12 h-12 rounded-lg border border-gray-200 overflow-hidden shrink-0 bg-white shadow-sm flex items-center justify-center">
+                                    <img src={newProductImageUrl} alt="Preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} onLoad={(e) => (e.currentTarget.style.display = 'block')} />
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         )}

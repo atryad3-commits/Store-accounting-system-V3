@@ -328,6 +328,17 @@ import { useAppController } from "./hooks/useAppController";
 export default function App() {
 
         const [invoicePrintFormat, setInvoicePrintFormat] = useState<'a4' | 'a5' | 'pos80'>('a4');
+  const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
+  const headerMenuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (headerMenuRef.current && !headerMenuRef.current.contains(event.target as Node)) {
+        setIsHeaderMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   
   const INVOICE_PRINT_FORMATS = {
     a4: { name: 'کاغذ A4', css: `@page { size: A4 portrait; margin: 5mm; } .print-section { width: 210mm !important; }` },
@@ -1513,110 +1524,116 @@ if (requiresInitSetup && user) {
                         <Calculator className="w-5 h-5" />
                       </button>
 
-                      <button
-                        onClick={() => {
-                           appState.confirmAction('آیا از خروج از کسب و کار فعلی و رفتن به صفحه مدیریت کسب و کارها اطمینان دارید؟', () => { appState.setIsStoreSelectionOpen(true); })
-                        }}
-                        className="px-3 py-2 border rounded-xl transition-all cursor-pointer font-black gap-2 flex items-center text-xs shadow-3xs active:scale-95 text-slate-600 hover:text-indigo-700 bg-white border-indigo-200"
-                        title="تغییر کسب و کار"
-                      >
-                        <Database className="w-4 h-4" />
-                        <span className="hidden sm:inline-block">
-                          تغییر فروشگاه
-                        </span>
-                      </button>
-                      <button
-                        onClick={() => setSystemModule("selector")}
-                        className="px-3 py-2 border rounded-xl transition-all cursor-pointer font-black gap-2 flex items-center text-xs shadow-3xs active:scale-95 text-slate-600 hover:text-emerald-700 bg-white border-emerald-200"
-                        title="تغییر ماژول کاری"
-                      >
-                        <LayoutDashboard className="w-4 h-4" />
-                        <span className="hidden sm:inline-block">
-                          تغییر بخش کاری
-                        </span>
-                      </button>
-                      {user && (
-                        <div className="hidden md:flex items-center gap-3 ml-4 pl-4 border-l border-slate-200">
-                          <div className="flex flex-col text-left">
-                            <div className="text-sm font-black text-slate-800 leading-tight">
-                              {user.name}
-                            </div>
-                            <div className="text-[10px] font-bold text-slate-500 uppercase">
-                              {user.role === "admin"
-                                ? "مدیر سیستم"
-                                : user.role === "accountant"
-                                  ? "حسابدار"
-                                  : user.role === "cashier"
-                                    ? "صندوق‌دار"
-                                    : "کاربر عادی"}
-                            </div>
-                          </div>
-                          <button 
-                            onClick={() => setIsProfileModalOpen(true)}
-                            className="w-9 h-9 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 rounded-xl flex items-center justify-center font-black shadow-sm transition-colors cursor-pointer"
-                            title="ویرایش پروفایل"
-                          >
-                            {user.name?.charAt(0) || <User className="w-5 h-5" />}
-                          </button>
-                          <button
-                            onClick={signOut}
-                            className="w-8 h-8 flex items-center justify-center mr-1 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                            title="خروج از حساب"
-                          >
-                            <LogOut className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
-                      <button
-                        onClick={async () => {
-                          const newVal = menuLayout === "vertical" ? "horizontal" : "vertical";
-                          setMenuLayout(newVal);
-                          const updated = { ...storeSettings, menuLayout: newVal };
-                          setStoreSettings(updated);
-                          setSettingsForm(updated);
-                          try { await saveStoreSettings(updated); } catch(e){}
-                        }}
-                        className={`px-3 py-2 border rounded-xl transition-all cursor-pointer font-black gap-2 hidden md:flex items-center text-xs shadow-3xs active:scale-95 text-slate-600 hover:text-indigo-700 bg-white border-slate-200`}
-                        title={
-                          menuLayout === "vertical"
-                            ? "نمایش منوی افقی"
-                            : "نمایش منوی عمودی"
-                        }
-                      >
-                        {menuLayout === "vertical" ? (
-                          <LayoutList className="w-4 h-4" />
-                        ) : (
-                          <GripHorizontal className="w-4 h-4" />
-                        )}
-                        <span className="hidden sm:inline-block">
-                          {menuLayout === "vertical" ? "منوی افقی" : "منوی عمودی"}
-                        </span>
-                      </button>
-                      <button
-                        onClick={async () => {
-                          const newVal = !isFullWidth;
-                          setIsFullWidth(newVal);
-                          const updated = { ...storeSettings, isFullWidth: newVal };
-                          setStoreSettings(updated);
-                          setSettingsForm(updated);
-                          try { await saveStoreSettings(updated); } catch(e){}
-                        }}
-                        className={`px-3 py-2 border rounded-xl transition-all cursor-pointer font-black gap-2 flex items-center text-xs shadow-3xs active:scale-95 ${isFullWidth ? "text-indigo-700 bg-indigo-50 border-indigo-200" : "text-slate-600 hover:text-indigo-700 hover:bg-slate-50 bg-white border-slate-200"}`}
-                        title={
-                          isFullWidth
-                            ? "بازگشت به نمایش کلاسیک"
-                            : "حالت تمام صفحه گسترده"
-                        }
-                      >
-                        {isFullWidth ? (
-                          <Minimize className="w-4 h-4" />
-                        ) : (
-                          <Maximize className="w-4 h-4" />
-                        )}
-                        <span className="hidden sm:inline-block">
-                          {isFullWidth ? "نمایش کلاسیک" : "تمام صفحه"}
-                        </span>
-                      </button>
+                      <div className="relative" ref={headerMenuRef}>
+                        <button
+                          onClick={() => setIsHeaderMenuOpen(!isHeaderMenuOpen)}
+                          className="px-3 py-2 border rounded-xl transition-all cursor-pointer font-black gap-2 flex items-center text-xs shadow-3xs active:scale-95 text-slate-600 hover:text-indigo-700 hover:bg-indigo-50 bg-white border-slate-200"
+                        >
+                          <Settings className="w-4 h-4" />
+                          <span className="hidden sm:inline-block">تنظیمات و مدیریت</span>
+                          <ChevronDown className={`w-4 h-4 transition-transform ${isHeaderMenuOpen ? "rotate-180" : ""}`} />
+                        </button>
+                        
+                        <AnimatePresence>
+                          {isHeaderMenuOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                              transition={{ duration: 0.15 }}
+                              className="absolute left-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-[100] flex flex-col"
+                            >
+                              <div className="p-3 border-b border-slate-100 bg-slate-50/50">
+                                <div className="text-xs font-black text-slate-500 mb-2">عملیات مدیریت</div>
+                                <button
+                                  onClick={() => {
+                                    setIsHeaderMenuOpen(false);
+                                    appState.confirmAction('آیا از خروج از کسب و کار فعلی و رفتن به صفحه مدیریت کسب و کارها اطمینان دارید؟', () => { appState.setIsStoreSelectionOpen(true); })
+                                  }}
+                                  className="w-full text-right px-3 py-2.5 rounded-xl transition-all cursor-pointer font-black gap-2 flex items-center text-xs hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 mb-1"
+                                >
+                                  <Database className="w-4 h-4" />
+                                  تغییر فروشگاه
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setIsHeaderMenuOpen(false);
+                                    setSystemModule("selector");
+                                  }}
+                                  className="w-full text-right px-3 py-2.5 rounded-xl transition-all cursor-pointer font-black gap-2 flex items-center text-xs hover:bg-emerald-50 text-slate-700 hover:text-emerald-700"
+                                >
+                                  <LayoutDashboard className="w-4 h-4" />
+                                  تغییر بخش کاری
+                                </button>
+                              </div>
+                              
+                              <div className="p-3 border-b border-slate-100">
+                                <div className="text-xs font-black text-slate-500 mb-2">تنظیمات نما</div>
+                                <button
+                                  onClick={async () => {
+                                    setIsHeaderMenuOpen(false);
+                                    const newVal = menuLayout === "vertical" ? "horizontal" : "vertical";
+                                    setMenuLayout(newVal);
+                                    const updated = { ...storeSettings, menuLayout: newVal };
+                                    setStoreSettings(updated);
+                                    setSettingsForm(updated);
+                                    try { await saveStoreSettings(updated); } catch(e){}
+                                  }}
+                                  className="w-full text-right px-3 py-2.5 rounded-xl transition-all cursor-pointer font-black gap-2 flex items-center text-xs hover:bg-slate-50 text-slate-700 mb-1"
+                                >
+                                  {menuLayout === "vertical" ? <LayoutList className="w-4 h-4" /> : <GripHorizontal className="w-4 h-4" />}
+                                  {menuLayout === "vertical" ? "نمایش منوی افقی" : "نمایش منوی عمودی"}
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    setIsHeaderMenuOpen(false);
+                                    const newVal = !isFullWidth;
+                                    setIsFullWidth(newVal);
+                                    const updated = { ...storeSettings, isFullWidth: newVal };
+                                    setStoreSettings(updated);
+                                    setSettingsForm(updated);
+                                    try { await saveStoreSettings(updated); } catch(e){}
+                                  }}
+                                  className={`w-full text-right px-3 py-2.5 rounded-xl transition-all cursor-pointer font-black gap-2 flex items-center text-xs ${isFullWidth ? "text-indigo-700 bg-indigo-50" : "hover:bg-slate-50 text-slate-700"}`}
+                                >
+                                  {isFullWidth ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+                                  {isFullWidth ? "بازگشت به نمایش کلاسیک" : "حالت تمام صفحه گسترده"}
+                                </button>
+                              </div>
+                              
+                              {user && (
+                                <div className="p-3 bg-slate-50">
+                                  <div className="flex items-center gap-3 mb-3 px-2">
+                                    <div className="w-10 h-10 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center font-black shadow-sm shrink-0">
+                                      {user.name?.charAt(0) || <User className="w-5 h-5" />}
+                                    </div>
+                                    <div className="flex flex-col overflow-hidden">
+                                      <div className="text-sm font-black text-slate-800 truncate">{user.name}</div>
+                                      <div className="text-[10px] font-bold text-slate-500 uppercase truncate">
+                                        {user.role === "admin" ? "مدیر سیستم" : user.role === "accountant" ? "حسابدار" : user.role === "cashier" ? "صندوق‌دار" : "کاربر عادی"}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => { setIsHeaderMenuOpen(false); setIsProfileModalOpen(true); }}
+                                      className="flex-1 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center justify-center gap-1.5"
+                                    >
+                                      <User className="w-3.5 h-3.5" /> پروفایل
+                                    </button>
+                                    <button
+                                      onClick={() => { setIsHeaderMenuOpen(false); signOut(); }}
+                                      className="flex-1 py-2 bg-white border border-rose-200 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors flex items-center justify-center gap-1.5"
+                                    >
+                                      <LogOut className="w-3.5 h-3.5" /> خروج
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </div>
                   </div>
 
