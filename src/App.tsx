@@ -330,16 +330,37 @@ export default function App() {
 
         const [invoicePrintFormat, setInvoicePrintFormat] = useState<'a4' | 'a5' | 'pos80'>('a4');
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
+  const [isModuleMenuOpen, setIsModuleMenuOpen] = useState(false);
   const headerMenuRef = useRef<HTMLDivElement>(null);
+  const moduleMenuRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (headerMenuRef.current && !headerMenuRef.current.contains(event.target as Node)) {
         setIsHeaderMenuOpen(false);
       }
+      if (moduleMenuRef.current && !moduleMenuRef.current.contains(event.target as Node)) {
+        setIsModuleMenuOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const getModuleName = (mod: string) => {
+    switch (mod) {
+      case 'all': return 'همه بخش‌ها';
+      case 'commerce': return 'بازرگانی';
+      case 'inventory': return 'انبارداری';
+      case 'accounting': return 'حسابداری';
+      case 'admin': return 'مدیریت';
+      case 'crm': return 'CRM';
+      case 'hr': return 'منابع انسانی';
+      case 'reports_module': return 'گزارشات';
+      case 'selector': return 'انتخاب بخش';
+      default: return 'بخش کاری';
+    }
+  };
   
   const INVOICE_PRINT_FORMATS = {
     a4: { name: 'کاغذ A4', css: `@page { size: A4 portrait; margin: 5mm; } .print-section { width: 210mm !important; }` },
@@ -1457,17 +1478,18 @@ if (requiresInitSetup && user) {
                   className={`flex flex-col sticky top-0 z-[60] print:hidden ${isGmailTheme ? "bg-[#f6f8fc]" : "bg-white border-b border-gray-100 shadow-sm"}`}
                 >
                   <div
-                    className={`hidden md:flex flex-row items-center justify-between p-4 relative z-[70] ${
+                    className={`flex flex-row items-center justify-between p-3 md:p-4 relative z-[70] ${
                       isGmailTheme
                         ? "bg-[#f6f8fc] border-none"
                         : "bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-xs"
                     }`}
                     dir="rtl"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
                       <button
                         onClick={() => setIsSidebarOpen(true)}
-                        className="hidden p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors cursor-pointer shadow-3xs border border-slate-100 bg-white"
+                        className="flex md:hidden p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors cursor-pointer shadow-3xs border border-slate-100 bg-white"
+                        title="منوی اصلی"
                       >
                         <Menu className="w-5 h-5" />
                       </button>
@@ -1486,15 +1508,15 @@ if (requiresInitSetup && user) {
                         )}
                         <div className={`flex items-center gap-2 ${menuLayout === "vertical" ? "md:hidden" : ""}`}>
                           <span className="text-indigo-600 tracking-widest text-lg font-black">تراز</span>
-                          <span className="text-slate-300 font-normal">|</span>
-                          <span className="text-sm text-slate-700 truncate max-w-[150px]">{storeSettings.storeName || "سیستم مدیریت"}</span>
+                          <span className="text-slate-300 font-normal hidden sm:inline">|</span>
+                          <span className="text-sm text-slate-700 truncate max-w-[120px] md:max-w-[150px] hidden sm:inline">{storeSettings.storeName || "سیستم مدیریت"}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Google style centered Search bar */}
                     {isGmailTheme && (
-                      <div className="hidden md:flex flex-1 max-w-xl mx-8 relative">
+                      <div className="hidden lg:flex flex-1 max-w-xl mx-8 relative">
                         <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                           <svg
                             className="h-5 w-5 text-slate-400"
@@ -1518,8 +1540,102 @@ if (requiresInitSetup && user) {
                       </div>
                     )}
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
                       
+                      {/* Fast Module Switcher Button & Dropdown */}
+                      <div className="relative" ref={moduleMenuRef}>
+                        <button
+                          onClick={() => setIsModuleMenuOpen(!isModuleMenuOpen)}
+                          className="flex items-center gap-1.5 md:gap-2 px-2.5 py-1.5 md:px-3.5 md:py-2 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 border border-indigo-200/90 text-indigo-700 shadow-2xs hover:shadow-xs active:scale-95 transition-all cursor-pointer group"
+                          title="تغییر سریع بخش کاری و داشبوردها"
+                        >
+                          <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform shrink-0">
+                            <LayoutGrid className="w-3.5 h-3.5" />
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs font-black">
+                            <span className="hidden lg:inline text-slate-700">بخش کاری:</span>
+                            <span className="text-indigo-700 font-extrabold bg-white/90 px-2 py-0.5 rounded-md border border-indigo-100 shadow-2xs">
+                              {getModuleName(systemModule)}
+                            </span>
+                          </div>
+                          <ChevronDown className={`w-3.5 h-3.5 text-indigo-500 transition-transform duration-300 ${isModuleMenuOpen ? "rotate-180" : ""}`} />
+                        </button>
+
+                        <AnimatePresence>
+                          {isModuleMenuOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                              transition={{ duration: 0.15 }}
+                              className="absolute left-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-[110] p-2"
+                            >
+                              <div className="px-3 py-2 text-[11px] font-black text-slate-400 border-b border-slate-100 mb-1 flex items-center justify-between">
+                                <span>انتخاب و تغییر سریع بخش کاری</span>
+                                <span className="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-bold">داشبوردها</span>
+                              </div>
+
+                              <div className="space-y-1 max-h-80 overflow-y-auto p-1">
+                                {[
+                                  { id: 'all', name: 'همه بخش‌ها (سامانه کامل)', desc: 'دسترسی همزمان به تمامی امکانات', icon: <LayoutGrid className="w-4 h-4 text-indigo-600" /> },
+                                  { id: 'commerce', name: 'تجاری و بازرگانی', desc: 'فروش، خرید و پیش‌فاکتورها', icon: <ShoppingCart className="w-4 h-4 text-emerald-600" /> },
+                                  { id: 'inventory', name: 'انبارداری و کالاها', desc: 'موجودی انبار، گردش و کاردکس', icon: <Box className="w-4 h-4 text-blue-600" /> },
+                                  { id: 'accounting', name: 'حسابداری و خزانه‌داری', desc: 'اسناد، دریافت/پرداخت و چک', icon: <Calculator className="w-4 h-4 text-amber-600" /> },
+                                  { id: 'crm', name: 'ارتباط با مشتریان (CRM)', desc: 'مدیریت اشخاص، پرونده و پیگیری‌ها', icon: <Users className="w-4 h-4 text-purple-600" /> },
+                                  { id: 'hr', name: 'منابع انسانی و حقوق', desc: 'کارکرد، پرسنل و لیست حقوق', icon: <Clock className="w-4 h-4 text-rose-600" /> },
+                                  { id: 'reports_module', name: 'گزارشات و تحلیل‌ها', desc: 'ترازنامه‌ها، سود و زیان و نمودارها', icon: <BarChart3 className="w-4 h-4 text-cyan-600" /> },
+                                  { id: 'admin', name: 'تنظیمات و مدیریت', desc: 'تنظیمات سیستم، کاربران و پشتیبان', icon: <Settings className="w-4 h-4 text-slate-600" /> },
+                                ].map((item) => {
+                                  const isActive = systemModule === item.id;
+                                  return (
+                                    <button
+                                      key={item.id}
+                                      onClick={() => {
+                                        setSystemModule(item.id as any);
+                                        setIsModuleMenuOpen(false);
+                                      }}
+                                      className={`w-full text-right p-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-between ${
+                                        isActive
+                                          ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                                          : "hover:bg-slate-50 text-slate-700"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? "bg-white/20 text-white" : "bg-slate-100"}`}>
+                                          {item.icon}
+                                        </div>
+                                        <div className="flex flex-col text-right truncate">
+                                          <span className={`text-xs font-black truncate ${isActive ? "text-white" : "text-slate-800"}`}>
+                                            {item.name}
+                                          </span>
+                                          <span className={`text-[10px] truncate ${isActive ? "text-indigo-100" : "text-slate-400"}`}>
+                                            {item.desc}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      {isActive && <Check className="w-4 h-4 text-white shrink-0 mr-1" />}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="mt-1 pt-2 border-t border-slate-100">
+                                <button
+                                  onClick={() => {
+                                    setSystemModule("selector");
+                                    setIsModuleMenuOpen(false);
+                                  }}
+                                  className="w-full text-center p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-black transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                                >
+                                  <LayoutDashboard className="w-4 h-4 text-indigo-600" />
+                                  داشبورد اصلی انتخاب بخش‌ها
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+
                       <button
                         onClick={() => setIsCalculatorOpen(true)}
                         className="p-2 border rounded-xl transition-all cursor-pointer shadow-3xs active:scale-95 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 bg-white border-slate-200"
@@ -2255,6 +2371,36 @@ if (requiresInitSetup && user) {
               confirmAction={confirmAction}
             />
           )}
+
+          {/* Mobile Floating Quick Action Footer Bar */}
+          <div className="md:hidden fixed bottom-3 left-3 right-3 z-[80] bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-2xl rounded-2xl p-2 flex items-center justify-between gap-2 no-print">
+            <button
+              onClick={() => setIsModuleMenuOpen(!isModuleMenuOpen)}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs font-black shadow-md shadow-indigo-600/20 active:scale-95 transition-all cursor-pointer"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span>تغییر بخش کاری:</span>
+              <span className="bg-white/20 text-white px-2 py-0.5 rounded-md text-[10px] font-extrabold">
+                {getModuleName(systemModule)}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setIsCalculatorOpen(true)}
+              className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl cursor-pointer"
+              title="ماشین حساب"
+            >
+              <Calculator className="w-4 h-4" />
+            </button>
+            
+            <button
+              onClick={() => appState.confirmAction('آیا از خروج از کسب و کار فعلی و رفتن به صفحه مدیریت کسب و کارها اطمینان دارید؟', () => { appState.setIsStoreSelectionOpen(true); })}
+              className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl cursor-pointer"
+              title="تغییر فروشگاه"
+            >
+              <Database className="w-4 h-4" />
+            </button>
+          </div>
 
           <CalculatorModal isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
         </>
