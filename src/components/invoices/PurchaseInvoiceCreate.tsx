@@ -95,6 +95,14 @@ import {
     Calculator,
     calculateSubtotal
   } = props;
+  const itemsEndRef = useRef<HTMLTableRowElement>(null);
+  const [prevItemsLength, setPrevItemsLength] = useState((items || []).length);
+  useEffect(() => {
+    if ((items || []).length > prevItemsLength) {
+      itemsEndRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    setPrevItemsLength((items || []).length);
+  }, [items]);
 
   return (
           <motion.div
@@ -655,6 +663,7 @@ import {
                         </td>
                       </tr>
                     )}
+                    <tr ref={itemsEndRef}><td colSpan={7}></td></tr>
                   </tbody>
                 </table>
               </div>
