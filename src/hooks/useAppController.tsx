@@ -2637,34 +2637,34 @@ description: receiptDescription,
       }
     }
 
-    setPreviewReceiptData(basePayload);
+    confirmReceiptSubmit(basePayload);
   };
 
-const confirmReceiptSubmit = async () => {
-    if (!previewReceiptData) return;
+  const confirmReceiptSubmit = async (payload: any) => {
+    if (!payload) return;
     setSubmittingReceipt(true);
     const rollbackActions: (() => Promise<void>)[] = [];
     try {
       const txPayload = {
-        ...previewReceiptData,
+        ...payload,
         linkedInvoices: receiptLinkedInvoices,
       };
-      let createdReceiptObj: any = { ...previewReceiptData };
-      if (previewReceiptData.method === "check") {
-        if (previewReceiptData.type === "receive") {
+      let createdReceiptObj: any = { ...payload };
+      if (payload.method === "check") {
+        if (payload.type === "receive") {
           const savedCheck = await addReceivedCheck({
-            checkNumber: previewReceiptData.checkNumber,
-            bankName: previewReceiptData.checkBankName,
+            checkNumber: payload.checkNumber,
+            bankName: payload.checkBankName,
             branchName: "",
-            amount: previewReceiptData.amount,
-            payerId: previewReceiptData.personId,
-            receiveDate: previewReceiptData.date || previewReceiptData.jalaliDate,
-            dueDate: previewReceiptData.checkDueDate,
+            amount: payload.amount,
+            payerId: payload.personId,
+            receiveDate: payload.date || payload.jalaliDate,
+            dueDate: payload.checkDueDate,
             status: "received",
             description:
-              previewReceiptData.description ||
-              `چک دریافتی شماره ${previewReceiptData.checkNumber} (سررسید ${previewReceiptData.checkDueDate}) بابت رسید ${previewReceiptData.receiptNumber}`,
-            receiptNumber: previewReceiptData.receiptNumber,
+              payload.description ||
+              `چک دریافتی شماره ${payload.checkNumber} (سررسید ${payload.checkDueDate}) بابت رسید ${payload.receiptNumber}`,
+            receiptNumber: payload.receiptNumber,
           });
           createdReceiptObj.id = savedCheck.id;
 
@@ -2672,21 +2672,21 @@ const confirmReceiptSubmit = async () => {
             await deleteReceivedCheck(savedCheck.id.toString());
           });
         } else {
-          const blankCheck = issuedChecks.find((c: any) => c.status === 'blank' && c.checkbookId?.toString() === previewReceiptData.checkbookId?.toString() && c.checkNumber === previewReceiptData.checkNumber);
+          const blankCheck = issuedChecks.find((c: any) => c.status === 'blank' && c.checkbookId?.toString() === payload.checkbookId?.toString() && c.checkNumber === payload.checkNumber);
           
           let savedCheckId;
           const issuedCheckPayload = {
-            checkbookId: previewReceiptData.checkbookId,
-            checkNumber: previewReceiptData.checkNumber,
-            amount: previewReceiptData.amount,
-            payeeId: previewReceiptData.personId,
-            issueDate: previewReceiptData.date || previewReceiptData.jalaliDate,
-            dueDate: previewReceiptData.checkDueDate,
+            checkbookId: payload.checkbookId,
+            checkNumber: payload.checkNumber,
+            amount: payload.amount,
+            payeeId: payload.personId,
+            issueDate: payload.date || payload.jalaliDate,
+            dueDate: payload.checkDueDate,
             status: "issued",
             description:
-              previewReceiptData.description ||
-              `چک صادره شماره ${previewReceiptData.checkNumber} (سررسید ${previewReceiptData.checkDueDate}) بابت رسید ${previewReceiptData.receiptNumber}`,
-            receiptNumber: previewReceiptData.receiptNumber,
+              payload.description ||
+              `چک صادره شماره ${payload.checkNumber} (سررسید ${payload.checkDueDate}) بابت رسید ${payload.receiptNumber}`,
+            receiptNumber: payload.receiptNumber,
           };
           
           if (blankCheck) {
@@ -2741,7 +2741,7 @@ const confirmReceiptSubmit = async () => {
         }
       }
 
-      const typeTmp = previewReceiptData.type;
+      const typeTmp = payload.type;
 
       setReceiptPersonId("");
       setReceiptAmount("");
@@ -5214,7 +5214,7 @@ const handleInvoicePreviewTrigger = () => {
       paidAmount: Number(invoicePaidAmount) || 0,
     };
 
-    setPreviewInvoiceData(tempPayload);
+    saveInvoiceData();
   };
 
 const getProductStockInfo = (productId: string | number) => {
