@@ -10,6 +10,8 @@ const BarcodeScannerModal = React.lazy(() => import('./BarcodeScannerModal').cat
 const EditReceiptModal = React.lazy(() => import('./EditReceiptModal').catch(() => ({ default: () => null })));
 const AIProductSearchModal = React.lazy(() => import('../products/AIProductSearchModal').catch(() => ({ default: () => null })));
 const GenerateBarcodesModal = React.lazy(() => import('./GenerateBarcodesModal').catch(() => ({ default: () => null })));
+const PersonExtraModal = React.lazy(() => import('./PersonExtraModal').catch(() => ({ default: () => null })));
+const PersonExtraInfoModal = React.lazy(() => import('./PersonExtraInfoModal').catch(() => ({ default: () => null })));
 
 export default function ExtraModals(props: any) {
   const {
@@ -23,6 +25,8 @@ export default function ExtraModals(props: any) {
     isEditReceiptModalOpen, setIsEditReceiptModalOpen,
     isAIProductSearchModalOpen, setIsAIProductSearchModalOpen,
     isGenerateBarcodesModalOpen, setIsGenerateBarcodesModalOpen,
+    isPersonExtraModalOpen, setIsPersonExtraModalOpen,
+    personExtraId,
     barcodeFormat, setBarcodeFormat, barcodePrefix, setBarcodePrefix, barcodeLength, setBarcodeLength, handleGenerateBarcodes,
     
     // Other props for modals
@@ -189,6 +193,18 @@ export default function ExtraModals(props: any) {
           products={products}
         />
       )}
+      {isPersonExtraModalOpen && (
+        <PersonExtraModal
+          isOpen={isPersonExtraModalOpen}
+          onClose={() => setIsPersonExtraModalOpen(false)}
+          personId={personExtraId}
+          persons={persons}
+          onSuccess={async () => {
+             if (props.fetchPersons) props.fetchPersons();
+          }}
+          showNotification={showNotification}
+        />
+      )}
       {isGenerateBarcodesModalOpen && (
         <GenerateBarcodesModal
           isOpen={isGenerateBarcodesModalOpen}
@@ -205,6 +221,14 @@ export default function ExtraModals(props: any) {
           }}
         />
       )}
-    </Suspense>
+      <PersonExtraInfoModal
+          isOpen={isPersonExtraModalOpen}
+          onClose={() => setIsPersonExtraModalOpen(false)}
+          personId={personExtraId}
+          persons={props.persons}
+          fetchPersons={props.fetchPersons}
+          showNotification={props.showNotification}
+        />
+      </Suspense>
   );
 }

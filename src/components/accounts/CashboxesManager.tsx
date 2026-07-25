@@ -38,9 +38,6 @@ export default function CashboxesManager(props: any) {
                       <button
                         onClick={() => {
                           setEditingCashboxId(null);
-                          setNewCashboxName("");
-                          setNewCashboxManager("");
-                          setNewCashboxBalance("");
                           setIsCashboxModalOpen(true);
                         }}
                         className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"

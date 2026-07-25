@@ -42,13 +42,6 @@ export default function AccountsManager(props: any) {
                       <button
                         onClick={() => {
                           setEditingAccountId(null);
-                          setNewAccountBankName("");
-                          setNewAccountBranchName("");
-                          setNewAccountNumber("");
-                          setNewAccountCardNumber("");
-                          setNewAccountShebaNumber("");
-                          setNewAccountBalance("");
-                          setNewAccountHolder("");
                           setIsAccountModalOpen(true);
                         }}
                         className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"

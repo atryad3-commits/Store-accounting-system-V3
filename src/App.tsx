@@ -244,6 +244,7 @@ const CreateSalaryPayroll = React.lazy(() => import('./components/payroll/Create
 const ListSalaryPayroll = React.lazy(() => import('./components/payroll/ListSalaryPayroll'));
 
 const ProductsTab = React.lazy(() => import('./components/products/ProductsTab'));
+const BulkBarcodeGenerator = React.lazy(() => import('./components/products/BulkBarcodeGenerator'));
 const PersonOpeningBalances = React.lazy(() => import('./components/persons/PersonOpeningBalances'));
 const PersonLedger = React.lazy(() => import('./components/persons/PersonLedger'));
 const SettingsTab = React.lazy(() => import('./components/admin/SettingsTab'));
@@ -1786,6 +1787,7 @@ if (requiresInitSetup && user) {
                   >
                     <Suspense fallback={<div className="flex h-full items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>}>
                     <Routes>
+  <Route path="/bulk_barcode_generator" element={<BulkBarcodeGenerator products={products} categories={productCategories} toPersianDigits={toPersianDigits} updateProduct={updateProduct} fetchProducts={fetchProducts} storeSettings={storeSettings} />} />
   <Route path="/products" element={<ProductsTab
                         {...appState}
                         formatCurrency={formatCurrency}

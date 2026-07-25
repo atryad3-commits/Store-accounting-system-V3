@@ -114,7 +114,7 @@ export default function PersonFormModal({
           
           setNewPersonRole(person.role || "customer");
           setNewPersonMobile(person.mobile || "");
-          setNewPersonType(person.type || "real");
+          setNewPersonType(person.personType || (person.type === "legal" ? "legal" : "real"));
           setNewPersonNationalId(person.nationalId || "");
           setNewPersonCode(person.code || "");
           setNewPersonPhone(person.phone || "");
