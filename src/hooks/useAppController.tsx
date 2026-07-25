@@ -2786,13 +2786,13 @@ description: receiptDescription,
       );
       if (storeSettings?.notify_on_receipt) {
         const person = persons.find(
-          (p) => p.id === previewReceiptData.personId,
+          (p) => p.id === payload.personId,
         );
         if (person && person.phone) {
           const amt =
             typeof formatNumber === "function"
-              ? formatNumber(previewReceiptData.amount)
-              : previewReceiptData.amount;
+              ? formatNumber(payload.amount)
+              : payload.amount;
           const isRec = typeTmp === "receive";
           let msg = `${person.name} گرامی، رسید ${isRec ? "دریافت از" : "پرداخت به"} شما به مبلغ ${amt} ${storeSettings?.currency || "تومان"} با موفقیت ثبت شد.`;
           if (storeSettings?.smsTemplateReceipt) {
@@ -2809,7 +2809,7 @@ description: receiptDescription,
         }
       }
 
-      await checkDebtThreshold(previewReceiptData.personId);
+      await checkDebtThreshold(payload.personId);
     } catch (err: any) {
       console.error("Error submitting receipt, rolling back operations...", err);
       // Run rollback operations in reverse order

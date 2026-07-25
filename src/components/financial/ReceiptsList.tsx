@@ -10,12 +10,10 @@ export default function ReceiptsList(props: any) {
     ...rest
   } = props;
 
-  const initialFilter = activeTab === "list_pay_receipt" ? "pay" : "all";
-  const [filterType, setFilterType] = useState<'all' | 'receive' | 'pay'>(initialFilter);
+  const targetType = activeTab === "list_pay_receipt" ? "pay" : "receive";
 
   const filteredTxs = (transactions || []).filter((tx: any) => {
-    if (filterType !== "all" && tx.type !== filterType) return false;
-    if (tx.type !== "receive" && tx.type !== "pay" && tx.type !== "salary") return false;
+    if (tx.type !== targetType) return false;
 
     if (!invoiceSearchQuery) return true;
     const term = invoiceSearchQuery.toLowerCase();
@@ -39,23 +37,27 @@ export default function ReceiptsList(props: any) {
           <div className="flex flex-wrap items-center justify-between md:justify-start gap-4">
             <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
               <List className="w-6 h-6 text-slate-600" />
-              لیست رسیدهای دریافت و پرداخت
+              {targetType === "receive" ? "لیست رسیدهای دریافت" : "لیست رسیدهای پرداخت"}
             </h2>
             <div className="flex gap-2">
+              {targetType === "receive" && (
               <button
                 onClick={() => setActiveTab?.("create_receive_receipt")}
                 className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs md:text-sm font-bold transition-all flex items-center gap-1 shadow-sm"
               >
                 <Plus className="w-4 h-4" />
-                دریافت
+                ثبت دریافت جدید
               </button>
+              )}
+              {targetType === "pay" && (
               <button
                 onClick={() => setActiveTab?.("create_pay_receipt")}
                 className="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs md:text-sm font-bold transition-all flex items-center gap-1 shadow-sm"
               >
                 <Plus className="w-4 h-4" />
-                پرداخت
+                ثبت پرداخت جدید
               </button>
+              )}
             </div>
           </div>
           <div className="relative w-full md:w-96">
@@ -78,26 +80,7 @@ export default function ReceiptsList(props: any) {
           </div>
         </div>
 
-        <div className="flex bg-slate-100 p-1 rounded-xl w-full md:w-max">
-          <button
-            onClick={() => setFilterType("all")}
-            className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-colors ${filterType === "all" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-          >
-            همه رسیدها
-          </button>
-          <button
-            onClick={() => setFilterType("receive")}
-            className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-colors ${filterType === "receive" ? "bg-emerald-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-          >
-            دریافتی‌ها
-          </button>
-          <button
-            onClick={() => setFilterType("pay")}
-            className={`flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-colors ${filterType === "pay" ? "bg-rose-500 text-white shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-          >
-            پرداختی‌ها
-          </button>
-        </div>
+        
       </div>
 
       {/* Mobile View */}
