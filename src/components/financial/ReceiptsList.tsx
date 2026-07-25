@@ -120,7 +120,7 @@ export default function ReceiptsList(props: any) {
                   <div className="text-left">
                     <span className="text-[10px] text-slate-400 font-bold mb-0.5 block">شماره رسید</span>
                     <span 
-                      onClick={() => setPreviewReceiptData && setPreviewReceiptData({ ...tx, _isReadOnly: true })}
+                      onClick={() => tx.type === "salary" ? openPayslip(tx) : setPrintingTransaction(tx)}
                       className="text-indigo-600 font-bold text-xs cursor-pointer font-sans"
                     >
                       {toPersianDigits(tx.receiptNumber) || `#${toPersianDigits(tx.id)}`}
@@ -208,7 +208,7 @@ export default function ReceiptsList(props: any) {
                     <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="p-4 font-sans font-bold text-sm text-indigo-600 whitespace-nowrap">
                         <span
-                          onClick={() => setPreviewReceiptData && setPreviewReceiptData({ ...tx, _isReadOnly: true })}
+                          onClick={() => tx.type === "salary" ? openPayslip(tx) : setPrintingTransaction(tx)}
                           className="cursor-pointer hover:text-indigo-800 hover:underline transition-colors decoration-dashed underline-offset-4"
                         >
                           {toPersianDigits(tx.receiptNumber) || `#${toPersianDigits(tx.id)}`}
