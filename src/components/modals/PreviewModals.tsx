@@ -29,7 +29,7 @@ export default function PreviewModals(props: any) {
     <>
       {/* Invoice Preview / Viewing */}
       {(viewingInvoice || previewInvoiceData) && (
-        <div className="fixed inset-0 z-[99999] flex flex-col bg-slate-900/50 backdrop-blur-sm print:bg-transparent print:backdrop-blur-none" dir="rtl">
+        <div className="fixed inset-0 z-[99999] flex flex-col bg-slate-900/50 backdrop-blur-sm print:bg-transparent print:backdrop-blur-none print-section" dir="rtl">
           <div className="flex-1 w-full max-w-5xl mx-auto my-0 sm:my-4 bg-slate-100 sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden print:w-full print:max-w-none print:m-0 print:rounded-none print:shadow-none print:bg-white relative">
             <div className="bg-white border-b border-slate-200 p-4 flex items-center justify-between print:hidden shrink-0 z-10">
               <div className="flex items-center gap-4">
@@ -257,7 +257,7 @@ export default function PreviewModals(props: any) {
       )}
       {/* Receipt Printing Modal */}
       {printingTransaction && (
-        <div className="fixed inset-0 z-[99999] flex flex-col bg-slate-900/50 backdrop-blur-sm print:bg-transparent print:backdrop-blur-none" dir="rtl">
+        <div className="fixed inset-0 z-[99999] flex flex-col bg-slate-900/50 backdrop-blur-sm print:bg-transparent print:backdrop-blur-none print-section" dir="rtl">
           <div className="flex-1 w-full max-w-3xl mx-auto my-0 sm:my-4 bg-slate-100 sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden print:w-full print:max-w-none print:m-0 print:rounded-none print:shadow-none print:bg-white relative">
             <div className="bg-white border-b border-slate-200 p-4 flex items-center justify-between print:hidden shrink-0 z-10">
               <h3 className="text-lg font-black text-slate-800">پیش‌نمایش چاپ رسید</h3>
@@ -272,7 +272,7 @@ export default function PreviewModals(props: any) {
               </div>
             </div>
             <div className="flex-1 overflow-auto p-4 sm:p-8 print:p-0 relative">
-               <div className="bg-white rounded-xl shadow-sm border border-slate-200 print:border-none print:shadow-none mx-auto max-w-[210mm] min-h-[297mm] print:w-full print:max-w-none print:min-h-0">
+               <div className="bg-white rounded-xl shadow-sm border border-slate-200 print:border-none print:shadow-none mx-auto max-w-[210mm] min-h-[148mm] print:w-full print:max-w-none print:min-h-0">
                   <ReceiptPrintTemplate
                     data={printingTransaction}
                     storeSettings={storeSettings}

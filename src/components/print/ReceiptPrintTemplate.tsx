@@ -17,6 +17,13 @@ export default function ReceiptPrintTemplate({ data, storeSettings, persons, get
   const currency = storeSettings?.currency || 'ریال';
 
   return (
+    <>
+    <style dangerouslySetInnerHTML={{__html: `
+        @media print {
+          @page { size: A5 landscape; margin: 10mm; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+      `}} />
     <div className="w-full bg-white p-8 text-slate-800 font-sans" dir="rtl">
       {/* Header */}
       <div className="flex justify-between items-start border-b-2 border-slate-800 pb-6 mb-8">
@@ -53,7 +60,7 @@ export default function ReceiptPrintTemplate({ data, storeSettings, persons, get
         <div className="flex items-center gap-2 text-lg">
           <span className="font-bold text-slate-600 w-32 shrink-0">{isReceive ? 'دریافت شد از :' : 'پرداخت شد به :'}</span>
           <span className="font-black text-xl border-b-2 border-dotted border-slate-300 pb-1 flex-1">
-            {getPersonDisplayName(data.personId, persons)}
+            {getPersonDisplayName(persons?.find((p: any) => p.id?.toString() === data.personId?.toString()))}
           </span>
         </div>
 
@@ -122,5 +129,6 @@ export default function ReceiptPrintTemplate({ data, storeSettings, persons, get
         چاپ شده توسط سیستم مدیریت مالی
       </div>
     </div>
+    </>
   );
 }

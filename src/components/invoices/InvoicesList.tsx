@@ -21,7 +21,74 @@ export default function InvoicesList(props: any) {
   useEffect(() => {
     setInvoiceTabFilter("all");
   }, [activeTab]);
-      
+
+  const getInvoiceWarehouseStatus = (inv: any) => {
+    if (!inv) return "pending";
+    const isReceiptType = inv.type === "purchase" || inv.type === "sale_return";
+    const docType = isReceiptType ? "warehouse_receipt" : "warehouse_remittance";
+
+    const linkedDocs = (invoices || []).filter(
+      (wh: any) =>
+        wh.type === docType &&
+        wh.sourceInvoiceId?.toString() === inv.id?.toString() &&
+        wh.status !== "voided" &&
+        !wh.isDeleted,
+    );
+
+    if (!linkedDocs || linkedDocs.length === 0) {
+      return "pending";
+    }
+
+    const processedAmounts: Record<string, number> = {};
+    let totalProcessedQty = 0;
+
+    linkedDocs.forEach((doc: any) => {
+      if (doc.items) {
+        doc.items.forEach((item: any) => {
+          const key = String(item.productId || item.productName || "");
+          if (!key) return;
+          const qty = Number(item.quantity) || 0;
+          processedAmounts[key] = (processedAmounts[key] || 0) + qty;
+          totalProcessedQty += qty;
+        });
+      }
+    });
+
+    if (totalProcessedQty <= 0) {
+      return "pending";
+    }
+
+    const invItems = inv.items || [];
+    let hasRemaining = false;
+    let hasPhysicalItems = false;
+
+    for (const it of invItems) {
+      const prod = (products || []).find(
+        (p: any) => p.id?.toString() === it.productId?.toString(),
+      );
+      if (prod?.type === "service") continue;
+
+      hasPhysicalItems = true;
+      const key = String(it.productId || it.productName || "");
+      const processed = key ? processedAmounts[key] || 0 : 0;
+      const required = Number(it.quantity) || 0;
+
+      if (required - processed > 0.0001) {
+        hasRemaining = true;
+      }
+    }
+
+    if (!hasPhysicalItems) {
+      return "completed";
+    }
+
+    if (hasRemaining) {
+      return "partial";
+    } else {
+      return "completed";
+    }
+  };
+
         const activePurchases = invoices
           .filter((i) => i.type === "purchase")
           .filter((inv) => {
@@ -42,11 +109,7 @@ export default function InvoicesList(props: any) {
 
         const totalPurchasesCount = activePurchases.length;
         const receivedPurchasesCount = activePurchases.filter((inv) =>
-          invoices.some(
-            (wh) =>
-              wh.type === "warehouse_receipt" &&
-              wh.sourceInvoiceId?.toString() === inv.id.toString(),
-          ),
+          getInvoiceWarehouseStatus(inv) !== "pending",
         ).length;
         const pendingPurchasesCount = Math.max(
           0,
@@ -58,11 +121,7 @@ export default function InvoicesList(props: any) {
             if (activeTab === "list_sale") {
               if (i.type !== "sale" && i.type !== "proforma") return false;
               
-              const isRemitted = invoices.some(
-                (wh) =>
-                  wh.type === "warehouse_remittance" &&
-                  wh.sourceInvoiceId?.toString() === i.id.toString(),
-              );
+              const isRemitted = getInvoiceWarehouseStatus(i) !== "pending";
               
               if (invoiceTabFilter === "proforma") return i.type === "proforma";
               if (invoiceTabFilter === "sale") return i.type === "sale";
@@ -74,11 +133,7 @@ export default function InvoicesList(props: any) {
               return true;
             } else if (activeTab === "list_purchase") {
               if (i.type !== "purchase") return false;
-              const isReceived = invoices.some(
-                (wh) =>
-                  wh.type === "warehouse_receipt" &&
-                  wh.sourceInvoiceId?.toString() === i.id.toString(),
-              );
+              const isReceived = getInvoiceWarehouseStatus(i) !== "pending";
               
               if (invoiceTabFilter === "received") return isReceived;
               if (invoiceTabFilter === "pending_receive") return !isReceived;
@@ -607,38 +662,30 @@ export default function InvoicesList(props: any) {
                                   )}
                                 </td>
                                 <td className="p-4 text-xs font-bold text-center">
-                                  {[
-                                    "list_purchase",
-                                    "list_sale_return",
-                                  ].includes(activeTab) ? (
-                                    invoices.some(
-                                      (i) =>
-                                        i.type === "warehouse_receipt" &&
-                                        i.sourceInvoiceId?.toString() ===
-                                          inv.id.toString(),
-                                    ) ? (
-                                      <span className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
-                                        رسید شده
-                                      </span>
-                                    ) : (
-                                      <span className="text-amber-500 bg-amber-50 px-2 py-1 rounded border border-amber-100">
-                                        در انتظار رسید
-                                      </span>
-                                    )
-                                  ) : invoices.some(
-                                      (i) =>
-                                        i.type === "warehouse_remittance" &&
-                                        i.sourceInvoiceId?.toString() ===
-                                          inv.id.toString(),
-                                    ) ? (
-                                    <span className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
-                                      حواله شده
-                                    </span>
-                                  ) : (
-                                    <span className="text-amber-500 bg-amber-50 px-2 py-1 rounded border border-amber-100">
-                                      در انتظار حواله
-                                    </span>
-                                  )}
+                                  {(() => {
+                                    const status = getInvoiceWarehouseStatus(inv);
+                                    const isReceiptType =
+                                      inv.type === "purchase" || inv.type === "sale_return";
+                                    if (status === "completed") {
+                                      return (
+                                        <span className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded">
+                                          {isReceiptType ? "رسید شده" : "حواله شده"}
+                                        </span>
+                                      );
+                                    } else if (status === "partial") {
+                                      return (
+                                        <span className="text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-200">
+                                          {isReceiptType ? "تعدادی رسید شده" : "تعدادی حواله شده"}
+                                        </span>
+                                      );
+                                    } else {
+                                      return (
+                                        <span className="text-amber-500 bg-amber-50 px-2 py-1 rounded border border-amber-100">
+                                          {isReceiptType ? "در انتظار رسید" : "در انتظار حواله"}
+                                        </span>
+                                      );
+                                    }
+                                  })()}
                                 </td>
                               </>
                             )}

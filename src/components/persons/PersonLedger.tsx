@@ -43,6 +43,7 @@ export default function PersonLedger(props: any) {
     transactions,
     setViewingPayslip,
     setPreviewReceiptData,
+    setPrintingTransaction,
     issuedChecks,
     setViewingCheck,
     receivedChecks,
@@ -1056,7 +1057,7 @@ export default function PersonLedger(props: any) {
                                                         }
                                                       } catch (e) {}
                                                     }
-                                                    setPreviewReceiptData({
+                                                    setPrintingTransaction({
                                                       ...actualTx,
                                                                                                             personId: selectedPerson.id,
                                                       _isReadOnly: true,

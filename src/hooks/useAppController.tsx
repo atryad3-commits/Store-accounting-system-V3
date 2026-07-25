@@ -2158,7 +2158,27 @@ const handleDeleteProduct = async (id: number | string) => {
     }
   };
 
-const handleGenerateBarcodes = async () => {
+
+  const handleGroupPriceUpdate = async (items: any[]) => {
+    try {
+      for (const item of items) {
+        await updateProduct(item.id.toString(), {
+          buyPrice: item.buyPrice,
+          price: item.price,
+        });
+      }
+      showNotification(`قیمت ${items.length} کالا با موفقیت بروزرسانی شد`, "success");
+      setIsGroupPriceModalOpen(false);
+      setSelectedProductIds([]);
+      await fetchDataSilent();
+    } catch (e) {
+      console.error(e);
+      showNotification("خطا در بروزرسانی گروهی قیمت", "error");
+    }
+  };
+
+  const handleGenerateBarcodes = async () => {
+
     const productsToUpdate = (products || []).filter(
       (p) => !p.barcode || p.barcode.trim() === "",
     );
@@ -5963,6 +5983,7 @@ const renderTabContent = () => {
     historyProductId,
     setHistoryProductId,
     handleEditProduct,
+    handleGroupPriceUpdate,
     calculateProductCurrentStock,
     isCategoryModalOpen,
     setIsCategoryModalOpen,

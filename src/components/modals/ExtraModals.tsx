@@ -5,6 +5,8 @@ const ReceiveReceiptModal = React.lazy(() => import('../financial/ReceiveReceipt
 const PayReceiptModal = React.lazy(() => import('../financial/PayReceiptModal').catch(() => ({ default: () => null })));
 const MinimalMobilePersonModal = React.lazy(() => import('./MinimalMobilePersonModal').catch(() => ({ default: () => null })));
 const ProductPriceChangeModal = React.lazy(() => import('./ProductPriceChangeModal').catch(() => ({ default: () => null })));
+const ProductPriceHistoryModal = React.lazy(() => import('./ProductPriceHistoryModal').catch(() => ({ default: () => null })));
+const GroupPriceUpdateWizard = React.lazy(() => import('./GroupPriceUpdateWizard').catch(() => ({ default: () => null })));
 const PrintBarcodeModal = React.lazy(() => import('./PrintBarcodeModal').catch(() => ({ default: () => null })));
 const BarcodeScannerModal = React.lazy(() => import('./BarcodeScannerModal').catch(() => ({ default: () => null })));
 const EditReceiptModal = React.lazy(() => import('./EditReceiptModal').catch(() => ({ default: () => null })));
@@ -26,6 +28,8 @@ export default function ExtraModals(props: any) {
     isAIProductSearchModalOpen, setIsAIProductSearchModalOpen,
     isGenerateBarcodesModalOpen, setIsGenerateBarcodesModalOpen,
     isPersonExtraModalOpen, setIsPersonExtraModalOpen,
+    historyProductId, setHistoryProductId,
+    invoices, isGroupPriceModalOpen, setIsGroupPriceModalOpen, groupUpdateType, setGroupUpdateType, selectedProductIds, setSelectedProductIds, productCategories, storeSettings,
     personExtraId,
     barcodeFormat, setBarcodeFormat, barcodePrefix, setBarcodePrefix, barcodeLength, setBarcodeLength, handleGenerateBarcodes,
     
@@ -42,7 +46,7 @@ export default function ExtraModals(props: any) {
     receiptNote, setReceiptNote,
     submittingReceipt, handleReceiptSubmit,
     persons, formatCurrency, toPersianDigits, numToPersianWords,
-    accounts, cashboxes, checkbooks, storeSettings, confirmAction,
+    accounts, cashboxes, checkbooks, confirmAction,
     editingReceipt, updateTransaction, showNotification,
     editingProductId, products, saveProductData, fetchProducts,
     handleBarcodeScan,
@@ -76,8 +80,8 @@ export default function ExtraModals(props: any) {
           setCheckBankName={setReceiptCheckBankName}
           note={receiptNote}
           setNote={setReceiptNote}
-          onSubmit={handleReceiptSubmit}
-          submitting={submittingReceipt}
+          handleSubmitReceipt={handleReceiptSubmit}
+          submittingReceipt={submittingReceipt}
           persons={persons}
           formatCurrency={formatCurrency}
           toPersianDigits={toPersianDigits}
@@ -109,8 +113,8 @@ export default function ExtraModals(props: any) {
           setCheckbookId={setReceiptCheckbookId}
           note={receiptNote}
           setNote={setReceiptNote}
-          onSubmit={handleReceiptSubmit}
-          submitting={submittingReceipt}
+          handleSubmitReceipt={handleReceiptSubmit}
+          submittingReceipt={submittingReceipt}
           persons={persons}
           formatCurrency={formatCurrency}
           toPersianDigits={toPersianDigits}
@@ -136,7 +140,8 @@ export default function ExtraModals(props: any) {
           onClose={() => {
             setIsProductPriceChangeModalOpen(false);
           }}
-          product={products.find((p: any) => p.id === editingProductId)}
+          product={editingProductId ? products.find((p: any) => p.id === editingProductId) : (Array.isArray(props.printingBarcodeProduct) ? undefined : props.printingBarcodeProduct)}
+          products={Array.isArray(props.printingBarcodeProduct) ? props.printingBarcodeProduct : undefined}
           onSave={async (newPrice) => {
             const product = products.find((p: any) => p.id === editingProductId);
             if (product) {
@@ -150,13 +155,19 @@ export default function ExtraModals(props: any) {
         />
       )}
 
-      {isPrintBarcodeModalOpen && editingProductId && (
+      
+      {((isPrintBarcodeModalOpen && editingProductId) || props.printingBarcodeProduct) ? (
         <PrintBarcodeModal
-          isOpen={isPrintBarcodeModalOpen}
-          onClose={() => setIsPrintBarcodeModalOpen(false)}
-          product={products.find((p: any) => p.id === editingProductId)}
+          product={editingProductId ? products.find((p: any) => p.id === editingProductId) : (Array.isArray(props.printingBarcodeProduct) ? undefined : props.printingBarcodeProduct)}
+          products={Array.isArray(props.printingBarcodeProduct) ? props.printingBarcodeProduct : undefined}
+          onClose={() => {
+             setIsPrintBarcodeModalOpen(false);
+             if (props.setPrintingBarcodeProduct) props.setPrintingBarcodeProduct(null);
+          }}
+          storeSettings={storeSettings}
         />
-      )}
+      ) : null}
+
 
       {isBarcodeScannerModalOpen && (
         <BarcodeScannerModal
@@ -229,6 +240,33 @@ export default function ExtraModals(props: any) {
           fetchPersons={props.fetchPersons}
           showNotification={props.showNotification}
         />
+      
+      {historyProductId && (
+        <ProductPriceHistoryModal
+          isOpen={!!historyProductId}
+          onClose={() => { if(props.setHistoryProductId) props.setHistoryProductId(null); }}
+          productId={historyProductId}
+          products={props.products}
+          invoices={invoices}
+          formatCurrency={props.formatCurrency}
+          toPersianDigits={props.toPersianDigits}
+        />
+      )}
+      {isGroupPriceModalOpen && (
+        <GroupPriceUpdateWizard
+          products={props.products}
+          productCategories={productCategories}
+          initialSelectedIds={groupUpdateType === 'selected' ? selectedProductIds : []}
+          currency={storeSettings?.currency || "تومان"}
+          onClose={() => setIsGroupPriceModalOpen(false)}
+          onSave={async (items) => {
+            if (props.handleGroupPriceUpdate) {
+              await props.handleGroupPriceUpdate(items);
+            }
+          }}
+        />
+      )}
+
       </Suspense>
   );
 }

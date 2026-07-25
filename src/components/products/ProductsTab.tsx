@@ -89,141 +89,110 @@ export default function ProductsTab(props: any) {
                         </p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <div
-                          className="relative"
-                          tabIndex={0}
-                          onBlur={(e) => {
-                            if (
-                              !e.currentTarget.contains(e.relatedTarget as Node)
-                            ) {
-                              setIsProductActionsMenuOpen(false);
-                            }
-                          }}
-                        >
+{selectedProductIds.length > 0 && (
+  <div className="flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100 mr-2">
+    <span className="text-sm font-bold text-indigo-700">{toPersianDigits(selectedProductIds.length)} مورد انتخاب شده:</span>
+    <button
+      onClick={() => setIsGroupPriceModalOpen(true)}
+      className="px-3 py-1.5 bg-white hover:bg-indigo-100 text-indigo-600 rounded-lg flex items-center gap-2 transition-colors text-sm font-bold border border-indigo-200 shadow-sm"
+    >
+      <Tag className="w-4 h-4" />
+      تغییر قیمت
+    </button>
+    <button
+      onClick={() => setPrintingBarcodeProduct(products.filter(p => selectedProductIds.includes(p.id)))}
+      className="px-3 py-1.5 bg-white hover:bg-indigo-100 text-indigo-600 rounded-lg flex items-center gap-2 transition-colors text-sm font-bold border border-indigo-200 shadow-sm"
+    >
+      <Printer className="w-4 h-4" />
+      چاپ بارکد
+    </button>
+  </div>
+)}
+
+                        <div className="relative" tabIndex={0} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) { setIsProductActionsMenuOpen(false); } }}>
+
                           <button
-                            onClick={() =>
-                              setIsProductActionsMenuOpen(
-                                !isProductActionsMenuOpen,
-                              )
-                            }
+                            onClick={() => setIsProductActionsMenuOpen(!isProductActionsMenuOpen)}
                             className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl flex items-center gap-2 transition-colors text-sm font-bold border border-slate-200 shadow-sm"
                           >
-                            <Menu className="w-4 h-4" />
+                            <MoreVertical className="w-4 h-4" />
                             عملیات بیشتر
-                            <ChevronDown
-                              className={`w-3 h-3 transition-transform ${isProductActionsMenuOpen ? "rotate-180" : ""}`}
-                            />
+                            <ChevronDown className={`w-3 h-3 transition-transform ${isProductActionsMenuOpen ? "rotate-180" : ""}`} />
                           </button>
-
                           <AnimatePresence>
                             {isProductActionsMenuOpen && (
                               <motion.div
-                                key="product-actions-menu"
-                                initial={{ opacity: 0, y: -5, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -5, scale: 0.95 }}
-                                transition={{ duration: 0.15 }}
-                                className="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50 origin-top-right"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                className="absolute top-full right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50 overflow-hidden"
                               >
                                 <button
                                   onClick={() => {
-                                    setIsProductActionsMenuOpen(false);
                                     handleExportProductsData();
+                                    setIsProductActionsMenuOpen(false);
                                   }}
-                                  className="w-full text-right px-4 py-2.5 hover:bg-slate-50 text-slate-700 flex items-center gap-3 text-sm transition-colors font-medium"
+                                  className="w-full px-4 py-2 text-right text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2 font-medium"
                                 >
-                                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">
-                                    <ArrowDownToLine className="w-4 h-4" />
-                                  </div>
-                                  صدور اکسل (Export)
+                                  <Download className="w-4 h-4" />
+                                  صدور اکسل
                                 </button>
                                 <button
                                   onClick={() => {
-                                    setIsProductActionsMenuOpen(false);
                                     handleImportProductsData();
+                                    setIsProductActionsMenuOpen(false);
                                   }}
-                                  className="w-full text-right px-4 py-2.5 hover:bg-slate-50 text-slate-700 flex items-center gap-3 text-sm transition-colors font-medium"
+                                  className="w-full px-4 py-2 text-right text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2 font-medium"
                                 >
-                                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500">
-                                    <ArrowUpFromLine className="w-4 h-4" />
-                                  </div>
+                                  <Upload className="w-4 h-4" />
                                   ورود اطلاعات از اکسل
                                 </button>
                                 <button
                                   onClick={() => {
-                                    setIsProductActionsMenuOpen(false);
                                     handleDownloadProductsTemplate();
+                                    setIsProductActionsMenuOpen(false);
                                   }}
-                                  className="w-full text-right px-4 py-2.5 hover:bg-indigo-50 text-indigo-700 flex items-center gap-3 text-sm transition-colors font-medium group"
+                                  className="w-full px-4 py-2 text-right text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2 font-medium"
                                 >
-                                  <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-200 group-hover:text-indigo-600 transition-colors">
-                                    <FileSpreadsheet className="w-4 h-4" />
-                                  </div>
-                                  دانلود قالب استاندارد ورود کالا
+                                  <FileSpreadsheet className="w-4 h-4" />
+                                  دانلود قالب استاندارد
                                 </button>
-
-                                <div className="h-px bg-slate-100 my-1 mx-3"></div>
-
                                 <button
                                   onClick={() => {
-                                    setIsProductActionsMenuOpen(false);
                                     setIsAIProductSearchOpen(true);
+                                    setIsProductActionsMenuOpen(false);
                                   }}
-                                  className="w-full text-right px-4 py-2.5 hover:bg-purple-50 text-purple-700 flex items-center gap-3 text-sm transition-colors font-medium group"
+                                  className="w-full px-4 py-2 text-right text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2 font-medium border-t border-slate-100 mt-1 pt-2"
                                 >
-                                  <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-500 group-hover:bg-purple-200 group-hover:text-purple-600 transition-colors">
-                                    <Sparkles className="w-4 h-4" />
-                                  </div>
+                                  <Sparkles className="w-4 h-4 text-amber-500" />
                                   استخراج هوشمند کالاها
                                 </button>
                                 <button
                                   onClick={() => {
-                                    setIsProductActionsMenuOpen(false);
-                                    setIsGroupPriceModalOpen(true);
-                                  }}
-                                  className="w-full text-right px-4 py-2.5 hover:bg-emerald-50 text-emerald-700 flex items-center gap-3 text-sm transition-colors font-medium group"
-                                >
-                                  <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-200 group-hover:text-emerald-600 transition-colors">
-                                    <Percent className="w-4 h-4" />
-                                  </div>
-                                  فرم بروزرسانی قیمت‌ها (گروهی/تکی)
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setIsProductActionsMenuOpen(false);
                                     setIsGenerateBarcodesModalOpen(true);
+                                    setIsProductActionsMenuOpen(false);
                                   }}
-                                  className="w-full text-right px-4 py-2.5 hover:bg-blue-50 text-blue-700 flex items-center gap-3 text-sm transition-colors font-medium group"
+                                  className="w-full px-4 py-2 text-right text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2 font-medium"
                                 >
-                                  <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-500 group-hover:bg-blue-200 group-hover:text-blue-600 transition-colors">
-                                    <Barcode className="w-4 h-4" />
-                                  </div>
+                                  <Barcode className="w-4 h-4" />
                                   تولید گروهی بارکد
                                 </button>
                                 <button
                                   onClick={() => {
+                                    setActiveTab('inventory');
                                     setIsProductActionsMenuOpen(false);
-                                    setShowProductBarcodesList(true);
                                   }}
-                                  className="w-full text-right px-4 py-2.5 hover:bg-slate-50 text-slate-700 flex items-center gap-3 text-sm transition-colors font-medium group"
+                                  className="w-full px-4 py-2 text-right text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors flex items-center gap-2 font-medium border-t border-slate-100 mt-1 pt-2"
                                 >
-                                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-slate-200 transition-colors">
-                                    <Printer className="w-4 h-4" />
-                                  </div>
-                                  چاپ بارکد کالاها
+                                  <Activity className="w-4 h-4 text-emerald-500" />
+                                  بروزرسانی سریع موجودی
                                 </button>
                               </motion.div>
                             )}
                           </AnimatePresence>
                         </div>
 
-                        <button
-                          onClick={() => setIsFastProductModalOpen(true)}
-                          className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl flex items-center gap-2 transition-colors text-sm font-bold shadow-md shadow-amber-200"
-                        >
-                          <Zap className="w-4 h-4 fill-current" />
-                          ثبت سریع موبایلی
-                        </button>
+                          
                         <button
                           onClick={() => {
                             setEditingProductId(null);
@@ -707,13 +676,7 @@ export default function ProductsTab(props: any) {
                                                 <Edit2 className="ml-3 h-4 w-4 text-gray-400 group-hover/item:text-indigo-600" aria-hidden="true" />
                                                 ویرایش کالا
                                               </button>
-                                              <button
-                                                onClick={() => setPriceChangeProduct(p)}
-                                                className="text-gray-700 group/item flex w-full items-center px-4 py-2 text-sm hover:bg-amber-50 hover:text-amber-600 transition-colors text-right"
-                                              >
-                                                <Tag className="ml-3 h-4 w-4 text-gray-400 group-hover/item:text-amber-600" aria-hidden="true" />
-                                                تغییر قیمت سریع
-                                              </button>
+                                              
                                               <button
                                                 onClick={() =>
                                                   setHistoryProductId(
@@ -725,15 +688,7 @@ export default function ProductsTab(props: any) {
                                                 <Activity className="ml-3 h-4 w-4 text-gray-400 group-hover/item:text-emerald-600" aria-hidden="true" />
                                                 سابقه قیمت‌ها
                                               </button>
-                                              <button
-                                                onClick={() =>
-                                                  setPrintingBarcodeProduct(p)
-                                                }
-                                                className="text-gray-700 group/item flex w-full items-center px-4 py-2 text-sm hover:bg-indigo-50 hover:text-indigo-600 transition-colors text-right"
-                                              >
-                                                <Printer className="ml-3 h-4 w-4 text-gray-400 group-hover/item:text-indigo-600" aria-hidden="true" />
-                                                چاپ بارکد
-                                              </button>
+                                              
                                               <button
                                                 onClick={() =>
                                                   handleDuplicateProduct(p)
@@ -892,7 +847,7 @@ export default function ProductsTab(props: any) {
                         </button>
                         <button
                           onClick={() => {
-                            setShowProductBarcodesList(true);
+                            setPrintingBarcodeProduct(products.filter(p => selectedProductIds.includes(p.id)));
                           }}
                           className="bg-slate-50 text-slate-700 hover:bg-slate-100 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
                         >

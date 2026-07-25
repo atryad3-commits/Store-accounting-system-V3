@@ -1963,7 +1963,7 @@ if (requiresInitSetup && user) {
                         persian_fa={persian_fa}
                         storeSettings={storeSettings}
                         user={user}
-                        PersonLedgerActionsDropdown={PersonLedgerActionsDropdown} ledgerPersonId={ledgerPersonId} setActiveTab={setActiveTab} setCustomerId={setCustomerId} setReceiptPersonId={setReceiptPersonId} handleEditPerson={handleEditPerson} setIsPersonModalOpen={setIsPersonModalOpen} sendNotification={sendNotification} setPrintingPersonLedger={setPrintingPersonLedger} fetchInvoices={fetchInvoices} fetchTransactions={fetchTransactions} fetchAccountingDocuments={fetchAccountingDocuments} User={User} Select={Select} mapPersonToOption={mapPersonToOption} setLedgerPersonId={setLedgerPersonId} customPersonFilter={customPersonFilter} accountingDocuments={accountingDocuments} payslips={payslips} invoices={invoices} convertToGregorian={convertToGregorian} printingPersonLedger={printingPersonLedger} getPersonDisplayName={getPersonDisplayName} formatNumber={formatNumber} formatDateDisplay={formatDateDisplay} getRoleBadgeClasses={getRoleBadgeClasses} getRoleName={getRoleName} setLedgerTab={setLedgerTab} ledgerTab={ledgerTab} PersonNotesAndAttachments={PersonNotesAndAttachments} List={List} setViewingInvoice={setViewingInvoice} transactions={transactions} setViewingPayslip={setViewingPayslip} setPreviewReceiptData={setPreviewReceiptData} issuedChecks={issuedChecks} setViewingCheck={setViewingCheck} receivedChecks={receivedChecks} Calendar={Calendar} Tag={Tag}
+                        PersonLedgerActionsDropdown={PersonLedgerActionsDropdown} ledgerPersonId={ledgerPersonId} setActiveTab={setActiveTab} setCustomerId={setCustomerId} setReceiptPersonId={setReceiptPersonId} handleEditPerson={handleEditPerson} setIsPersonModalOpen={setIsPersonModalOpen} sendNotification={sendNotification} setPrintingPersonLedger={setPrintingPersonLedger} fetchInvoices={fetchInvoices} fetchTransactions={fetchTransactions} fetchAccountingDocuments={fetchAccountingDocuments} User={User} Select={Select} mapPersonToOption={mapPersonToOption} setLedgerPersonId={setLedgerPersonId} customPersonFilter={customPersonFilter} accountingDocuments={accountingDocuments} payslips={payslips} invoices={invoices} convertToGregorian={convertToGregorian} printingPersonLedger={printingPersonLedger} getPersonDisplayName={getPersonDisplayName} formatNumber={formatNumber} formatDateDisplay={formatDateDisplay} getRoleBadgeClasses={getRoleBadgeClasses} getRoleName={getRoleName} setLedgerTab={setLedgerTab} ledgerTab={ledgerTab} PersonNotesAndAttachments={PersonNotesAndAttachments} List={List} setViewingInvoice={setViewingInvoice} transactions={transactions} setViewingPayslip={setViewingPayslip} setPreviewReceiptData={setPreviewReceiptData} setPrintingTransaction={setPrintingTransaction} issuedChecks={issuedChecks} setViewingCheck={setViewingCheck} receivedChecks={receivedChecks} Calendar={Calendar} Tag={Tag}
                       />} />
   <Route path="/debts_credits" element={<DebtsCreditsReport showNotification={showNotification} />} />
   <Route path="/transfer" element={<motion.div
@@ -2242,6 +2242,25 @@ if (requiresInitSetup && user) {
 
 
     
+
+          {submittingReceipt && !previewReceiptData && (
+            <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[99999] flex flex-col items-center justify-center p-8 text-center cursor-wait select-none" dir="rtl">
+              <div className="w-16 h-16 relative flex items-center justify-center mb-6">
+                <div className="absolute inset-0 rounded-full border-4 border-emerald-500/20"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-t-emerald-500 animate-spin"></div>
+                <RefreshCw className="w-6 h-6 text-emerald-400 animate-pulse" />
+              </div>
+              
+              <h3 className="text-lg font-black text-white mb-2">در حال ثبت تراکنش مالی...</h3>
+              <p className="text-slate-400 text-xs max-w-xs leading-relaxed mb-6 font-bold">
+                لطفاً منتظر بمانید. سیستم در حال بررسی، تایید و ثبت نهایی اسناد و بروزرسانی حساب‌های مرتبط به صورت یکپارچه می‌باشد.
+              </p>
+              <div className="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden relative">
+                <div className="absolute h-full w-1/2 bg-emerald-500 rounded-full animate-loading-bar"></div>
+              </div>
+            </div>
+          )}
+
           {isPersonModalOpen && (
             <PersonFormModal
               isOpen={isPersonModalOpen}

@@ -6,7 +6,8 @@ import Barcode from "react-barcode";
 const formatNumber = (num: number) => new Intl.NumberFormat('fa-IR').format(num || 0);
 
 interface PrintBarcodeModalProps {
-  product: any;
+  product?: any;
+  products?: any[];
   onClose: () => void;
   storeSettings?: any;
 }
@@ -38,7 +39,9 @@ const PRINT_FORMATS = [
   },
 ];
 
-export default function PrintBarcodeModal({ product, onClose, storeSettings }: PrintBarcodeModalProps) {
+export default function PrintBarcodeModal({ product, products, onClose, storeSettings }: PrintBarcodeModalProps) {
+  const targetProducts = products && products.length > 0 ? products : product ? [product] : [];
+  
   const [formatId, setFormatId] = useState('a5');
   
   const selectedFormat = PRINT_FORMATS.find(f => f.id === formatId) || PRINT_FORMATS[1];
@@ -58,7 +61,8 @@ export default function PrintBarcodeModal({ product, onClose, storeSettings }: P
     }
   };
 
-  const barcodeValue = product.barcode || product.code;
+  const previewProduct = targetProducts[0] || {};
+  const barcodeValue = previewProduct.barcode || previewProduct.code;
 
   return (
     <div
@@ -186,7 +190,7 @@ export default function PrintBarcodeModal({ product, onClose, storeSettings }: P
           <div className="border border-slate-200 p-4 rounded-xl shadow-sm text-center w-full max-w-xs mx-auto bg-white flex flex-col justify-center items-center">
             {showTitle && (
               <div className="font-extrabold text-slate-900 mb-2 truncate px-2 w-full" style={{ fontSize: `${titleFontSize}px` }}>
-                {product.name}
+                {previewProduct.name}
               </div>
             )}
             <div className="flex justify-center my-2 text-center w-full overflow-hidden" style={{ transform: `scale(${barcodeScale / 100})`, marginTop: showTitle ? '0' : '8px', marginBottom: showPrice ? '0' : '8px' }}>
@@ -212,7 +216,7 @@ export default function PrintBarcodeModal({ product, onClose, storeSettings }: P
               <div className="font-black text-indigo-700 flex justify-between w-full mt-2 px-1" style={{ fontSize: `${priceFontSize}px` }}>
                 <span>قیمت:</span>
                 <span>
-                  {formatNumber(product.price)} {storeSettings?.currency || "تومان"}
+                  {formatNumber(previewProduct.price)} {storeSettings?.currency || "تومان"}
                 </span>
               </div>
             )}
@@ -221,8 +225,11 @@ export default function PrintBarcodeModal({ product, onClose, storeSettings }: P
 
         {/* Print Layout */}
         <div className="hidden print:flex print-container print:w-full" dir="rtl">
-          {Array.from({ length: labelCount }).map((_, index) => (
-            <div key={index} className="label-item border border-black p-2 bg-white flex flex-col justify-center items-center w-full overflow-hidden rounded-lg box-border">
+          
+          {targetProducts.map((prod, pIdx) => {
+            const bVal = prod.barcode || prod.code;
+            return Array.from({ length: labelCount }).map((_, index) => (
+            <div key={`${pIdx}-${index}`} className="label-item border border-black p-2 bg-white flex flex-col justify-center items-center w-full overflow-hidden rounded-lg box-border">
               <div 
                 className="font-bold text-black mb-1 truncate px-1 w-full text-center leading-tight"
                 style={{ fontSize: `12px` }}
@@ -234,16 +241,16 @@ export default function PrintBarcodeModal({ product, onClose, storeSettings }: P
                   className="font-bold text-black mb-1 truncate px-1 w-full text-center leading-tight"
                   style={{ fontSize: `${titleFontSize}px` }}
                 >
-                  {product.name}
+                  {prod.name}
                 </div>
               )}
               <div 
                 className="flex justify-center text-center items-center overflow-hidden origin-top"
                 style={{ transform: `scale(${barcodeScale / 100})`, marginTop: showTitle ? '0' : '4px', marginBottom: showPrice ? '0' : '4px' }}
               >
-                {barcodeValue ? (
+                {bVal ? (
                   <Barcode
-                    value={barcodeValue}
+                    value={bVal}
                     format="CODE128"
                     width={1.5}
                     height={35}
@@ -263,11 +270,13 @@ export default function PrintBarcodeModal({ product, onClose, storeSettings }: P
                   className="font-black text-black w-full text-center mt-1"
                   style={{ fontSize: `${priceFontSize}px` }}
                 >
-                  {formatNumber(product.price)} {storeSettings?.currency || "تومان"}
+                  {formatNumber(prod.price)} {storeSettings?.currency || "تومان"}
                 </div>
               )}
             </div>
-          ))}
+          ))
+          })}
+
         </div>
 
         <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 print:hidden">
