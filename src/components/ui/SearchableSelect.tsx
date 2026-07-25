@@ -18,6 +18,7 @@ interface SearchableSelectProps {
   placeholder?: string;
   searchPlaceholder?: string;
   disabled?: boolean;
+  menuPlacement?: 'top' | 'bottom';
 }
 
 export default function SearchableSelect({
@@ -26,7 +27,8 @@ export default function SearchableSelect({
   onChange,
   placeholder = 'انتخاب کنید...',
   searchPlaceholder = 'جستجو...',
-  disabled = false
+  disabled = false,
+  menuPlacement = 'bottom'
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -96,11 +98,11 @@ export default function SearchableSelect({
         {isOpen && (
           <motion.div
             key="dropdown"
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: menuPlacement === 'top' ? 10 : -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-hidden flex flex-col"
+            className={`absolute z-50 w-full ${menuPlacement === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'} bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-hidden flex flex-col`}
           >
             <div className="p-2 border-b border-gray-100 flex items-center gap-2 sticky top-0 bg-white z-10">
               <Search className="w-4 h-4 text-gray-400" />

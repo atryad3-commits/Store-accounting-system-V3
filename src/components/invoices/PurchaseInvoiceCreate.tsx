@@ -637,6 +637,7 @@ import {
                   <div className="flex-[2] relative z-10 w-full">
                     <div className="border hover:border-emerald-300 rounded-xl bg-white shadow-sm transition-colors relative">
                       <SearchableSelect
+                        menuPlacement="top"
                         options={(products || []).filter((p) => p.isActive !== false).map((p) => ({
                           value: p.id,
                           label: p.name,
