@@ -222,6 +222,7 @@ import appVersion from "./version.json";
 import { useAppController } from "./hooks/useAppController";
 import PreviewModals from "./components/modals/PreviewModals";
 import ExtraModals from "./components/modals/ExtraModals";
+import ConfirmModal from "./components/modals/ConfirmModal";
 const BusinessManager = React.lazy(() => import('./components/admin/BusinessManager'));
 const FastStocktakingMobile = React.lazy(() => import('./components/inventory/FastStocktakingMobile'));
 const PricingWizardModal = React.lazy(() => import('./components/modals/PricingWizardModal'));
@@ -2407,6 +2408,7 @@ if (requiresInitSetup && user) {
           <CalculatorModal isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
           <PreviewModals {...appState} />
           <ExtraModals {...appState} />
+          <ConfirmModal confirmState={appState.confirmState} setConfirmState={appState.setConfirmState} />
         </>
       );
       }
