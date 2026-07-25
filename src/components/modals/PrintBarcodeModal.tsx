@@ -62,7 +62,7 @@ export default function PrintBarcodeModal({ product, onClose, storeSettings }: P
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm print:bg-white print:p-0 print:absolute print:inset-0 print:z-auto print:block"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm print:bg-white print:p-0 print:relative print:z-auto print:block"
       dir="rtl"
     >
       <style>{`
@@ -73,10 +73,11 @@ export default function PrintBarcodeModal({ product, onClose, storeSettings }: P
           .print-container, .print-container * {
             visibility: visible;
           }
+          .main-app-layout-wrapper { display: none !important; }
           .print-container {
-            position: absolute;
-            left: 0;
-            top: 0;
+            position: relative !important;
+
+
             width: 100%;
           }
           ${selectedFormat.css}

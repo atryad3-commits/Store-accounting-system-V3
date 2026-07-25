@@ -1207,7 +1207,7 @@ if (requiresInitSetup && user) {
             />
           ) : (
             <div
-              className={`flex ${menuLayout === "horizontal" ? "flex-col h-screen" : "h-screen"} overflow-hidden ${isGmailTheme ? "theme-gmail bg-[#f6f8fc]" : `theme-${storeSettings?.theme || "classic"} bg-gray-50/50`} text-gray-800 font-sans print:h-auto print:block print:overflow-visible`}
+              className={`flex ${menuLayout === "horizontal" ? "flex-col h-screen" : "h-screen"} overflow-hidden ${isGmailTheme ? "theme-gmail bg-[#f6f8fc]" : `theme-${storeSettings?.theme || "classic"} bg-gray-50/50`} text-gray-800 font-sans print:h-auto print:block print:overflow-visible main-app-layout-wrapper`}
               dir="rtl"
             >
               {isGmailTheme && (

@@ -316,6 +316,7 @@ export default function OrderList({
           body * {
             visibility: hidden;
           }
+          
           .custom-scrollbar {
             overflow: visible !important;
           }
@@ -326,6 +327,8 @@ export default function OrderList({
             position: absolute;
             left: 0;
             top: 0;
+
+
             width: 100%;
             box-shadow: none;
             border: none;
