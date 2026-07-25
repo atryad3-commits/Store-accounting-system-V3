@@ -815,6 +815,7 @@ export default function SaleInvoiceCreate(props: any) {
                   ذخیره به عنوان پیش‌نویس
                 </button>
                 <button
+                  type="button"
                   onClick={handleInvoicePreviewTrigger}
                   disabled={submitting || (items || []).length === 0 || !customerId}
                   className="px-10 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-200 text-white rounded-2xl font-black flex items-center justify-center gap-3 transition-colors shadow-sm outline-none focus:ring-4 focus:ring-indigo-500/20 cursor-pointer"

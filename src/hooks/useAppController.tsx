@@ -4542,13 +4542,16 @@ const saveInvoiceData = async (
         }
       }
 
-      if (shortages.length > 0) {
-        // Shortage exists in sales warehouse! Propose transfer
-        setTransferProposal({
-          show: true,
-          items: shortages,
-          payload: payload,
-        });
+      if (!storeSettings.allowNegativeStock && shortages.length > 0) {
+        const shortageMsgs = shortages.map(
+          (s) =>
+            `• ${s.productName}: نیاز ${s.required} ${s.unit} (موجودی در انبار: ${s.availableInTarget})`
+        );
+        customAlert(
+          `موجودی کالا(های) زیر در انبار انتخاب شده کافی نیست:\n\n${shortageMsgs.join(
+            "\n"
+          )}\n\nجهت ثبت فاکتور با موجودی منفی، گزینه مربوطه را در تنظیمات سیستم فعال کنید.`
+        );
         setSubmitting(false);
         return false;
       }
@@ -5234,7 +5237,7 @@ const handleInvoicePreviewTrigger = () => {
       paidAmount: Number(invoicePaidAmount) || 0,
     };
 
-    saveInvoiceData();
+    saveInvoiceData(tempPayload);
   };
 
 const getProductStockInfo = (productId: string | number) => {
