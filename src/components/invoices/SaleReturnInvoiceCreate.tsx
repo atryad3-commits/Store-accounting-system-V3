@@ -91,7 +91,7 @@ export default function SaleReturnInvoiceCreate(props: any) {
     activeTab,
     calculateSubtotal
   } = props;
-  const itemsEndRef = useRef<HTMLTableRowElement>(null);
+  const itemsEndRef = useRef<HTMLDivElement>(null);
   const [prevItemsLength, setPrevItemsLength] = useState((items || []).length);
   useEffect(() => {
     if ((items || []).length > prevItemsLength) {
@@ -341,49 +341,6 @@ export default function SaleReturnInvoiceCreate(props: any) {
                   <Package className="w-5 h-5 text-indigo-600" /> لیست اقلام
                   برگشت از فروش
                 </h3>
-                <div className="flex-1 w-full flex flex-col md:flex-row items-center gap-2 max-w-2xl">
-                  <div className="flex gap-2">
-                    <FastBarcodeScanner onScan={handleFastBarcodeScan} />
-                  </div>
-                  <div className="flex-[2] relative z-10 w-full">
-                    <div className="border hover:border-indigo-300 rounded-xl bg-white shadow-sm transition-colors relative">
-                      <SearchableSelect
-                        options={products
-                          .filter(
-                            (p) =>
-                              p.isActive !== false &&
-                              (storeSettings.allowNegativeStock ||
-                                p.type === "service" ||
-                                calculateProductCurrentStock(p.id) > 0),
-                          )
-                          .map((p) => ({
-                            value: p.id,
-                            label: p.name,
-                            subLabel: formatProductStockDetails(p),
-                            badge: p.type === "service" ? "خدمات" : "کالا",
-                            searchStr: `${p.code || ""} ${p.barcode || ""}`,
-                          }))}
-                        value=""
-                        onChange={(val) => handleFastAddProduct(String(val))}
-                        placeholder="جستجو و افزودن سریع کالا به لیست فروش (نام، کد، بارکد)..."
-                        searchPlaceholder="جستجوی کالای مورد نظر برای فروش..."
-                      />
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setIsScannerOpen(true)}
-                    className="p-[11px] bg-white border border-indigo-200 text-indigo-600 rounded-xl shadow-sm hover:bg-indigo-50 transition-colors focus:ring-2 focus:ring-indigo-500"
-                    title="اسکن بارکد با دوربین"
-                  >
-                    <ScanLine className="w-5 h-5" />
-                  </button>
-                </div>
-                <button
-                  onClick={() => setIsProductModalOpen(true)}
-                  className="px-5 py-3 bg-white border border-indigo-200 text-indigo-700 shadow-sm rounded-xl font-bold hover:bg-indigo-50 flex items-center gap-2 transition-colors whitespace-nowrap outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <Plus className="w-4 h-4" /> تعریف کالا / خدمات جدید
-                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-right min-w-[1000px]">
@@ -634,9 +591,54 @@ export default function SaleReturnInvoiceCreate(props: any) {
                         </td>
                       </tr>
                     )}
-                    <tr ref={itemsEndRef}><td colSpan={7}></td></tr>
+                    
                   </tbody>
                 </table>
+              </div>
+              <div className="p-5 bg-indigo-50/30 border-t border-indigo-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="flex-1 w-full flex flex-col md:flex-row items-center gap-2 max-w-2xl">
+                  <div className="flex gap-2">
+                    <FastBarcodeScanner onScan={handleFastBarcodeScan} />
+                  </div>
+                  <div className="flex-[2] relative z-10 w-full">
+                    <div className="border hover:border-indigo-300 rounded-xl bg-white shadow-sm transition-colors relative">
+                      <SearchableSelect
+                        options={products
+                          .filter(
+                            (p) =>
+                              p.isActive !== false &&
+                              (storeSettings.allowNegativeStock ||
+                                p.type === "service" ||
+                                calculateProductCurrentStock(p.id) > 0),
+                          )
+                          .map((p) => ({
+                            value: p.id,
+                            label: p.name,
+                            subLabel: formatProductStockDetails(p),
+                            badge: p.type === "service" ? "خدمات" : "کالا",
+                            searchStr: `${p.code || ""} ${p.barcode || ""}`,
+                          }))}
+                        value=""
+                        onChange={(val) => handleFastAddProduct(String(val))}
+                        placeholder="جستجو و افزودن سریع کالا به لیست فروش (نام، کد، بارکد)..."
+                        searchPlaceholder="جستجوی کالای مورد نظر برای فروش..."
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsScannerOpen(true)}
+                    className="p-[11px] bg-white border border-indigo-200 text-indigo-600 rounded-xl shadow-sm hover:bg-indigo-50 transition-colors focus:ring-2 focus:ring-indigo-500"
+                    title="اسکن بارکد با دوربین"
+                  >
+                    <ScanLine className="w-5 h-5" />
+                  </button>
+                </div>
+                <button
+                  onClick={() => setIsProductModalOpen(true)}
+                  className="px-5 py-3 bg-white border border-indigo-200 text-indigo-700 shadow-sm rounded-xl font-bold hover:bg-indigo-50 flex items-center gap-2 transition-colors whitespace-nowrap outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <Plus className="w-4 h-4" /> تعریف کالا / خدمات جدید
+                </button>
               </div>
             </div>
 

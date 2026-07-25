@@ -93,7 +93,7 @@ import {
     Calculator,
     calculateSubtotal
   } = props;
-  const itemsEndRef = useRef<HTMLTableRowElement>(null);
+  const itemsEndRef = useRef<HTMLDivElement>(null);
   const [prevItemsLength, setPrevItemsLength] = useState((items || []).length);
   useEffect(() => {
     if ((items || []).length > prevItemsLength) {
@@ -360,44 +360,6 @@ import {
                   <Package className="w-5 h-5 text-emerald-600" /> لیست اقلام
                   برگشت از خرید
                 </h3>
-                <div className="flex-1 w-full flex flex-col md:flex-row items-center gap-2 max-w-2xl">
-                  <div className="flex gap-2">
-                    <FastBarcodeScanner onScan={handleFastBarcodeScan} />
-                  </div>
-                  <div className="flex-[2] relative z-10 w-full">
-                    <div className="border hover:border-emerald-300 rounded-xl bg-white shadow-sm transition-colors relative">
-                      <SearchableSelect
-                        options={(products || []).filter((p) => p.isActive !== false).map((p) => ({
-                          value: p.id,
-                          label: p.name,
-                          subLabel:
-                            p.code || p.barcode
-                              ? `کد: ${p.code || "-"} | بارکد: ${p.barcode || "-"}`
-                              : undefined,
-                          badge: p.type === "service" ? "خدمات" : "کالا",
-                          searchStr: `${p.code || ""} ${p.barcode || ""}`,
-                        }))}
-                        value=""
-                        onChange={(val) => handleFastAddProduct(String(val))}
-                        placeholder="جستجو و افزودن سریع کالا به لیست خرید (نام، کد، بارکد)..."
-                        searchPlaceholder="جستجوی کالای خریداری شده..."
-                      />
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setIsScannerOpen(true)}
-                    className="p-[11px] bg-white border border-emerald-200 text-emerald-600 rounded-xl shadow-sm hover:bg-emerald-50 transition-colors focus:ring-2 focus:ring-emerald-500"
-                    title="اسکن بارکد با دوربین"
-                  >
-                    <ScanLine className="w-5 h-5" />
-                  </button>
-                </div>
-                <button
-                  onClick={() => setIsProductModalOpen(true)}
-                  className="px-5 py-3 bg-white border border-emerald-200 text-emerald-700 shadow-sm rounded-xl font-bold hover:bg-emerald-50 flex items-center gap-2 transition-colors whitespace-nowrap outline-none focus:ring-2 focus:ring-emerald-500"
-                >
-                  <Plus className="w-4 h-4" /> تعریف کالا / خدمات جدید
-                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-right min-w-[1000px]">
@@ -648,9 +610,49 @@ import {
                         </td>
                       </tr>
                     )}
-                    <tr ref={itemsEndRef}><td colSpan={7}></td></tr>
+                    
                   </tbody>
                 </table>
+              </div>
+              <div className="p-5 bg-emerald-50/30 border-t border-emerald-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="flex-1 w-full flex flex-col md:flex-row items-center gap-2 max-w-2xl">
+                  <div className="flex gap-2">
+                    <FastBarcodeScanner onScan={handleFastBarcodeScan} />
+                  </div>
+                  <div className="flex-[2] relative z-10 w-full">
+                    <div className="border hover:border-emerald-300 rounded-xl bg-white shadow-sm transition-colors relative">
+                      <SearchableSelect
+                        options={(products || []).filter((p) => p.isActive !== false).map((p) => ({
+                          value: p.id,
+                          label: p.name,
+                          subLabel:
+                            p.code || p.barcode
+                              ? `کد: ${p.code || "-"} | بارکد: ${p.barcode || "-"}`
+                              : undefined,
+                          badge: p.type === "service" ? "خدمات" : "کالا",
+                          searchStr: `${p.code || ""} ${p.barcode || ""}`,
+                        }))}
+                        value=""
+                        onChange={(val) => handleFastAddProduct(String(val))}
+                        placeholder="جستجو و افزودن سریع کالا به لیست خرید (نام، کد، بارکد)..."
+                        searchPlaceholder="جستجوی کالای خریداری شده..."
+                      />
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsScannerOpen(true)}
+                    className="p-[11px] bg-white border border-emerald-200 text-emerald-600 rounded-xl shadow-sm hover:bg-emerald-50 transition-colors focus:ring-2 focus:ring-emerald-500"
+                    title="اسکن بارکد با دوربین"
+                  >
+                    <ScanLine className="w-5 h-5" />
+                  </button>
+                </div>
+                <button
+                  onClick={() => setIsProductModalOpen(true)}
+                  className="px-5 py-3 bg-white border border-emerald-200 text-emerald-700 shadow-sm rounded-xl font-bold hover:bg-emerald-50 flex items-center gap-2 transition-colors whitespace-nowrap outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <Plus className="w-4 h-4" /> تعریف کالا / خدمات جدید
+                </button>
               </div>
             </div>
 
