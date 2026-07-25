@@ -9,6 +9,7 @@ const PrintBarcodeModal = React.lazy(() => import('./PrintBarcodeModal').catch((
 const BarcodeScannerModal = React.lazy(() => import('./BarcodeScannerModal').catch(() => ({ default: () => null })));
 const EditReceiptModal = React.lazy(() => import('./EditReceiptModal').catch(() => ({ default: () => null })));
 const AIProductSearchModal = React.lazy(() => import('../products/AIProductSearchModal').catch(() => ({ default: () => null })));
+const GenerateBarcodesModal = React.lazy(() => import('./GenerateBarcodesModal').catch(() => ({ default: () => null })));
 
 export default function ExtraModals(props: any) {
   const {
@@ -21,6 +22,8 @@ export default function ExtraModals(props: any) {
     isBarcodeScannerModalOpen, setIsBarcodeScannerModalOpen,
     isEditReceiptModalOpen, setIsEditReceiptModalOpen,
     isAIProductSearchModalOpen, setIsAIProductSearchModalOpen,
+    isGenerateBarcodesModalOpen, setIsGenerateBarcodesModalOpen,
+    barcodeFormat, setBarcodeFormat, barcodePrefix, setBarcodePrefix, barcodeLength, setBarcodeLength, handleGenerateBarcodes,
     
     // Other props for modals
     receiptPersonId, setReceiptPersonId,
@@ -184,6 +187,22 @@ export default function ExtraModals(props: any) {
             setIsAIProductSearchModalOpen(false);
           }}
           products={products}
+        />
+      )}
+      {isGenerateBarcodesModalOpen && (
+        <GenerateBarcodesModal
+          isOpen={isGenerateBarcodesModalOpen}
+          onClose={() => setIsGenerateBarcodesModalOpen(false)}
+          barcodeFormat={barcodeFormat}
+          setBarcodeFormat={setBarcodeFormat}
+          barcodePrefix={barcodePrefix}
+          setBarcodePrefix={setBarcodePrefix}
+          barcodeLength={barcodeLength}
+          setBarcodeLength={setBarcodeLength}
+          handleGenerateBarcodes={async () => {
+            await handleGenerateBarcodes();
+            setIsGenerateBarcodesModalOpen(false);
+          }}
         />
       )}
     </Suspense>
