@@ -383,7 +383,7 @@ export default function SaleInvoiceCreate(props: any) {
 
             {/* Items List */}
             <div
-              className="bg-white rounded-3xl shadow-sm border-2 border-indigo-50 overflow-hidden"
+              className="bg-white rounded-3xl shadow-sm border-2 border-indigo-50 "
               data-invoice-flow="sale"
             >
               <div className="p-5 bg-indigo-50/30 border-b border-indigo-100 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -694,7 +694,7 @@ export default function SaleInvoiceCreate(props: any) {
             </div>
 
             {/* Totals & Submit */}
-            <div className="bg-white rounded-3xl shadow-sm border-2 border-indigo-50 overflow-hidden">
+            <div className="bg-white rounded-3xl shadow-sm border-2 border-indigo-50 ">
               <div className="p-8">
                 <div className="flex flex-col lg:flex-row justify-between gap-10">
                   {!activeTab.includes("warehouse") && (

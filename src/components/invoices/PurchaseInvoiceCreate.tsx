@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
 import DatePicker from 'react-multi-date-picker';
 import persian from 'react-date-object/calendars/persian';
@@ -367,7 +367,7 @@ import {
 
             {/* Items List */}
             <div
-              className="bg-white rounded-3xl shadow-sm border-2 border-emerald-50 overflow-hidden"
+              className="bg-white rounded-3xl shadow-sm border-2 border-emerald-50 "
               data-invoice-flow="purchase"
             >
               <div className="p-5 bg-emerald-50/30 border-b border-emerald-100 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -673,7 +673,7 @@ import {
             </div>
 
             {/* Totals & Submit */}
-            <div className="bg-white rounded-3xl shadow-sm border-2 border-emerald-50 overflow-hidden">
+            <div className="bg-white rounded-3xl shadow-sm border-2 border-emerald-50 ">
               <div className="p-8">
                 <div className="flex flex-col lg:flex-row justify-between gap-10">
                   <div className="flex-1 space-y-4">
