@@ -136,22 +136,17 @@ export default function ExtraModals(props: any) {
 
       {isProductPriceChangeModalOpen && editingProductId && (
         <ProductPriceChangeModal
-          isOpen={isProductPriceChangeModalOpen}
+          currency={storeSettings?.currency || "تومان"}
           onClose={() => {
             setIsProductPriceChangeModalOpen(false);
           }}
-          product={editingProductId ? products.find((p: any) => p.id === editingProductId) : (Array.isArray(props.printingBarcodeProduct) ? undefined : props.printingBarcodeProduct)}
-          products={Array.isArray(props.printingBarcodeProduct) ? props.printingBarcodeProduct : undefined}
-          onSave={async (newPrice) => {
-            const product = products.find((p: any) => p.id === editingProductId);
-            if (product) {
-              await saveProductData({ ...product, price: newPrice });
+          product={editingProductId ? products.find((p: any) => p.id === editingProductId) : undefined}
+          onSuccess={async () => {
               await fetchProducts();
               setIsProductPriceChangeModalOpen(false);
               showNotification("قیمت محصول با موفقیت بروزرسانی شد", "success");
-            }
           }}
-          formatCurrency={formatCurrency}
+          showNotification={showNotification}
         />
       )}
 
@@ -171,7 +166,6 @@ export default function ExtraModals(props: any) {
 
       {isBarcodeScannerModalOpen && (
         <BarcodeScannerModal
-          isOpen={isBarcodeScannerModalOpen}
           onClose={() => setIsBarcodeScannerModalOpen(false)}
           onScan={handleBarcodeScan}
         />
@@ -181,13 +175,18 @@ export default function ExtraModals(props: any) {
         <EditReceiptModal
           isOpen={isEditReceiptModalOpen}
           onClose={() => setIsEditReceiptModalOpen(false)}
-          transaction={editingReceipt}
+          receipt={editingReceipt}
           persons={persons}
           accounts={accounts}
           cashboxes={cashboxes}
           checkbooks={checkbooks}
-          onUpdate={async (data: any) => {
-             await updateTransaction(data);
+          storeSettings={storeSettings}
+          showNotification={showNotification}
+          confirmAction={confirmAction}
+          onSave={async (data: any) => {
+             if (props.handleSaveReceipt) {
+               await props.handleSaveReceipt(data);
+             }
              setIsEditReceiptModalOpen(false);
           }}
         />
@@ -197,11 +196,11 @@ export default function ExtraModals(props: any) {
         <AIProductSearchModal
           isOpen={isAIProductSearchModalOpen}
           onClose={() => setIsAIProductSearchModalOpen(false)}
-          onConfirm={(results) => {
-            if (handleAIAssist) handleAIAssist(results);
+          categories={productCategories || []}
+          onAddProducts={(newProducts, categoryId) => {
+            if (handleAIAssist) handleAIAssist(newProducts, categoryId);
             setIsAIProductSearchModalOpen(false);
           }}
-          products={products}
         />
       )}
       {isPersonExtraModalOpen && (

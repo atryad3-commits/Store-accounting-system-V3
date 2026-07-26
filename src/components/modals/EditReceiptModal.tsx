@@ -18,6 +18,7 @@ interface EditReceiptModalProps {
   checkbooks: any[];
   storeSettings: any;
   onSave: (updatedPayload: any) => Promise<void>;
+  confirmAction?: (message: string, onConfirm: () => void) => void;
 }
 
 export default function EditReceiptModal({
@@ -30,7 +31,8 @@ export default function EditReceiptModal({
   checkbooks,
   storeSettings,
   onSave,
-  showNotification
+  showNotification,
+  confirmAction
 }: EditReceiptModalProps) {
   const [personId, setPersonId] = useState('');
   const [method, setMethod] = useState<'cash' | 'check'>('cash');
@@ -89,45 +91,53 @@ export default function EditReceiptModal({
       }
     }
 
-    setLoading(true);
-    try {
-      const parsedAmount = Number(amount);
-      let jalaliDateConverted = dateStr;
-      
-      // If dateStr is a date object (from multi-date-picker)
-      if (dateStr && typeof dateStr.toDate === 'function') {
-        const d = dateStr.toDate();
-        jalaliDateConverted = d.toLocaleDateString(storeSettings?.calendarType === 'gregorian' ? 'en-US' : 'fa-IR');
+    const processSave = async () => {
+      setLoading(true);
+      try {
+        const parsedAmount = Number(amount);
+        let jalaliDateConverted = dateStr;
+        
+        // If dateStr is a date object (from multi-date-picker)
+        if (dateStr && typeof dateStr.toDate === 'function') {
+          const d = dateStr.toDate();
+          jalaliDateConverted = d.toLocaleDateString(storeSettings?.calendarType === 'gregorian' ? 'en-US' : 'fa-IR');
+        }
+
+        let parsedCheckDueDate = checkDueDate;
+        if (checkDueDate && typeof checkDueDate.toDate === 'function') {
+          const d = checkDueDate.toDate();
+          parsedCheckDueDate = d.toLocaleDateString('fa-IR');
+        }
+
+        const updatedPayload: any = {
+          personId,
+          method,
+          amount: parsedAmount,
+          jalaliDate: jalaliDateConverted,
+          description,
+          note,
+          resourceType: method === 'cash' ? resourceType : undefined,
+          resourceId: method === 'cash' ? resourceId : undefined,
+          checkNumber: method === 'check' ? checkNumber : undefined,
+          checkDueDate: method === 'check' ? parsedCheckDueDate : undefined,
+          checkBankName: (method === 'check' && isReceive) ? checkBankName : undefined,
+          checkbookId: (method === 'check' && !isReceive) ? checkbookId : undefined,
+        };
+
+        await onSave(updatedPayload);
+        onClose();
+      } catch (err) {
+        console.error(err);
+        showNotification('خطا در ثبت تغییرات رسید.', 'error');
+      } finally {
+        setLoading(false);
       }
+    };
 
-      let parsedCheckDueDate = checkDueDate;
-      if (checkDueDate && typeof checkDueDate.toDate === 'function') {
-        const d = checkDueDate.toDate();
-        parsedCheckDueDate = d.toLocaleDateString('fa-IR');
-      }
-
-      const updatedPayload: any = {
-        personId,
-        method,
-        amount: parsedAmount,
-        jalaliDate: jalaliDateConverted,
-        description,
-        note,
-        resourceType: method === 'cash' ? resourceType : undefined,
-        resourceId: method === 'cash' ? resourceId : undefined,
-        checkNumber: method === 'check' ? checkNumber : undefined,
-        checkDueDate: method === 'check' ? parsedCheckDueDate : undefined,
-        checkBankName: (method === 'check' && isReceive) ? checkBankName : undefined,
-        checkbookId: (method === 'check' && !isReceive) ? checkbookId : undefined,
-      };
-
-      await onSave(updatedPayload);
-      onClose();
-    } catch (err) {
-      console.error(err);
-      showNotification('خطا در ثبت تغییرات رسید.', 'error');
-    } finally {
-      setLoading(false);
+    if (confirmAction) {
+      confirmAction('آیا از اعمال این تغییرات روی رسید اطمینان دارید؟', processSave);
+    } else {
+      processSave();
     }
   };
 

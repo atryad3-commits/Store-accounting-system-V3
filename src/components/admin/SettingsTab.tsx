@@ -847,6 +847,30 @@ export default function SettingsTab(props: any) {
                                 <div className="space-y-6">
                                   <div className="w-full text-right">
                                     <label className="block text-sm font-bold text-gray-700 mb-2">
+                                      قالب چاپ فاکتور
+                                    </label>
+                                    <select
+                                      value={
+                                        settingsForm.invoicePrintFormat || "standard"
+                                      }
+                                      onChange={(e) =>
+                                        setSettingsForm({
+                                          ...settingsForm,
+                                          invoicePrintFormat: e.target.value,
+                                        })
+                                      }
+                                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 shadow-sm font-bold"
+                                    >
+                                      <option value="standard">استاندارد (کلاسیک)</option>
+                                      <option value="official">رسمی (مورد تایید دارایی)</option>
+                                      <option value="minimal">ساده و مینیمال</option>
+                                      <option value="compact">فشرده (دو فاکتور در A4)</option>
+                                      <option value="thermal">حرارتی (فیش‌پرینتر)</option>
+                                    </select>
+                                  </div>
+
+                                  <div className="w-full text-right">
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">
                                       سایز پیش‌فرض کاغذ
                                     </label>
                                     <select

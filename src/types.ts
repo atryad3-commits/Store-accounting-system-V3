@@ -208,6 +208,7 @@ export type User = {
   autoLogoutMinutes?: number;
 }; 
 export type CompanySettings = {
+  invoicePrintFormat?: "standard" | "minimal" | "official" | "compact" | "thermal";
   companyName: string;
   phone: string;
   contacts?: { id?: string; type: 'mobile' | 'phone' | 'fax' | 'other'; number: string; title?: string }[];
