@@ -4988,27 +4988,6 @@ const getInvoiceNumber = (typeOverride?: string) => {
           }
         }
 
-        // Step 4: به‌روزرسانی کاردکس شخص
-        updateAppProcessing("مرحله ۴ از ۶: به‌روزرسانی کاردکس و تراکنش‌های تامین‌کننده...");
-        await new Promise(r => setTimeout(r, 400));
-        const personTxPayload = {
-          type: 'purchase_invoice',
-          personId: payload.customerId,
-          amount: invoiceTotalAmt,
-          date: payload.date || new Date().toISOString().split('T')[0],
-          description: `ثبت کاردکس فاکتور خرید شماره ${payload.invoiceNumber || invId}`,
-          sourceType: 'invoice_purchase',
-          sourceId: invId,
-          timestamp: Date.now()
-        };
-
-        const createdTx = await addTransaction(personTxPayload);
-        if (createdTx?.id) {
-          rollbackActions.push(async () => {
-            await deleteTransaction(createdTx.id.toString());
-          });
-        }
-
         // Step 5: ثبت گزارش تغییرات
         updateAppProcessing("مرحله ۵ از ۶: ثبت گزارش تغییرات و لاگ سیستم...");
         await new Promise(r => setTimeout(r, 400));
