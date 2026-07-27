@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { startAppProcessing, stopAppProcessing } from "../../utils/processingHelper";
 import { motion } from "motion/react";
 import CurrencyInput from "../ui/CurrencyInput";
 import { Wallet, X, Check, Plus } from "lucide-react";
@@ -55,7 +56,7 @@ const handleSubmitCashbox = async (e?: React.FormEvent) => {
       try { e.preventDefault(); } catch (err) {}
     }
     if (!newCashboxName) return;
-    setSubmittingCashbox(true);
+    setSubmittingCashbox(true); startAppProcessing('شروع فرآیند ثبت Cashbox...');
     try {
       const isEdit = editingCashboxId !== null;
       const payload = {
@@ -84,7 +85,7 @@ const handleSubmitCashbox = async (e?: React.FormEvent) => {
     } catch (error) {
       console.error("Error saving cashbox", error);
     } finally {
-      setSubmittingCashbox(false);
+      setSubmittingCashbox(false); stopAppProcessing();
     }
   };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { startAppProcessing, stopAppProcessing } from "../../utils/processingHelper";
 import { motion } from "motion/react";
 import { Store, X, Check, Plus, Box } from "lucide-react";
 import { addWarehouse, updateWarehouse } from "../../services/dataService";
@@ -57,7 +58,7 @@ const handleSubmitWarehouse = async (e?: React.FormEvent) => {
       try { e.preventDefault(); } catch (err) {}
     }
     if (!newWarehouseName) return;
-    setSubmittingWarehouse(true);
+    setSubmittingWarehouse(true); startAppProcessing('شروع فرآیند ثبت Warehouse...');
     try {
       const isEdit = editingWarehouseId !== null;
       const payload = {
@@ -87,7 +88,7 @@ const handleSubmitWarehouse = async (e?: React.FormEvent) => {
       console.error("Error saving warehouse", error);
       showNotification("خطا در ثبت انبار");
     } finally {
-      setSubmittingWarehouse(false);
+      setSubmittingWarehouse(false); stopAppProcessing();
     }
   };
 

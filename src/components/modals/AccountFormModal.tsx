@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { startAppProcessing, stopAppProcessing } from "../../utils/processingHelper";
 import { motion } from "motion/react";
 import CurrencyInput from "../ui/CurrencyInput";
 import { CreditCard, X, Check, Plus } from "lucide-react";
@@ -67,7 +68,7 @@ const handleSubmitAccount = async (e?: React.FormEvent) => {
       try { e.preventDefault(); } catch (err) {}
     }
     if (!newAccountBankName) return;
-    setSubmittingAccount(true);
+    setSubmittingAccount(true); startAppProcessing('شروع فرآیند ثبت Account...');
     try {
       const isEdit = editingAccountId !== null;
       const payload = {
@@ -106,7 +107,7 @@ const handleSubmitAccount = async (e?: React.FormEvent) => {
     } catch (error) {
       console.error("Error saving account", error);
     } finally {
-      setSubmittingAccount(false);
+      setSubmittingAccount(false); stopAppProcessing();
     }
   };
 

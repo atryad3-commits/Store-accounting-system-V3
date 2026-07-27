@@ -70,20 +70,33 @@ export const createWarehouseSlice: StateCreator<WarehouseSlice> = (set, get) => 
   },
 
   addWarehouse: async (warehouseData) => {
-    const newWh = await addWarehouse(warehouseData);
-    await get().fetchWarehouses();
-    return newWh;
+    const store = get() as any;
+    
+      store.updateProcessingStatus?.("ثبت در پایگاه داده...");
+      const created = await addWarehouse(warehouseData);
+      store.updateProcessingStatus?.("بروزرسانی کش سیستم...");
+      await get().fetchWarehouses();
+      return created;
+    
   },
-
-  updateWarehouse: async (id, warehouseData) => {
-    const updated = await updateWarehouse(id, warehouseData);
-    await get().fetchWarehouses();
-    return updated;
+  updateWarehouse: async (id, updatedData) => {
+    const store = get() as any;
+    
+      store.updateProcessingStatus?.("ثبت تغییرات...");
+      const updated = await updateWarehouse(id, updatedData);
+      store.updateProcessingStatus?.("بروزرسانی کش سیستم...");
+      await get().fetchWarehouses();
+      return updated;
+    
   },
-
   deleteWarehouse: async (id) => {
-    await deleteWarehouse(id);
-    await get().fetchWarehouses();
+    const store = get() as any;
+    
+      await deleteWarehouse(id);
+      store.updateProcessingStatus?.("بروزرسانی کش سیستم...");
+      await get().fetchWarehouses();
+      
+    
   },
 
   setSelectedWarehouseId: (id) => set({ selectedWarehouseId: id }),

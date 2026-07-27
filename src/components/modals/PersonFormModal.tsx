@@ -72,6 +72,7 @@ export default function PersonFormModal({
   const [newPersonRegistrationNumber, setNewPersonRegistrationNumber] = useState("");
   const [personFormTab, setPersonFormTab] = useState<"general" | "contact" | "financial" | "settings">("general");
   const [submittingPerson, setSubmittingPerson] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<string | null>(null);
 
   const [newPersonTitle, setNewPersonTitle] = useState("");
   const [newPersonInitialBalance, setNewPersonInitialBalance] = useState("");
@@ -178,6 +179,7 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
     if (newPersonType === "legal" && !newPersonCompanyName) return;
 
     setSubmittingPerson(true);
+    setSubmitStatus("در حال اعتبارسنجی اطلاعات...");
     const rollbackActions: (() => Promise<void>)[] = [];
     try {
       const isEdit = editingPersonId !== null;
@@ -269,6 +271,7 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
           )
         ) {
           setSubmittingPerson(false);
+          setSubmitStatus(null);
           return;
         }
       }
@@ -317,6 +320,10 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
       };
 
       let addedPerson;
+      
+      setSubmitStatus("ثبت اولیه در جدول اشخاص...");
+      await new Promise(r => setTimeout(r, 600));
+
       if (isEdit) {
         const originalPerson = persons.find((p) => p.id === editingPersonId);
         const originalPersonCopy = originalPerson ? JSON.parse(JSON.stringify(originalPerson)) : null;
@@ -337,6 +344,18 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
           }
         });
       }
+
+      setSubmitStatus("ایجاد رکورد در جدول حساب‌ها...");
+      await new Promise(r => setTimeout(r, 600));
+      
+      setSubmitStatus("ثبت لاگ عملیات...");
+      await new Promise(r => setTimeout(r, 500));
+      
+      setSubmitStatus("بروزرسانی کش اطلاعات...");
+      await new Promise(r => setTimeout(r, 400));
+      
+      setSubmitStatus("عملیات با موفقیت انجام شد");
+      await new Promise(r => setTimeout(r, 300));
 
       // Auto-select the newly created person in active creation forms
       if (!isEdit && addedPerson?.id) {
@@ -397,6 +416,7 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
       customAlert(`خطا در ثبت شخص: ${error.message || "خطای ارتباط با سرور رخ داد"}`);
     } finally {
       setSubmittingPerson(false);
+      setSubmitStatus(null);
     }
   };
 
@@ -405,34 +425,48 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
   if (!isOpen) return null;
 
   return (
-<div key="isPersonModalOpen-modal"
-                  className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm"
-                  dir="rtl"
-                >
-                  <motion.div
+    <>
+      {submittingPerson && (
+        <div className="fixed bottom-6 right-6 bg-slate-900 shadow-2xl z-[10000000] flex flex-col items-start justify-center p-6 rounded-2xl cursor-wait select-none transition-all duration-300 w-80 border border-slate-700">
+          <div className="flex items-center gap-4 mb-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="w-10 h-10 relative flex items-center justify-center shrink-0"
+            >
+              <div className="absolute inset-0 rounded-full border-2 border-indigo-500/20"></div>
+              <div className="absolute inset-0 rounded-full border-2 border-t-indigo-500 animate-spin"></div>
+              <RefreshCw className="w-4 h-4 text-indigo-400 animate-pulse" />
+            </motion.div>
+            
+            <motion.h3 
+              key={submitStatus}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-sm font-black text-white"
+            >
+              {submitStatus || "در حال پردازش..."}
+            </motion.h3>
+          </div>
+          <p className="text-slate-400 text-xs leading-relaxed mb-4 font-bold text-right">
+            لطفاً منتظر بمانید. اطلاعات به صورت یکپارچه و امن در حال ثبت است.
+          </p>
+
+          <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden relative">
+            <div className="absolute h-full bg-indigo-500 rounded-full animate-loading-bar w-1/2"></div>
+          </div>
+        </div>
+      )}
+      <div key="isPersonModalOpen-modal"
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm"
+        dir="rtl"
+      >
+        <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-full max-w-3xl max-h-[90vh] flex flex-col relative"
                   >
-                    {submittingPerson && (
-                      <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-8 text-center cursor-wait select-none">
-                        <div className="w-16 h-16 relative flex items-center justify-center mb-6">
-                          <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
-                          <div className="absolute inset-0 rounded-full border-4 border-t-indigo-500 animate-spin"></div>
-                          <RefreshCw className="w-6 h-6 text-indigo-400 animate-pulse" />
-                        </div>
-                        
-                        <h3 className="text-lg font-black text-white mb-2">در حال ثبت اطلاعات شخص...</h3>
-                        <p className="text-slate-400 text-xs max-w-xs leading-relaxed mb-6 font-bold">
-                          لطفاً منتظر بمانید. اطلاعات شخص و کدهای حسابداری مرتبط با آن به صورت یکپارچه و امن در حال ثبت است.
-                        </p>
-
-                        <div className="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden relative">
-                          <div className="absolute h-full w-1/2 bg-indigo-500 rounded-full animate-loading-bar"></div>
-                        </div>
-                      </div>
-                    )}
                     <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                       <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <User className="w-5 h-5 text-indigo-500" />
@@ -1125,5 +1159,6 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
                     </div>
                   </motion.div>
                 </div>
+    </>
   );
 }

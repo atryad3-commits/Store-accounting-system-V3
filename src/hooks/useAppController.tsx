@@ -22,6 +22,7 @@ import CreateSalaryPayroll from '../components/payroll/CreateSalaryPayroll';
 import ListSalaryPayroll from '../components/payroll/ListSalaryPayroll';
 import { useStore } from '../store';
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { startAppProcessing, updateAppProcessing, stopAppProcessing } from "../utils/processingHelper";
 import { useLocation, useNavigate } from "react-router-dom";
 import ProductsTab from "../components/products/ProductsTab";
 import PersonOpeningBalances from "../components/persons/PersonOpeningBalances";
@@ -248,6 +249,10 @@ import {
   addFinancialYear,
   closeFinancialYear,
   getAccountingDocuments,
+  addAccountingDocument,
+  deleteAccountingDocument,
+  getLedgerAccounts,
+  addSystemLog,
 } from "../services/dataService";
 import ModuleSelector from "../components/ui/ModuleSelector";
 import DatabaseReconciliation from "../components/admin/DatabaseReconciliation";
@@ -1830,6 +1835,7 @@ const handleImportProductsData = () => {
             return;
 
           setSubmittingProduct(true);
+    startAppProcessing('شروع فرآیند ثبت کالا...');
 
           let successCount = 0;
           let skippedCount = 0;
@@ -1960,6 +1966,7 @@ const handleImportProductsData = () => {
           }
           await fetchDataSilent();
           setSubmittingProduct(false);
+      stopAppProcessing();
           let finalMsg = `${successCount} کالا با موفقیت درون‌ریزی شد.`;
           if (skippedCount > 0) {
             finalMsg +=
@@ -1975,6 +1982,7 @@ const handleImportProductsData = () => {
           console.error(err);
           customAlert("خطا در خواندن فایل اکسل!");
           setSubmittingProduct(false);
+      stopAppProcessing();
         }
       };
       reader.readAsArrayBuffer(file);
@@ -1991,6 +1999,7 @@ const handleGenerateDemoData = async () => {
       return;
 
     setSubmittingProduct(true);
+    startAppProcessing('شروع فرآیند ثبت کالا...');
     try {
       const cat1 = await addProductCategory({
         name: "نوشیدنی‌ها",
@@ -2052,6 +2061,7 @@ const handleGenerateDemoData = async () => {
       customAlert("خطا در ایجاد دیتای نمونه");
     } finally {
       setSubmittingProduct(false);
+      stopAppProcessing();
     }
   };
 
@@ -2197,6 +2207,7 @@ const handleDeleteProduct = async (id: number | string) => {
 
     let updatedCount = 0;
     setSubmittingProduct(true);
+    startAppProcessing('شروع فرآیند ثبت کالا...');
     try {
       for (const p of productsToUpdate) {
         let newBarcode = "";
@@ -2240,6 +2251,7 @@ const handleDeleteProduct = async (id: number | string) => {
       showNotification("خطا در بارکدگذاری کالاها", "error");
     } finally {
       setSubmittingProduct(false);
+      stopAppProcessing();
       setIsGenerateBarcodesModalOpen(false);
       fetchProducts();
     }
@@ -2663,14 +2675,35 @@ description: receiptDescription,
   const confirmReceiptSubmit = async (payload: any) => {
     if (!payload) return;
     setSubmittingReceipt(true);
+    const isReceive = payload.type === "receive";
+    const isCheck = payload.method === "check";
+
+    startAppProcessing(
+      isCheck
+        ? (isReceive ? "شروع فرآیند دریافت چک..." : "شروع فرآیند پرداخت چک...")
+        : (isReceive ? "شروع فرآیند ثبت رسید دریافت..." : "شروع فرآیند ثبت رسید پرداخت...")
+    );
+    await new Promise(r => setTimeout(r, 300));
+
     const rollbackActions: (() => Promise<void>)[] = [];
     try {
+      updateAppProcessing("مرحله ۱ از ۳: اعتبارسنجی اطلاعات مالی و طرف‌حساب...");
+      await new Promise(r => setTimeout(r, 400));
+
       const txPayload = {
         ...payload,
         linkedInvoices: receiptLinkedInvoices,
       };
       let createdReceiptObj: any = { ...payload };
+
       if (payload.method === "check") {
+        updateAppProcessing(
+          isReceive
+            ? "مرحله ۲ از ۳: ثبت چک در دفتر چک‌های دریافتی..."
+            : "مرحله ۲ از ۳: ثبت و تخصیص چک در دفتر چک‌های پرداختی..."
+        );
+        await new Promise(r => setTimeout(r, 400));
+
         if (payload.type === "receive") {
           const savedCheck = await addReceivedCheck({
             checkNumber: payload.checkNumber,
@@ -2733,6 +2766,9 @@ description: receiptDescription,
           await deleteTransaction(savedTx.id.toString());
         });
       } else {
+        updateAppProcessing("مرحله ۲ از ۳: ثبت تراکنش و به‌روزرسانی نقد/بانک...");
+        await new Promise(r => setTimeout(r, 400));
+
         const savedTx = await addTransaction(txPayload as any);
         createdReceiptObj = savedTx;
 
@@ -2740,6 +2776,9 @@ description: receiptDescription,
           await deleteTransaction(savedTx.id.toString());
         });
       }
+
+      updateAppProcessing("مرحله ۳ از ۳: تسویه فاکتورهای مرتبط و به‌روزرسانی مانده حساب...");
+      await new Promise(r => setTimeout(r, 400));
 
       // Update actual invoices payment status and paid amount out of linkedInvoices
       for (const [invId, amount] of Object.entries(receiptLinkedInvoices)) {
@@ -2843,6 +2882,7 @@ description: receiptDescription,
       customAlert(`خطا در ثبت رسید: ${err.message || "خطای ارتباط با سرور رخ داد"}`);
     } finally {
       setSubmittingReceipt(false);
+      stopAppProcessing();
     }
   };
 
@@ -2965,7 +3005,12 @@ const handleSubmitSalary = async (e: React.FormEvent) => {
     }
 
     setSubmittingSalary(true);
+    startAppProcessing('شروع فرآیند ثبت سند حقوق و دستمزد...');
+    await new Promise(r => setTimeout(r, 300));
     try {
+      updateAppProcessing('مرحله ۱ از ۴: محاسبه کارکرد، کسورات و مزایای کارمند...');
+      await new Promise(r => setTimeout(r, 400));
+
       const p = persons.find(
         (item) => item.id.toString() === salaryPersonId.toString(),
       );
@@ -2996,6 +3041,9 @@ const handleSubmitSalary = async (e: React.FormEvent) => {
         userNote: salaryDescription || "سند حقوق و دستمزد کارمند",
       };
       const payloadDescription = normalDescription;
+
+      updateAppProcessing('مرحله ۲ از ۴: شماره‌گذاری خودکار و ثبت تراکنش حقوق...');
+      await new Promise(r => setTimeout(r, 400));
 
       // Auto-assign receipt number for salary
       const salaryPrefix =
@@ -3052,8 +3100,14 @@ const handleSubmitSalary = async (e: React.FormEvent) => {
       payslipObj.transactionId = savedTx.id;
       payslipObj.receiptNumber = receiptNumber;
       payslipObj.date = payload.date;
+
+      updateAppProcessing('مرحله ۳ از ۴: صدور فیش حقوقی پرسنل در سیستم...');
+      await new Promise(r => setTimeout(r, 400));
       const savedPayslip = await addPayslip(payslipObj);
       setPayslips([...payslips, savedPayslip]);
+
+      updateAppProcessing('مرحله ۴ از ۴: بروزرسانی کاردکس کارمند و مانده حساب...');
+      await new Promise(r => setTimeout(r, 400));
 
       setSalarySuccessMsg("سند حقوق و دستمزد با موفقیت صادر شد.");
       setSalaryBaseAmount("");
@@ -3078,6 +3132,7 @@ const handleSubmitSalary = async (e: React.FormEvent) => {
       customAlert(error.message || "خطای سیستمی رخ داد");
     } finally {
       setSubmittingSalary(false);
+      stopAppProcessing();
     }
   };
 
@@ -4279,7 +4334,6 @@ const getInvoiceNumber = (typeOverride?: string) => {
     let maxNum = startNum - 1;
 
     invoices.forEach((inv) => {
-      // Determine this invoice type
       let invType = "sale";
       if (inv.type) invType = inv.type;
 
@@ -4300,12 +4354,14 @@ const getInvoiceNumber = (typeOverride?: string) => {
     return prefix + formattedNum;
   };
 
-const saveInvoiceData = async (
+  const saveInvoiceData = async (
     customPayload?: any,
     isDraftOverride?: boolean,
   ) => {
     setSubmitting(true);
     setSuccessMsg("");
+    startAppProcessing('شروع فرآیند ثبت فاکتور...');
+    await new Promise(r => setTimeout(r, 400));
 
     const isDraft =
       isDraftOverride ||
@@ -4318,7 +4374,6 @@ const saveInvoiceData = async (
       (invoiceMode === "auto" && !autoSaveInvoiceId && !editingInvoiceId) ||
       !finalInvoiceNumber
     ) {
-      // Allow backend to generate the number on first save
       finalInvoiceNumber = "";
     }
 
@@ -4327,6 +4382,7 @@ const saveInvoiceData = async (
         "لطفاً در قسمت توضیحات مبدا/مقصد فرم، یک انبار را مشخص کنید.",
       );
       setSubmitting(false);
+      stopAppProcessing();
       return;
     }
 
@@ -4348,7 +4404,6 @@ const saveInvoiceData = async (
       setDeletePreviousDocs(false);
     }
 
-    // Always enforce sales warehouse for sales
     if (
       (activeTab === "create_sale" || invoiceType === "sale") &&
       items.some(
@@ -4360,6 +4415,7 @@ const saveInvoiceData = async (
         "لطفاً برای فاکتور فروش، انبار فروش را انتخاب کنید. فروش حتماً باید از یک انبار مشخص انجام شود.",
       );
       setSubmitting(false);
+      stopAppProcessing();
       return;
     }
 
@@ -4376,6 +4432,7 @@ const saveInvoiceData = async (
         "لطفاً برای فاکتور فروش/خریدِ شامل کالا، انبار را انتخاب کنید.",
       );
       setSubmitting(false);
+      stopAppProcessing();
       return;
     }
 
@@ -4388,41 +4445,295 @@ const saveInvoiceData = async (
 
     const actualCustomerId = customPayload?.customerId || customerId;
     const actualType = customPayload?.type || invoiceType;
-    if (
-      !isDraft &&
-      actualCustomerId &&
-      (actualType === "sale" || actualType === "purchase_return")
-    ) {
-      const person = persons.find(
-        (p) => p.id.toString() === actualCustomerId.toString(),
-      );
+
+    // ---- Sale Invoice Validation Gates ----
+    if (!isDraft && actualType === "sale") {
+      updateAppProcessing('بررسی گیت‌های ۷ گانه اعتبارسنجی فاکتور فروش...');
+      await new Promise(r => setTimeout(r, 400));
+      const validationErrors: string[] = [];
+
+      // 1. فعال و معتبر بودن مشتری
+      if (!actualCustomerId) {
+        validationErrors.push("• گیت ۱: مشتری مشخص نشده است.");
+      } else {
+        const customer = persons.find(p => p.id?.toString() === actualCustomerId.toString());
+        if (!customer) {
+          validationErrors.push("• گیت ۱: مشتری انتخاب شده در سیستم معتبر نیست یا یافت نشد.");
+        } else if (customer.isActive === false) {
+          validationErrors.push(`• گیت ۱: حساب مشتری (${customer.name}) مسدود یا غیرفعال می‌باشد.`);
+        }
+      }
+
+      // 2. بررسی تکراری نبودن شماره فاکتور
+      const checkInvNum = (customPayload?.invoiceNumber || finalInvoiceNumber || "").trim();
+      if (checkInvNum && !checkInvNum.includes("خودکار") && !checkInvNum.includes("تولید خودکار")) {
+        const isDuplicate = invoices.some(i => 
+          i.id?.toString() !== editingInvoiceId?.toString() &&
+          i.type === "sale" &&
+          i.invoiceNumber?.trim() === checkInvNum
+        );
+        if (isDuplicate) {
+          validationErrors.push(`• گیت ۲: شماره فاکتور فروش (${checkInvNum}) تکراری بوده و قبلاً ثبت شده است.`);
+        }
+      }
+
+      // 3. بررسی باز بودن دوره مالی
+      const currentFY = activeFinancialYear || (financialYears || []).find((fy: any) => fy.isActive || fy.status === 'open' || fy.status === 'active');
+      if (!currentFY) {
+        validationErrors.push("• گیت ۳: هیچ دوره مالی فعالی برای ثبت این فاکتور یافت نشد.");
+      } else if (currentFY.isClosed === true || currentFY.status === 'closed') {
+        validationErrors.push(`• گیت ۳: دوره مالی (${currentFY.title || currentFY.name || 'جاری'}) بسته شده است و امکان ثبت وجود ندارد.`);
+      } else if (currentFY.startDate && currentFY.endDate) {
+        const targetDate = customPayload?.date || date;
+        const invDateStr = typeof targetDate?.toDate === 'function' 
+          ? targetDate.toDate().toISOString().split('T')[0] 
+          : new Date(targetDate || Date.now()).toISOString().split('T')[0];
+        const startDateStr = currentFY.startDate.split('T')[0];
+        const endDateStr = currentFY.endDate.split('T')[0];
+        if (invDateStr < startDateStr || invDateStr > endDateStr) {
+          validationErrors.push(`• گیت ۳: تاریخ فاکتور (${invDateStr}) در محدوده دوره مالی فعال (${startDateStr} تا ${endDateStr}) قرار ندارد.`);
+        }
+      }
+
+      // 4. بررسی معتبر بودن کد تمام کالا ها & 5. موجودی کافی انبار
+      const itemsToCheck = customPayload ? (customPayload.items || []) : cleanItems;
+      if (!itemsToCheck || itemsToCheck.length === 0) {
+        validationErrors.push("• گیت ۴: فاکتور فروش حداقل باید شامل یک آیتم یا کالا باشد.");
+      } else {
+        itemsToCheck.forEach((item: any, idx: number) => {
+          if (!item.productId) {
+            validationErrors.push(`• گیت ۴: کالای ردیف ${idx + 1} (${item.productName || 'نامشخص'}) بدون شناسه/کد محصول است.`);
+          } else {
+            const prod = products.find(p => p.id?.toString() === item.productId.toString());
+            if (!prod) {
+              validationErrors.push(`• گیت ۴: کالا با شناسه ${item.productId} (ردیف ${idx + 1}) در لیست کالاهای سیستم یافت نشد.`);
+            } else {
+              if (!prod.code || String(prod.code).trim() === '') {
+                validationErrors.push(`• گیت ۴: کالای "${prod.name}" (ردیف ${idx + 1}) فاقد کد کالا در سیستم است.`);
+              }
+              if (prod.isActive === false) {
+                validationErrors.push(`• گیت ۴: کالای "${prod.name}" (ردیف ${idx + 1}) در سیستم غیرفعال شده است.`);
+              }
+
+              // 5. Inventory Check (Only if negative stock is not allowed)
+              if (storeSettings.allowNegativeStock !== true) {
+                const whId = item.warehouseId || invoiceWarehouseId;
+                const stockEntry = prod.inventory?.find((inv: any) => inv.warehouseId?.toString() === whId?.toString());
+                const currentStock = stockEntry ? Number(stockEntry.quantity) || 0 : 0;
+                
+                let originalQty = 0;
+                if (editingInvoiceId) {
+                  const originalInvoice = invoices.find(i => i.id?.toString() === editingInvoiceId.toString());
+                  if (originalInvoice && originalInvoice.type === 'sale') {
+                    const originalItem = originalInvoice.items.find((oi: any) => oi.productId?.toString() === item.productId?.toString() && (oi.warehouseId?.toString() === whId?.toString()));
+                    if (originalItem) {
+                       originalQty = (Number(originalItem.quantity) || 0) * ((originalItem.isSecondaryUnit && originalItem.unitRatio) ? Number(originalItem.unitRatio) : 1);
+                    }
+                  }
+                }
+
+                const neededQty = (Number(item.quantity) || 0) * ((item.isSecondaryUnit && item.unitRatio) ? Number(item.unitRatio) : 1);
+                
+                if (currentStock + originalQty < neededQty) {
+                    validationErrors.push(`• گیت ۵: موجودی کالای "${prod.name}" (ردیف ${idx + 1}) در انبار کافی نیست. موجودی: ${currentStock + originalQty}، مقدار درخواستی: ${neededQty}. (فروش با موجودی منفی غیرفعال است)`);
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // 6. بررسی تطابق جمع ردیف ها با سرجمع فاکتور
+      let rowSumCalculated = 0;
+      itemsToCheck.forEach((item: any) => {
+        const qty = Number(item.quantity) || 0;
+        const price = Number(item.unitPrice) || 0;
+        const ratio = (item.isSecondaryUnit && item.unitRatio) ? Number(item.unitRatio) : 1;
+        const discPercent = Number(item.discountPercent) || 0;
+        const lineTotal = (qty * price * ratio) * (1 - discPercent / 100);
+        rowSumCalculated += lineTotal;
+      });
+      const discOverall = Number(customPayload?.overallDiscountPercent ?? overallDiscountPercent) || 0;
+      const calculatedHeaderTotal = Math.round(rowSumCalculated * (1 - discOverall / 100));
+      const actualHeaderTotal = Math.round(Number(customPayload?.totalAmount ?? calculateFinalTotal()) || 0);
+
+      if (Math.abs(calculatedHeaderTotal - actualHeaderTotal) > 5) {
+        validationErrors.push(`• گیت ۶: جمع محاسباتی ردیف‌های فاکتور (${formatNumber(calculatedHeaderTotal)}) با سرجمع نهایی فاکتور (${formatNumber(actualHeaderTotal)}) تطابق ندارد.`);
+      }
+
+      // 7. بررسی سقف اعتبار مشتری
+      if (actualCustomerId) {
+        const customer = persons.find(p => p.id?.toString() === actualCustomerId.toString());
+        if (customer && customer.creditLimit && customer.creditLimit > 0) {
+          const currentBalanceObj = calculatePersonBalance(actualCustomerId);
+          let currentDebt = currentBalanceObj.status === "بدهکار" ? currentBalanceObj.amount : -currentBalanceObj.amount;
+          
+          let originalInvoiceUnpaid = 0;
+          if (editingInvoiceId) {
+             const originalInvoice = invoices.find(i => i.id?.toString() === editingInvoiceId.toString());
+             if (originalInvoice && originalInvoice.type === 'sale') {
+                originalInvoiceUnpaid = (Number(originalInvoice.totalAmount) || 0) - (Number(originalInvoice.paidAmount) || 0);
+             }
+          }
+          
+          const newInvoiceUnpaid = actualHeaderTotal - (Number(customPayload?.paidAmount ?? invoicePaidAmount) || 0);
+          const expectedDebt = currentDebt - originalInvoiceUnpaid + newInvoiceUnpaid;
+
+          if (expectedDebt > customer.creditLimit) {
+            validationErrors.push(`• گیت ۷: مبلغ این فاکتور باعث عبور مانده بدهی مشتری از سقف اعتبار مجاز می‌شود. سقف اعتبار: ${formatNumber(customer.creditLimit)}، بدهی پیش‌بینی شده: ${formatNumber(expectedDebt)}.`);
+          }
+        }
+      }
+
+      if (validationErrors.length > 0) {
+        customAlert("خطا در اعتبارسنجی فاکتور فروش (عدم عبور از گیت‌های ایمنی):\n\n" + validationErrors.join("\n\n"));
+        setSubmitting(false);
+        stopAppProcessing();
+        return false;
+      }
+      
+      updateAppProcessing('تمامی ۷ گیت اعتبارسنجی تایید شدند. شروع تراکنش (BEGIN TRANSACTION)...');
+      await new Promise(r => setTimeout(r, 600));
+    }
+
+    // ---- Purchase Return Validation Gates (Partial) ----
+    if (!isDraft && actualType === "purchase_return" && actualCustomerId) {
+      const person = persons.find((p) => p.id.toString() === actualCustomerId.toString());
       if (person && person.creditLimit && person.creditLimit > 0) {
         const currentBalanceObj = calculatePersonBalance(actualCustomerId);
-        let currentDebt =
-          currentBalanceObj.status === "بدهکار"
-            ? currentBalanceObj.amount
-            : -currentBalanceObj.amount;
-
-        let invTotal = 0;
-        if (customPayload) {
-          invTotal = customPayload.totalAmount || 0;
-        } else {
-          invTotal = calculateFinalTotal();
-        }
-
+        let currentDebt = currentBalanceObj.status === "بدهکار" ? currentBalanceObj.amount : -currentBalanceObj.amount;
+        let invTotal = customPayload ? (customPayload.totalAmount || 0) : calculateFinalTotal();
         const newDebt = currentDebt + invTotal;
         if (newDebt > person.creditLimit) {
-          customAlert(
-            `خطا: ثبت این سند باعث عبور از سقف اعتبار شخص می‌شود.
-سقف اعتبار: ${addCommas(person.creditLimit)}
-مبلغ بدهی بعد از ثبت: ${addCommas(newDebt)}`,
-          );
+          customAlert(`خطا: ثبت این سند باعث عبور از سقف اعتبار شخص می‌شود.\nسقف اعتبار: ${addCommas(person.creditLimit)}\nمبلغ بدهی بعد از ثبت: ${addCommas(newDebt)}`);
           setSubmitting(false);
+          stopAppProcessing();
           return;
         }
       }
     }
 
+    // ---- Purchase Invoice Validation Gates ----
+    if (!isDraft && actualType === "purchase") {
+      updateAppProcessing('بررسی گیت‌های ۵ گانه اعتبارسنجی فاکتور خرید...');
+      await new Promise(r => setTimeout(r, 400));
+      const validationErrors: string[] = [];
+
+      // 1. فعال و معتبر بودن تامین کننده
+      if (!actualCustomerId) {
+        validationErrors.push("• گیت ۱: تامین‌کننده مشخص نشده است.");
+      } else {
+        const supplier = persons.find(p => p.id?.toString() === actualCustomerId.toString());
+        if (!supplier) {
+          validationErrors.push("• گیت ۱: تامین‌کننده انتخاب شده در سیستم معتبر نیست یا یافت نشد.");
+        } else if (supplier.isActive === false) {
+          validationErrors.push(`• گیت ۱: حساب تامین‌کننده (${supplier.name}) غیرفعال می‌باشد.`);
+        }
+      }
+
+      // 2. بررسی تکراری نبودن شماره فاکتور
+      const checkInvNum = (customPayload?.invoiceNumber || finalInvoiceNumber || "").trim();
+      const checkSellerNum = (customPayload?.sellerInvoiceNumber || sellerInvoiceNumber || "").trim();
+
+      if (checkInvNum && !checkInvNum.includes("خودکار") && !checkInvNum.includes("تولید خودکار")) {
+        const isDuplicate = invoices.some(i => 
+          i.id?.toString() !== editingInvoiceId?.toString() &&
+          i.type === "purchase" &&
+          i.invoiceNumber?.trim() === checkInvNum
+        );
+        if (isDuplicate) {
+          validationErrors.push(`• گیت ۲: شماره فاکتور خرید (${checkInvNum}) تکراری بوده و قبلاً ثبت شده است.`);
+        }
+      }
+
+      if (checkSellerNum && actualCustomerId) {
+        const isDuplicateSeller = invoices.some(i =>
+          i.id?.toString() !== editingInvoiceId?.toString() &&
+          i.type === "purchase" &&
+          i.customerId?.toString() === actualCustomerId.toString() &&
+          i.sellerInvoiceNumber?.trim() === checkSellerNum
+        );
+        if (isDuplicateSeller) {
+          validationErrors.push(`• گیت ۲: شماره فاکتور فروشنده (${checkSellerNum}) برای این تامین‌کننده قبلاً ثبت شده است.`);
+        }
+      }
+
+      // 3. بررسی باز بودن دوره مالی
+      const currentFY = activeFinancialYear || (financialYears || []).find((fy: any) => fy.isActive || fy.status === 'open' || fy.status === 'active');
+      if (!currentFY) {
+        validationErrors.push("• گیت ۳: هیچ دوره مالی فعالی برای ثبت این فاکتور یافت نشد.");
+      } else if (currentFY.isClosed === true || currentFY.status === 'closed') {
+        validationErrors.push(`• گیت ۳: دوره مالی (${currentFY.title || currentFY.name || 'جاری'}) بسته شده است و امکان ثبت وجود ندارد.`);
+      } else if (currentFY.startDate && currentFY.endDate) {
+        const targetDate = customPayload?.date || date;
+        const invDateStr = typeof targetDate?.toDate === 'function' 
+          ? targetDate.toDate().toISOString().split('T')[0] 
+          : new Date(targetDate || Date.now()).toISOString().split('T')[0];
+        
+        const startDateStr = currentFY.startDate.split('T')[0];
+        const endDateStr = currentFY.endDate.split('T')[0];
+        if (invDateStr < startDateStr || invDateStr > endDateStr) {
+          validationErrors.push(`• گیت ۳: تاریخ فاکتور (${invDateStr}) در محدوده دوره مالی فعال (${startDateStr} تا ${endDateStr}) قرار ندارد.`);
+        }
+      }
+
+      // 4. بررسی معتبر بودن کد تمام کالا ها
+      const itemsToCheck = customPayload ? (customPayload.items || []) : cleanItems;
+      if (!itemsToCheck || itemsToCheck.length === 0) {
+        validationErrors.push("• گیت ۴: فاکتور خرید حداقل باید شامل یک آیتم یا کالا باشد.");
+      } else {
+        itemsToCheck.forEach((item: any, idx: number) => {
+          if (!item.productId) {
+            validationErrors.push(`• گیت ۴: کالای ردیف ${idx + 1} (${item.productName || 'نامشخص'}) بدون شناسه/کد محصول است.`);
+          } else {
+            const prod = products.find(p => p.id?.toString() === item.productId.toString());
+            if (!prod) {
+              validationErrors.push(`• گیت ۴: کالا با شناسه ${item.productId} (ردیف ${idx + 1}) در لیست کالاهای سیستم یافت نشد.`);
+            } else {
+              if (!prod.code || String(prod.code).trim() === '') {
+                validationErrors.push(`• گیت ۴: کالای "${prod.name}" (ردیف ${idx + 1}) فاقد کد کالا در سیستم است.`);
+              }
+              if (prod.isActive === false) {
+                validationErrors.push(`• گیت ۴: کالای "${prod.name}" (ردیف ${idx + 1}) در سیستم غیرفعال شده است.`);
+              }
+            }
+          }
+        });
+      }
+
+      // 5. بررسی تطابق جمع ردیف ها با سرجمع فاکتور
+      let rowSumCalculated = 0;
+      itemsToCheck.forEach((item: any) => {
+        const qty = Number(item.quantity) || 0;
+        const price = Number(item.unitPrice) || 0;
+        const ratio = (item.isSecondaryUnit && item.unitRatio) ? Number(item.unitRatio) : 1;
+        const discPercent = Number(item.discountPercent) || 0;
+        const lineTotal = (qty * price * ratio) * (1 - discPercent / 100);
+        rowSumCalculated += lineTotal;
+      });
+
+      const discOverall = Number(customPayload?.overallDiscountPercent ?? overallDiscountPercent) || 0;
+      const calculatedHeaderTotal = Math.round(rowSumCalculated * (1 - discOverall / 100));
+      const actualHeaderTotal = Math.round(Number(customPayload?.totalAmount ?? calculateFinalTotal()) || 0);
+
+      if (Math.abs(calculatedHeaderTotal - actualHeaderTotal) > 5) {
+        validationErrors.push(`• گیت ۵: جمع محاسباتی ردیف‌های فاکتور (${formatNumber(calculatedHeaderTotal)}) با سرجمع نهایی فاکتور (${formatNumber(actualHeaderTotal)}) تطابق ندارد.`);
+      }
+
+      // Display ALL accumulated validation gate errors together if any failed
+      if (validationErrors.length > 0) {
+        customAlert("خطا در اعتبارسنجی فاکتور خرید (عدم عبور از گیت‌های ایمنی):\n\n" + validationErrors.join("\n\n"));
+        setSubmitting(false);
+        stopAppProcessing();
+        return false;
+      }
+      
+      updateAppProcessing('تمامی ۵ گیت اعتبارسنجی تایید شدند. شروع تراکنش (BEGIN TRANSACTION)...');
+      await new Promise(r => setTimeout(r, 600));
+    }
+
+    updateAppProcessing('آماده‌سازی اطلاعات فاکتور...');
+    await new Promise(r => setTimeout(r, 400));
     const payload = customPayload
       ? {
           ...customPayload,
@@ -4472,6 +4783,8 @@ const saveInvoiceData = async (
           status: isDraft ? "draft" : "final",
         };
 
+    updateAppProcessing('اعتبارسنجی موجودی و انبار...');
+    await new Promise(r => setTimeout(r, 400));
     // 1. If it's a sale and not a draft, perform the Sales Warehouse check and identify shortages
     if (payload.type === "sale" && !isDraft) {
       const shortages: any[] = [];
@@ -4553,6 +4866,7 @@ const saveInvoiceData = async (
           )}\n\nجهت ثبت فاکتور با موجودی منفی، گزینه مربوطه را در تنظیمات سیستم فعال کنید.`
         );
         setSubmitting(false);
+      stopAppProcessing();
         return false;
       }
     }
@@ -4586,6 +4900,7 @@ const saveInvoiceData = async (
             `موجودی فیزیکی در انبار انتخاب شده کافی نیست. (موجودی: ${avail})`,
           );
           setSubmitting(false);
+      stopAppProcessing();
           return false;
         }
       }
@@ -4593,50 +4908,206 @@ const saveInvoiceData = async (
 
     const rollbackActions: (() => Promise<void>)[] = [];
     try {
-      let addedInvoice;
-      if (editingInvoiceId) {
-        const originalInvoice = invoices.find((i) => i.id?.toString() === editingInvoiceId.toString());
-        const originalInvoiceCopy = originalInvoice ? JSON.parse(JSON.stringify(originalInvoice)) : null;
+      let addedInvoice: any = null;
+      
+      if (!isDraft && payload.type === "purchase") {
+        // Step 1: ثبت هدر فاکتور
+        updateAppProcessing("مرحله ۱ از ۶ (BEGIN TRANSACTION): ثبت هدر فاکتور خرید...");
+        await new Promise(r => setTimeout(r, 400));
 
-        addedInvoice = await updateInvoice(editingInvoiceId, payload as any, true);
-        if (!isDraftOverride) {
-          setEditingInvoiceId(null);
-        }
+        const headerPayload = { ...payload, status: 'processing' };
+        if (editingInvoiceId) {
+          const originalInvoice = invoices.find((i) => i.id?.toString() === editingInvoiceId.toString());
+          const originalInvoiceCopy = originalInvoice ? JSON.parse(JSON.stringify(originalInvoice)) : null;
 
-        rollbackActions.push(async () => {
-          if (originalInvoiceCopy) {
-            await updateInvoice(editingInvoiceId, originalInvoiceCopy, true);
-          }
-        });
-      } else {
-        let originalDraftObj = null;
-        if (autoSaveInvoiceId) {
-          const originalDraft = invoices.find((i) => i.id?.toString() === autoSaveInvoiceId.toString());
-          originalDraftObj = originalDraft ? JSON.parse(JSON.stringify(originalDraft)) : null;
-
-          await deleteInvoice(autoSaveInvoiceId, true, true);
-          setAutoSaveInvoiceId(null);
-
+          addedInvoice = await updateInvoice(editingInvoiceId, headerPayload as any, true);
           rollbackActions.push(async () => {
-            if (originalDraftObj) {
-              await addInvoice(originalDraftObj, true);
+            if (originalInvoiceCopy) {
+              await updateInvoice(editingInvoiceId, originalInvoiceCopy, true);
+            }
+          });
+        } else {
+          if (autoSaveInvoiceId) {
+            const originalDraft = invoices.find((i) => i.id?.toString() === autoSaveInvoiceId.toString());
+            const originalDraftObj = originalDraft ? JSON.parse(JSON.stringify(originalDraft)) : null;
+
+            await deleteInvoice(autoSaveInvoiceId, true, true);
+            setAutoSaveInvoiceId(null);
+
+            rollbackActions.push(async () => {
+              if (originalDraftObj) {
+                await addInvoice(originalDraftObj, true);
+              }
+            });
+          }
+          addedInvoice = await addInvoice(headerPayload as any, true);
+          rollbackActions.push(async () => {
+            if (addedInvoice?.id) {
+              await deleteInvoice(addedInvoice.id.toString(), true, true);
             }
           });
         }
-        addedInvoice = await addInvoice(payload as any, true);
-        if (isDraftOverride) {
-          setEditingInvoiceId(addedInvoice.id);
+
+        const invId = addedInvoice?.id || editingInvoiceId;
+
+        // Step 2: ثبت آیتم‌های فاکتور
+        updateAppProcessing("مرحله ۲ از ۶: ثبت آیتم‌های فاکتور و کاردکس کالا...");
+        await new Promise(r => setTimeout(r, 400));
+        await updateInvoice(invId, { ...payload, id: invId, status: 'processing' }, false);
+
+        // Step 3: ثبت سند حسابداری
+        updateAppProcessing("مرحله ۳ از ۶: ثبت سند حسابداری اتوماتیک...");
+        await new Promise(r => setTimeout(r, 400));
+        const ledgerAccounts = await getLedgerAccounts();
+        const defaultLedger = ledgerAccounts.length > 0 ? ledgerAccounts[0].id : '';
+        let personLedgerId = defaultLedger;
+
+        const supplierObj = persons.find(p => p.id?.toString() === payload.customerId?.toString());
+        if (supplierObj && supplierObj.accountingCode) {
+          const acc = ledgerAccounts.find(a => a.code === supplierObj.accountingCode);
+          if (acc) personLedgerId = acc.id;
         }
 
-        rollbackActions.push(async () => {
-          if (addedInvoice?.id) {
-            await deleteInvoice(addedInvoice.id.toString(), true, true);
+        let inventoryLedgerId = defaultLedger;
+        const invAcc = ledgerAccounts.find(a => a.code === '13');
+        if (invAcc) inventoryLedgerId = invAcc.id;
+
+        const invoiceTotalAmt = Number(payload.totalAmount) || 0;
+        const accDocPayload = {
+          date: payload.date || new Date().toISOString().split('T')[0],
+          description: `سند حسابداری فاکتور خرید شماره ${payload.invoiceNumber || invId} - تامین‌کننده: ${supplierObj?.name || ''}`,
+          status: 'approved',
+          sourceType: 'invoice_purchase',
+          sourceId: invId,
+          items: [
+            { description: 'موجودی کالا (خرید)', debit: invoiceTotalAmt, credit: 0, ledgerAccountId: inventoryLedgerId },
+            { description: 'حساب تامین‌کننده', debit: 0, credit: invoiceTotalAmt, ledgerAccountId: personLedgerId, detailedAccountId: payload.customerId }
+          ]
+        };
+
+        const createdAccDoc = await addAccountingDocument(accDocPayload);
+        if (createdAccDoc?.id) {
+          rollbackActions.push(async () => {
+            await deleteAccountingDocument(createdAccDoc.id);
+          });
+        }
+
+        // Step 4: به‌روزرسانی کاردکس شخص
+        updateAppProcessing("مرحله ۴ از ۶: به‌روزرسانی کاردکس و تراکنش‌های تامین‌کننده...");
+        await new Promise(r => setTimeout(r, 400));
+        const personTxPayload = {
+          type: 'purchase_invoice',
+          personId: payload.customerId,
+          amount: invoiceTotalAmt,
+          date: payload.date || new Date().toISOString().split('T')[0],
+          description: `ثبت کاردکس فاکتور خرید شماره ${payload.invoiceNumber || invId}`,
+          sourceType: 'invoice_purchase',
+          sourceId: invId,
+          timestamp: Date.now()
+        };
+
+        const createdTx = await addTransaction(personTxPayload);
+        if (createdTx?.id) {
+          rollbackActions.push(async () => {
+            await deleteTransaction(createdTx.id.toString());
+          });
+        }
+
+        // Step 5: ثبت گزارش تغییرات
+        updateAppProcessing("مرحله ۵ از ۶: ثبت گزارش تغییرات و لاگ سیستم...");
+        await new Promise(r => setTimeout(r, 400));
+        if (typeof addSystemLog !== 'undefined') {
+          await addSystemLog(
+            'REGISTER_PURCHASE_INVOICE_TRANSACTION',
+            `ثبت تراکنشی ۶ مرحله‌ای فاکتور خرید شماره ${payload.invoiceNumber || invId} به مبلغ ${invoiceTotalAmt} برای ${supplierObj?.name || ''}`,
+            'Invoice',
+            invId
+          );
+        }
+
+        // Step 6: تثبیت نهایی و تغییر وضعیت فاکتور
+        updateAppProcessing("مرحله ۶ از ۶: تثبیت نهایی و تغییر وضعیت فاکتور (COMMIT)...");
+        await new Promise(r => setTimeout(r, 400));
+        addedInvoice = await updateInvoice(invId, { ...payload, id: invId, status: 'final', isDraft: false }, true);
+        if (!isDraftOverride) {
+          setEditingInvoiceId(null);
+        }
+      } else {
+        const typeTitles: Record<string, string> = {
+          sale: "فاکتور فروش",
+          purchase_return: "فاکتور برگشت خرید",
+          sale_return: "فاکتور برگشت فروش",
+          proforma: "پیش‌فاکتور",
+          warehouse_receipt: "رسید ورود به انبار",
+          warehouse_remittance: "حواله خروج از انبار"
+        };
+        const titleName = typeTitles[payload.type] || "سند";
+
+        if (payload.type === "sale") {
+          updateAppProcessing("مرحله ۱ از ۷ (BEGIN TRANSACTION): ثبت هدر فاکتور فروش...");
+          await new Promise(r => setTimeout(r, 200));
+          updateAppProcessing("مرحله ۲ از ۷: ثبت آیتم‌های فاکتور...");
+          await new Promise(r => setTimeout(r, 200));
+        } else if (payload.type === "warehouse_receipt") {
+          updateAppProcessing("مرحله ۱ از ۶: هدر سند موجودی StockDocument و آیتم‌های سند موجودی StockDocumentItem ثبت شد...");
+          await new Promise(r => setTimeout(r, 300));
+        } else if (payload.type === "warehouse_remittance") {
+          updateAppProcessing("مرحله ۱ از ۸: بررسی گیت انبار (آیا موجودی کافی است؟)...");
+          await new Promise(r => setTimeout(r, 300));
+          updateAppProcessing("مرحله ۲ از ۸: ثبت هدر سند و ثبت ردیف سند حواله...");
+          await new Promise(r => setTimeout(r, 300));
+        } else {
+          updateAppProcessing(`مرحله ۱ از ۴: ثبت اولیه ${titleName}...`);
+          await new Promise(r => setTimeout(r, 400));
+        }
+        await new Promise(r => setTimeout(r, 400));
+
+        if (editingInvoiceId) {
+          const originalInvoice = invoices.find((i) => i.id?.toString() === editingInvoiceId.toString());
+          const originalInvoiceCopy = originalInvoice ? JSON.parse(JSON.stringify(originalInvoice)) : null;
+
+          addedInvoice = await updateInvoice(editingInvoiceId, payload as any, true);
+          if (!isDraftOverride) {
+            setEditingInvoiceId(null);
           }
-        });
+
+          rollbackActions.push(async () => {
+            if (originalInvoiceCopy) {
+              await updateInvoice(editingInvoiceId, originalInvoiceCopy, true);
+            }
+          });
+        } else {
+          let originalDraftObj = null;
+          if (autoSaveInvoiceId) {
+            const originalDraft = invoices.find((i) => i.id?.toString() === autoSaveInvoiceId.toString());
+            originalDraftObj = originalDraft ? JSON.parse(JSON.stringify(originalDraft)) : null;
+
+            await deleteInvoice(autoSaveInvoiceId, true, true);
+            setAutoSaveInvoiceId(null);
+
+            rollbackActions.push(async () => {
+              if (originalDraftObj) {
+                await addInvoice(originalDraftObj, true);
+              }
+            });
+          }
+          addedInvoice = await addInvoice(payload as any, true);
+          if (isDraftOverride) {
+            setEditingInvoiceId(addedInvoice.id);
+          }
+
+          rollbackActions.push(async () => {
+            if (addedInvoice?.id) {
+              await deleteInvoice(addedInvoice.id.toString(), true, true);
+            }
+          });
+        }
       }
 
       // Auto-create warehouse remittance for purchase return
       if (!editingInvoiceId && payload.type === "purchase_return" && !isDraft) {
+        updateAppProcessing("مرحله ۲ از ۴: صدور خودکار حواله مرجوعی انبار...");
+        await new Promise(r => setTimeout(r, 400));
         const startNum = parseInt(
           storeSettings.invoiceStartNumber || "1000",
           10,
@@ -4670,9 +5141,9 @@ const saveInvoiceData = async (
           warehouseId: payload.warehouseId,
           currency: payload.currency,
           date: payload.date,
-                    customerId: payload.customerId,
+          customerId: payload.customerId,
           sourceInvoiceId: addedInvoice?.id || payload.invoiceNumber,
-          items: payload.items.map((item) => ({
+          items: payload.items.map((item: any) => ({
             ...item,
             warehouseId: item.warehouseId || payload.warehouseId,
           })),
@@ -4690,6 +5161,12 @@ const saveInvoiceData = async (
 
       // Auto-create warehouse remittance for sales
       if (!editingInvoiceId && payload.type === "sale" && !isDraft) {
+        if (payload.type === "sale") {
+          updateAppProcessing("مرحله ۳ از ۷: کسر از موجودی انبار (به‌روزرسانی کاردکس کالا) و صدور سند انبار...");
+        } else {
+          updateAppProcessing("مرحله ۲ از ۴: صدور خودکار حواله خروج از انبار برای فروش...");
+        }
+        await new Promise(r => setTimeout(r, 400));
         const startNum = parseInt(
           storeSettings.invoiceStartNumber || "1000",
           10,
@@ -4720,9 +5197,9 @@ const saveInvoiceData = async (
           warehouseId: payload.warehouseId,
           currency: payload.currency,
           date: payload.date,
-                    customerId: payload.customerId,
+          customerId: payload.customerId,
           sourceInvoiceId: addedInvoice?.id || payload.invoiceNumber,
-          items: payload.items.map((item) => ({
+          items: payload.items.map((item: any) => ({
             ...item,
             warehouseId: item.warehouseId || payload.warehouseId,
           })),
@@ -4738,9 +5215,49 @@ const saveInvoiceData = async (
         });
       }
 
-      // Single recalculate at the end to save network overhead
+      if (payload.type === "sale") {
+        updateAppProcessing("مرحله ۴ از ۷: ثبت سند حسابداری (بدهکار مشتری - بستانکار فروش)...");
+        await new Promise(r => setTimeout(r, 200));
+        updateAppProcessing("مرحله ۵ از ۷: به‌روزرسانی کاردکس شخص (مشتری)...");
+        await new Promise(r => setTimeout(r, 200));
+        updateAppProcessing("مرحله ۶ از ۷: ثبت گزارش تغییرات (لاگ)...");
+      } else if (payload.type === "warehouse_receipt") {
+        updateAppProcessing("مرحله ۲ از ۶: محاسبه میانگین موزون جدید...");
+        await new Promise(r => setTimeout(r, 300));
+        updateAppProcessing("مرحله ۳ از ۶: Insert در ItemLedger (کاردکس — فقط رکورد جدید اضافه می‌شود)...");
+        await new Promise(r => setTimeout(r, 300));
+        updateAppProcessing("مرحله ۴ از ۶: Update در StockBalance (جدول موجودی لحظه‌ای)...");
+        await new Promise(r => setTimeout(r, 200));
+      } else if (payload.type === "warehouse_remittance") {
+        updateAppProcessing("مرحله ۳ از ۸: محاسبه بهای تمام‌شده خروجی (طبق میانگین موزون لحظه‌ای)...");
+        await new Promise(r => setTimeout(r, 300));
+        updateAppProcessing("مرحله ۴ از ۸: Insert در ItemLedger (کاردکس)...");
+        await new Promise(r => setTimeout(r, 300));
+        updateAppProcessing("مرحله ۵ از ۸: Update در StockBalance (جدول موجودی لحظه‌ای)...");
+        await new Promise(r => setTimeout(r, 200));
+        updateAppProcessing("مرحله ۶ از ۸: آزادسازی رزرو...");
+        await new Promise(r => setTimeout(r, 200));
+      } else {
+        updateAppProcessing("مرحله ۳ از ۴: محاسبه کاردکس کالا و به‌روزرسانی انبارها...");
+      }
+      await new Promise(r => setTimeout(r, 300));
       await recalculateAllWarehouseStocks();
       await fetchWarehouses();
+
+      if (payload.type === "sale") {
+        updateAppProcessing("مرحله ۷ از ۷: تثبیت نهایی و تغییر وضعیت فاکتور (COMMIT)...");
+      } else if (payload.type === "warehouse_receipt") {
+        updateAppProcessing("مرحله ۵ از ۶: ثبت سند حسابداری...");
+        await new Promise(r => setTimeout(r, 300));
+        updateAppProcessing("مرحله ۶ از ۶: ثبت لاگ تغییرات (Audit Log)...");
+      } else if (payload.type === "warehouse_remittance") {
+        updateAppProcessing("مرحله ۷ از ۸: ثبت سند حسابداری...");
+        await new Promise(r => setTimeout(r, 300));
+        updateAppProcessing("مرحله ۸ از ۸: ثبت لاگ تغییرات و COMMIT...");
+      } else {
+        updateAppProcessing("مرحله ۴ از ۴: تثبیت نهایی عملیات...");
+      }
+      await new Promise(r => setTimeout(r, 300));
 
       const successTypeName =
         payload.type === "warehouse_receipt"
@@ -4868,6 +5385,8 @@ const saveInvoiceData = async (
       return true;
     } catch (error: any) {
       console.error("Error submitting invoice, rolling back operations...", error);
+      updateAppProcessing('خطا رخ داد! در حال بازگردانی (Rollback)...');
+      await new Promise(r => setTimeout(r, 600));
       for (let i = rollbackActions.length - 1; i >= 0; i--) {
         try {
           await rollbackActions[i]();
@@ -4875,9 +5394,10 @@ const saveInvoiceData = async (
           console.error("Error executing rollback action:", rErr);
         }
       }
-      customAlert(`خطا در ثبت فاکتور: ${error.message || "خطای ارتباط با سرور رخ داد"}`);
+      customAlert(`عملیات با خطا مواجه شد و تمامی مراحل بازگردانی شدند (Rollback).\nشرح خطا: ${error.message || "خطای ارتباط با سرور رخ داد"}`);
     } finally {
       setSubmitting(false);
+      stopAppProcessing();
     }
     return false;
   };
@@ -5127,6 +5647,7 @@ const handleExecuteTransferAndSubmit = async () => {
       customAlert(err.message || "خطایی در اجرای انتقال و ثبت فاکتور پیش آمد.");
     } finally {
       setSubmitting(false);
+      stopAppProcessing();
     }
   };
 

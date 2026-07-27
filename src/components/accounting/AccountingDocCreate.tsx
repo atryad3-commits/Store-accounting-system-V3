@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useStore } from '../../store';
 import { motion } from 'motion/react';
 import { Calculator, Save, Plus, Trash2, ArrowRight } from 'lucide-react';
 import { getLedgerAccounts, addAccountingDocument, updateAccountingDocument, getPersons, getProducts, getStoreSettings, generateDocNumber, updateDocCounter } from '../../services/dataService';

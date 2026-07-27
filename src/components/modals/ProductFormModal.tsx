@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { startAppProcessing, stopAppProcessing } from "../../utils/processingHelper";
 import { motion } from "motion/react";
 import { Package, X, Check, Save, Plus, Trash2, Edit2, History, Pencil } from "lucide-react";
 import { addCommas, removeCommas, toPersianDigits, numToPersianWords } from "../../utils/format";
@@ -122,7 +123,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
     }
     if (!newProductName) return;
 
-    setSubmittingProduct(true);
+    setSubmittingProduct(true); startAppProcessing('شروع فرآیند ثبت Product...');
     try {
       const isEdit = editingProductId !== null;
       const catName =
@@ -156,7 +157,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
         customAlert(
           `کالایی با نام "${newProductName}" قبلا ثبت شده است. لطفا نام دیگری انتخاب کنید.`,
         );
-        setSubmittingProduct(false);
+        setSubmittingProduct(false); stopAppProcessing();
         return;
       }
 
@@ -167,7 +168,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
         customAlert(
           `کد کالا (${finalCode}) تکراری است. لطفا کد دیگری وارد کنید.`,
         );
-        setSubmittingProduct(false);
+        setSubmittingProduct(false); stopAppProcessing();
         return;
       }
 
@@ -177,7 +178,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
         );
         if (duplicateBarcode) {
           customAlert(`بارکد (${newProductBarcode}) تکراری است.`);
-          setSubmittingProduct(false);
+          setSubmittingProduct(false); stopAppProcessing();
           return;
         }
       }
@@ -208,7 +209,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
       const validation = productSchema.safeParse(payload);
       if (!validation.success) {
         customAlert((validation.error as any).errors[0].message);
-        setSubmittingProduct(false);
+        setSubmittingProduct(false); stopAppProcessing();
         return;
       }
 
@@ -259,7 +260,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
       console.error("Error saving product", error);
       showNotification("خطا در ثبت کالا."); // We don't have showError apparently
     } finally {
-      setSubmittingProduct(false);
+      setSubmittingProduct(false); stopAppProcessing();
     }
   };
 

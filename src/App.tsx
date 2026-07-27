@@ -222,6 +222,7 @@ import appVersion from "./version.json";
 import { useAppController } from "./hooks/useAppController";
 import PreviewModals from "./components/modals/PreviewModals";
 import ExtraModals from "./components/modals/ExtraModals";
+import GlobalProcessingOverlay from "./components/GlobalProcessingOverlay";
 import ConfirmModal from "./components/modals/ConfirmModal";
 const BusinessManager = React.lazy(() => import('./components/admin/BusinessManager'));
 const FastStocktakingMobile = React.lazy(() => import('./components/inventory/FastStocktakingMobile'));
@@ -2430,6 +2431,7 @@ if (requiresInitSetup && user) {
           <PreviewModals {...appState} />
           <ExtraModals {...appState} />
           <ConfirmModal confirmState={appState.confirmState} setConfirmState={appState.setConfirmState} />
+          <GlobalProcessingOverlay />
         </>
       );
       }

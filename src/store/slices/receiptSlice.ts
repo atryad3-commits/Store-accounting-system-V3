@@ -55,22 +55,37 @@ export const createReceiptSlice: StateCreator<ReceiptSlice> = (set, get) => ({
   },
 
   addTransaction: async (transactionData) => {
-    const newTx = await addTransaction(transactionData);
-    await get().fetchTransactions();
-    await get().fetchInvoicePayments();
-    return newTx;
+    const store = get() as any;
+    
+      store.updateProcessingStatus?.("اعتبارسنجی اطلاعات...");
+      await new Promise(r => setTimeout(r, 400));
+      store.updateProcessingStatus?.("ثبت در تراکنش‌های مالی...");
+      const newTx = await addTransaction(transactionData);
+      store.updateProcessingStatus?.("بروزرسانی کش سیستم...");
+      await get().fetchTransactions();
+      await get().fetchInvoicePayments();
+      return newTx;
+    
   },
-
   updateTransaction: async (id, updatedData) => {
-    const updated = await updateTransaction(id, updatedData);
-    await get().fetchTransactions();
-    await get().fetchInvoicePayments();
-    return updated;
+    const store = get() as any;
+    
+      store.updateProcessingStatus?.("ثبت تغییرات...");
+      const updated = await updateTransaction(id, updatedData);
+      store.updateProcessingStatus?.("بروزرسانی کش سیستم...");
+      await get().fetchTransactions();
+      await get().fetchInvoicePayments();
+      return updated;
+    
   },
-
   deleteTransaction: async (id) => {
-    await deleteTransaction(id);
-    await get().fetchTransactions();
-    await get().fetchInvoicePayments();
+    const store = get() as any;
+    
+      await deleteTransaction(id);
+      store.updateProcessingStatus?.("بروزرسانی کش سیستم...");
+      await get().fetchTransactions();
+      await get().fetchInvoicePayments();
+      
+    
   },
 });

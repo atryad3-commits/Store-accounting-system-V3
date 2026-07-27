@@ -825,7 +825,7 @@ export default function SaleInvoiceCreate(props: any) {
                   ) : (
                     <Save className="w-6 h-6" />
                   )}
-                  ثبت و بررسی فاکتور/سند
+                  پیش‌نمایش و ثبت فاکتور
                 </button>
               </div>
             </div>

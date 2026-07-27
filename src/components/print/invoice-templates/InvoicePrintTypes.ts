@@ -8,4 +8,5 @@ export interface InvoicePrintTemplateProps {
   issuedChecks?: any[];
   receivedChecks?: any[];
   printSettings?: any;
+  paperSize?: "a4" | "a5";
 }

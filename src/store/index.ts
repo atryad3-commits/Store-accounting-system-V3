@@ -7,6 +7,7 @@ import { createFinancialYearSlice, FinancialYearSlice } from './slices/financial
 import { createInvoiceSlice, InvoiceSlice } from './slices/invoiceSlice';
 import { createReceiptSlice, ReceiptSlice } from './slices/receiptSlice';
 import { createAuthSlice, AuthSlice } from './slices/authSlice';
+import { createProcessingSlice, ProcessingSlice } from './slices/processingSlice';
 
 export type CombinedStore = ConfigSlice &
   StoreSelectorSlice &
@@ -15,7 +16,8 @@ export type CombinedStore = ConfigSlice &
   FinancialYearSlice &
   InvoiceSlice &
   ReceiptSlice &
-  AuthSlice;
+  AuthSlice &
+  ProcessingSlice;
 
 export const useStore = create<CombinedStore>()((...a) => ({
   ...createConfigSlice(...a),
@@ -26,6 +28,7 @@ export const useStore = create<CombinedStore>()((...a) => ({
   ...createInvoiceSlice(...a),
   ...createReceiptSlice(...a),
   ...createAuthSlice(...a),
+  ...createProcessingSlice(...a),
 }));
 
 
