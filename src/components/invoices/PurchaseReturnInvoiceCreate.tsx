@@ -97,6 +97,7 @@ import {
   } = props;
   const itemsEndRef = useRef<HTMLDivElement>(null);
   const [prevItemsLength, setPrevItemsLength] = useState((items || []).length);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   useEffect(() => {
     if ((items || []).length > prevItemsLength) {
       itemsEndRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -105,7 +106,8 @@ import {
   }, [items]);
 
   return (
-          <motion.div
+    <>
+      <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             className="space-y-6 text-right font-sans"
@@ -771,7 +773,7 @@ import {
                   ذخیره به عنوان پیش‌نویس
                 </button>
                 <button
-                  onClick={handleInvoicePreviewTrigger}
+                  onClick={() => setIsPaymentModalOpen(true)}
                   disabled={submitting || (items || []).length === 0 || !customerId}
                   className="px-10 py-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-200 text-white rounded-2xl font-black flex items-center justify-center gap-3 transition-colors shadow-sm outline-none focus:ring-4 focus:ring-emerald-500/20 cursor-pointer"
                 >
@@ -785,6 +787,123 @@ import {
               </div>
             </div>
           </motion.div>
-        );
 
+          {isPaymentModalOpen && (
+            <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" dir="rtl">
+              <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl relative">
+                <button 
+                  onClick={() => setIsPaymentModalOpen(false)} 
+                  className="absolute top-4 left-4 p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors z-10"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <div className="p-6">
+                  <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                    <Wallet className="w-6 h-6 text-emerald-500" />
+                    تعیین وضعیت دریافت وجه (برگشت از خرید)
+                  </h3>
+                  
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                        <Wallet className="w-4 h-4 text-emerald-500" /> وضعیت دریافت وجه
+                      </label>
+                      <select
+                        value={invoicePaymentStatus}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setInvoicePaymentStatus(val);
+                          if (val === "paid")
+                            setInvoicePaidAmount(calculateFinalTotal());
+                          else if (val === "unpaid") setInvoicePaidAmount(0);
+                        }}
+                        className="w-full p-3 border border-emerald-100 rounded-xl focus:ring-2 focus:ring-emerald-500 bg-emerald-50/30 text-sm font-bold text-emerald-900 outline-none"
+                      >
+                        <option value="unpaid">دریافت نشده (نسیه)</option>
+                        <option value="partial">دریافت بخشی (علی‌الحساب)</option>
+                        <option value="paid">تسویه کامل نقدی</option>
+                      </select>
+                    </div>
+
+                    {(invoicePaymentStatus === "paid" || invoicePaymentStatus === "partial") && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                            <DollarSign className="w-4 h-4 text-emerald-500" /> مبلغ دریافتی
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              value={invoicePaidAmount}
+                              onChange={(e) => {
+                                setInvoicePaidAmount(Number(e.target.value));
+                                if (Number(e.target.value) >= calculateFinalTotal())
+                                  setInvoicePaymentStatus("paid");
+                                else if (Number(e.target.value) > 0)
+                                  setInvoicePaymentStatus("partial");
+                                else setInvoicePaymentStatus("unpaid");
+                              }}
+                              disabled={invoicePaymentStatus === "unpaid"}
+                              className="w-full p-3 border border-emerald-100 rounded-xl focus:ring-2 focus:ring-emerald-500 font-mono text-left font-bold text-slate-800 outline-none bg-emerald-50/20 disabled:opacity-50"
+                              dir="ltr"
+                              placeholder="0"
+                            />
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 font-bold text-xs select-none">
+                              {invoiceCurrency}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                            واریز به صندوق / حساب بانکی
+                          </label>
+                          <select
+                            value={invoicePaymentAccountId}
+                            onChange={(e) => setInvoicePaymentAccountId(e.target.value)}
+                            className="w-full p-3 border border-emerald-100 rounded-xl focus:ring-2 focus:ring-emerald-500 bg-emerald-50/30 text-sm font-bold text-emerald-900 outline-none"
+                          >
+                            <option value="">-- انتخاب کنید --</option>
+                            {accounts?.map((acc) => (
+                              <option key={acc.id} value={acc.id}>
+                                {acc.title} {acc.bankName ? `(${acc.bankName})` : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
+                    )}
+
+                    <div className="mt-8 flex gap-3">
+                      <button
+                        onClick={() => setIsPaymentModalOpen(false)}
+                        className="flex-1 px-4 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold transition-colors"
+                      >
+                        انصراف
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsPaymentModalOpen(false);
+                          handleInvoicePreviewTrigger();
+                        }}
+                        disabled={submitting}
+                        className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2 shadow-sm"
+                      >
+                        {submitting ? (
+                          <RefreshCw className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <CheckCircle className="w-5 h-5" />
+                        )}
+                        تایید و ثبت نهایی
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+    </>
+  );
 }
