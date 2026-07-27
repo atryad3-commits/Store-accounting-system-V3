@@ -76,6 +76,8 @@ import {
     setCustomerId,
     renderPersonInfoBox,
     Wallet,
+    invoicePaymentAccountId,
+    setInvoicePaymentAccountId,
     invoicePaymentStatus,
     setInvoicePaymentStatus,
     setInvoicePaidAmount,
@@ -340,6 +342,25 @@ import {
                     </div>
                   </div>
                 </div>
+                {(invoicePaymentStatus === "paid" || invoicePaymentStatus === "partial") && (
+                  <div>
+                    <label className="block text-sm font-bold text-slate-600 mb-2 flex items-center gap-1.5">
+                      صندوق / حساب بانکی پرداختی
+                    </label>
+                    <select
+                      value={invoicePaymentAccountId}
+                      onChange={(e) => setInvoicePaymentAccountId(e.target.value)}
+                      className="w-full p-3 border border-emerald-100 rounded-xl focus:ring-2 focus:ring-emerald-500 bg-emerald-50/30 text-sm font-bold text-emerald-900 outline-none"
+                    >
+                      <option value="">-- انتخاب کنید --</option>
+                      {accounts.map((acc: any) => (
+                        <option key={acc.id} value={acc.id}>
+                          {acc.title} {acc.bankName ? `(${acc.bankName})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 {storeSettings.requireWarehouse && (
                   <div className="lg:col-span-1">
                     <label className="block text-sm font-bold text-slate-600 mb-2 flex items-center gap-1.5">

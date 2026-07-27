@@ -1044,7 +1044,7 @@ const [overallDiscountPercent, setOverallDiscountPercent] =
 const [invoicePaymentStatus, setInvoicePaymentStatus] = useState<
     "paid" | "unpaid" | "partial"
   >("unpaid");
-
+const [invoicePaymentAccountId, setInvoicePaymentAccountId] = useState<string>("");
 const [invoicePaidAmount, setInvoicePaidAmount] = useState<number>(0);
 
 const [hasDraft, setHasDraft] = useState<boolean>(false);
@@ -1382,6 +1382,7 @@ const clearDraft = async () => {
     setOverallDiscountPercent(0);
     setSourceInvoiceId("");
     setSellerInvoiceNumber("");
+    setInvoicePaymentAccountId("");
     if (invoiceMode === "manual") setInvoiceNumber("");
     setEditingInvoiceId(null);
     if (autoSaveInvoiceId) {
@@ -4955,41 +4956,36 @@ const getInvoiceNumber = (typeOverride?: string) => {
         await new Promise(r => setTimeout(r, 400));
         await updateInvoice(invId, { ...payload, id: invId, status: 'processing' }, false);
 
-        // Step 3: ثبت سند حسابداری
-        updateAppProcessing("مرحله ۳ از ۶: ثبت سند حسابداری اتوماتیک...");
-        await new Promise(r => setTimeout(r, 400));
-        const ledgerAccounts = await getLedgerAccounts();
-        const defaultLedger = ledgerAccounts.length > 0 ? ledgerAccounts[0].id : '';
-        let personLedgerId = defaultLedger;
-
-        const supplierObj = persons.find(p => p.id?.toString() === payload.customerId?.toString());
-        if (supplierObj && supplierObj.accountingCode) {
-          const acc = ledgerAccounts.find(a => a.code === supplierObj.accountingCode);
-          if (acc) personLedgerId = acc.id;
-        }
-
-        let inventoryLedgerId = defaultLedger;
-        const invAcc = ledgerAccounts.find(a => a.code === '13');
-        if (invAcc) inventoryLedgerId = invAcc.id;
-
+        // Handle cash payment receipt if specified
         const invoiceTotalAmt = Number(payload.totalAmount) || 0;
-        const accDocPayload = {
-          date: payload.date || new Date().toISOString().split('T')[0],
-          description: `سند حسابداری فاکتور خرید شماره ${payload.invoiceNumber || invId} - تامین‌کننده: ${supplierObj?.name || ''}`,
-          status: 'approved',
-          sourceType: 'invoice_purchase',
-          sourceId: invId,
-          items: [
-            { description: 'موجودی کالا (خرید)', debit: invoiceTotalAmt, credit: 0, ledgerAccountId: inventoryLedgerId },
-            { description: 'حساب تامین‌کننده', debit: 0, credit: invoiceTotalAmt, ledgerAccountId: personLedgerId, detailedAccountId: payload.customerId }
-          ]
-        };
-
-        const createdAccDoc = await addAccountingDocument(accDocPayload);
-        if (createdAccDoc?.id) {
-          rollbackActions.push(async () => {
-            await deleteAccountingDocument(createdAccDoc.id);
-          });
+        const supplierObj = persons.find((p) => p.id?.toString() === payload.customerId?.toString());
+        if ((payload.paymentStatus === 'paid' || (payload.paymentStatus === 'partial' && Number(payload.paidAmount) > 0)) && invoicePaymentAccountId) {
+          const paidAmt = payload.paymentStatus === 'paid' ? invoiceTotalAmt : Number(payload.paidAmount);
+          const paymentAccount = accounts.find((a: any) => a.id === invoicePaymentAccountId);
+          
+          if (paymentAccount) {
+            updateAppProcessing("مرحله ۳ از ۶: ثبت رسید پرداخت نقدی فاکتور...");
+            await new Promise(r => setTimeout(r, 400));
+            
+            const payTxPayload = {
+              type: 'pay',
+              amount: paidAmt,
+              date: payload.date || new Date().toISOString().split('T')[0],
+              personId: payload.customerId,
+              resourceType: paymentAccount.type === 'bank' ? 'bank' : 'cashbox',
+              resourceId: invoicePaymentAccountId,
+              method: 'cash',
+              description: `بابت تسویه فاکتور خرید شماره ${payload.invoiceNumber || invId}`,
+              currency: payload.currency || 'تومان',
+              linkedInvoices: { [invId]: paidAmt }
+            };
+            const createdPayTx = await addTransaction(payTxPayload);
+            if (createdPayTx?.id) {
+              rollbackActions.push(async () => {
+                await deleteTransaction(createdPayTx.id.toString());
+              });
+            }
+          }
         }
 
         // Step 4: به‌روزرسانی کاردکس شخص
@@ -5339,6 +5335,7 @@ const getInvoiceNumber = (typeOverride?: string) => {
         setInvoiceCurrency(storeSettings.currency || "تومان");
         setExchangeRate(1);
         setExchangeRateInput("1");
+        setInvoicePaymentAccountId("");
         // Re-initialize based on active tab
         if (activeTab === "create_sale") {
           setInvoiceType("sale");
@@ -5629,6 +5626,7 @@ const handleExecuteTransferAndSubmit = async () => {
         setInvoiceTitle("فاکتور فروش کالا");
         setInvoicePaymentStatus("unpaid");
         setInvoicePaidAmount(0);
+        setInvoicePaymentAccountId("");
 
         setSuccessMsg("");
         setPreviewInvoiceData(null);
@@ -5707,6 +5705,15 @@ const handleInvoicePreviewTrigger = () => {
       customAlert(
         "لطفاً برای فاکتور فروش/خریدِ شامل کالا، انبار را انتخاب کنید.",
       );
+      return;
+    }
+
+    if (
+      invoiceType === "purchase" &&
+      (invoicePaymentStatus === "paid" || (invoicePaymentStatus === "partial" && Number(invoicePaidAmount) > 0)) &&
+      !invoicePaymentAccountId
+    ) {
+      customAlert("لطفاً صندوق یا حساب بانکی پرداختی را مشخص کنید.");
       return;
     }
 
@@ -6249,11 +6256,11 @@ const renderTabContent = () => {
 
       case "create_purchase_return":
         return (
-          <PurchaseReturnInvoiceCreate setIsPersonModalOpen={setIsPersonModalOpen} hasDraft={hasDraft} restoreDraft={restoreDraft} clearDraft={clearDraft} successMsg={successMsg} editingInvoiceId={editingInvoiceId} invoiceNumber={invoiceNumber} toPersianDigits={toPersianDigits} persons={persons} date={date} setDate={setDate} persian={persian} persian_fa={persian_fa} items={items} setItems={setItems} handleItemChange={handleItemChange} products={products} handleRemoveItem={handleRemoveItem} calculateFinalTotal={calculateFinalTotal} accounts={accounts} storeSettings={storeSettings} CurrencyInput={CurrencyInput} Package={Package} invoiceWarehouseId={invoiceWarehouseId} setInvoiceWarehouseId={setInvoiceWarehouseId} warehouses={warehouses} FastBarcodeScanner={FastBarcodeScanner} handleFastBarcodeScan={handleFastBarcodeScan} SearchableSelect={SearchableSelect} handleFastAddProduct={handleFastAddProduct} setIsScannerOpen={setIsScannerOpen} ScanLine={ScanLine} setIsProductModalOpen={setIsProductModalOpen} Box={Box} invoiceTitle={invoiceTitle} invoiceMode={invoiceMode} setInvoiceMode={setInvoiceMode} setInvoiceNumber={setInvoiceNumber} setInvoiceTitle={setInvoiceTitle} User={User} activePersonsOnly={activePersonsOnly} getRoleName={getRoleName} customerId={customerId} setCustomerId={setCustomerId} renderPersonInfoBox={renderPersonInfoBox} Wallet={Wallet} invoicePaymentStatus={invoicePaymentStatus} setInvoicePaymentStatus={setInvoicePaymentStatus} setInvoicePaidAmount={setInvoicePaidAmount} DollarSign={DollarSign} invoicePaidAmount={invoicePaidAmount} overallDiscountPercent={overallDiscountPercent} setOverallDiscountPercent={setOverallDiscountPercent} formatCurrency={formatCurrency} invoiceOriginalTotal={invoiceOriginalTotal} invoiceCurrency={invoiceCurrency} invoiceTotalDiscount={invoiceTotalDiscount} numToPersianWords={numToPersianWords} submitting={submitting} saveInvoiceData={saveInvoiceData} handleInvoicePreviewTrigger={handleInvoicePreviewTrigger} formatNumber={formatNumber} Calculator={Calculator} calculateSubtotal={calculateSubtotal} />
+          <PurchaseReturnInvoiceCreate setIsPersonModalOpen={setIsPersonModalOpen} hasDraft={hasDraft} restoreDraft={restoreDraft} clearDraft={clearDraft} successMsg={successMsg} editingInvoiceId={editingInvoiceId} invoiceNumber={invoiceNumber} toPersianDigits={toPersianDigits} persons={persons} date={date} setDate={setDate} persian={persian} persian_fa={persian_fa} items={items} setItems={setItems} handleItemChange={handleItemChange} products={products} handleRemoveItem={handleRemoveItem} calculateFinalTotal={calculateFinalTotal} accounts={accounts} storeSettings={storeSettings} CurrencyInput={CurrencyInput} Package={Package} invoiceWarehouseId={invoiceWarehouseId} setInvoiceWarehouseId={setInvoiceWarehouseId} warehouses={warehouses} FastBarcodeScanner={FastBarcodeScanner} handleFastBarcodeScan={handleFastBarcodeScan} SearchableSelect={SearchableSelect} handleFastAddProduct={handleFastAddProduct} setIsScannerOpen={setIsScannerOpen} ScanLine={ScanLine} setIsProductModalOpen={setIsProductModalOpen} Box={Box} invoiceTitle={invoiceTitle} invoiceMode={invoiceMode} setInvoiceMode={setInvoiceMode} setInvoiceNumber={setInvoiceNumber} setInvoiceTitle={setInvoiceTitle} User={User} activePersonsOnly={activePersonsOnly} getRoleName={getRoleName} customerId={customerId} setCustomerId={setCustomerId} renderPersonInfoBox={renderPersonInfoBox} Wallet={Wallet} invoicePaymentAccountId={invoicePaymentAccountId} setInvoicePaymentAccountId={setInvoicePaymentAccountId} invoicePaymentStatus={invoicePaymentStatus} setInvoicePaymentStatus={setInvoicePaymentStatus} setInvoicePaidAmount={setInvoicePaidAmount} DollarSign={DollarSign} invoicePaidAmount={invoicePaidAmount} overallDiscountPercent={overallDiscountPercent} setOverallDiscountPercent={setOverallDiscountPercent} formatCurrency={formatCurrency} invoiceOriginalTotal={invoiceOriginalTotal} invoiceCurrency={invoiceCurrency} invoiceTotalDiscount={invoiceTotalDiscount} numToPersianWords={numToPersianWords} submitting={submitting} saveInvoiceData={saveInvoiceData} handleInvoicePreviewTrigger={handleInvoicePreviewTrigger} formatNumber={formatNumber} Calculator={Calculator} calculateSubtotal={calculateSubtotal} />
         );
       case "create_purchase":
         return (
-          <PurchaseInvoiceCreate setIsPersonModalOpen={setIsPersonModalOpen} hasDraft={hasDraft} restoreDraft={restoreDraft} clearDraft={clearDraft} successMsg={successMsg} editingInvoiceId={editingInvoiceId} invoiceNumber={invoiceNumber} toPersianDigits={toPersianDigits} persons={persons} date={date} setDate={setDate} persian={persian} persian_fa={persian_fa} items={items} setItems={setItems} handleItemChange={handleItemChange} products={products} handleRemoveItem={handleRemoveItem} calculateFinalTotal={calculateFinalTotal} accounts={accounts} storeSettings={storeSettings} CurrencyInput={CurrencyInput} Package={Package} invoiceWarehouseId={invoiceWarehouseId} setInvoiceWarehouseId={setInvoiceWarehouseId} warehouses={warehouses} FastBarcodeScanner={FastBarcodeScanner} handleFastBarcodeScan={handleFastBarcodeScan} SearchableSelect={SearchableSelect} handleFastAddProduct={handleFastAddProduct} setIsScannerOpen={setIsScannerOpen} ScanLine={ScanLine} setIsProductModalOpen={setIsProductModalOpen} Box={Box} invoiceTitle={invoiceTitle} sellerInvoiceNumber={sellerInvoiceNumber} setSellerInvoiceNumber={setSellerInvoiceNumber} invoiceMode={invoiceMode} setInvoiceMode={setInvoiceMode} setInvoiceNumber={setInvoiceNumber} setInvoiceTitle={setInvoiceTitle} User={User} activePersonsOnly={activePersonsOnly} getRoleName={getRoleName} customerId={customerId} setCustomerId={setCustomerId} renderPersonInfoBox={renderPersonInfoBox} Wallet={Wallet} invoicePaymentStatus={invoicePaymentStatus} setInvoicePaymentStatus={setInvoicePaymentStatus} setInvoicePaidAmount={setInvoicePaidAmount} DollarSign={DollarSign} invoicePaidAmount={invoicePaidAmount} overallDiscountPercent={overallDiscountPercent} setOverallDiscountPercent={setOverallDiscountPercent} formatCurrency={formatCurrency} invoiceOriginalTotal={invoiceOriginalTotal} invoiceCurrency={invoiceCurrency} invoiceTotalDiscount={invoiceTotalDiscount} numToPersianWords={numToPersianWords} submitting={submitting} saveInvoiceData={saveInvoiceData} handleInvoicePreviewTrigger={handleInvoicePreviewTrigger} formatNumber={formatNumber} Calculator={Calculator} calculateSubtotal={calculateSubtotal} />
+          <PurchaseInvoiceCreate setIsPersonModalOpen={setIsPersonModalOpen} hasDraft={hasDraft} restoreDraft={restoreDraft} clearDraft={clearDraft} successMsg={successMsg} editingInvoiceId={editingInvoiceId} invoiceNumber={invoiceNumber} toPersianDigits={toPersianDigits} persons={persons} date={date} setDate={setDate} persian={persian} persian_fa={persian_fa} items={items} setItems={setItems} handleItemChange={handleItemChange} products={products} handleRemoveItem={handleRemoveItem} calculateFinalTotal={calculateFinalTotal} accounts={accounts} storeSettings={storeSettings} CurrencyInput={CurrencyInput} Package={Package} invoiceWarehouseId={invoiceWarehouseId} setInvoiceWarehouseId={setInvoiceWarehouseId} warehouses={warehouses} FastBarcodeScanner={FastBarcodeScanner} handleFastBarcodeScan={handleFastBarcodeScan} SearchableSelect={SearchableSelect} handleFastAddProduct={handleFastAddProduct} setIsScannerOpen={setIsScannerOpen} ScanLine={ScanLine} setIsProductModalOpen={setIsProductModalOpen} Box={Box} invoiceTitle={invoiceTitle} sellerInvoiceNumber={sellerInvoiceNumber} setSellerInvoiceNumber={setSellerInvoiceNumber} invoiceMode={invoiceMode} setInvoiceMode={setInvoiceMode} setInvoiceNumber={setInvoiceNumber} setInvoiceTitle={setInvoiceTitle} User={User} activePersonsOnly={activePersonsOnly} getRoleName={getRoleName} customerId={customerId} setCustomerId={setCustomerId} renderPersonInfoBox={renderPersonInfoBox} Wallet={Wallet} invoicePaymentAccountId={invoicePaymentAccountId} setInvoicePaymentAccountId={setInvoicePaymentAccountId} invoicePaymentStatus={invoicePaymentStatus} setInvoicePaymentStatus={setInvoicePaymentStatus} setInvoicePaidAmount={setInvoicePaidAmount} DollarSign={DollarSign} invoicePaidAmount={invoicePaidAmount} overallDiscountPercent={overallDiscountPercent} setOverallDiscountPercent={setOverallDiscountPercent} formatCurrency={formatCurrency} invoiceOriginalTotal={invoiceOriginalTotal} invoiceCurrency={invoiceCurrency} invoiceTotalDiscount={invoiceTotalDiscount} numToPersianWords={numToPersianWords} submitting={submitting} saveInvoiceData={saveInvoiceData} handleInvoicePreviewTrigger={handleInvoicePreviewTrigger} formatNumber={formatNumber} Calculator={Calculator} calculateSubtotal={calculateSubtotal} />
         );
       case "create_sale_return":
         return (
