@@ -12,9 +12,13 @@ export default function InvoicesList(props: any) {
     handlePayPurchase, handleReturnSale, handleReturnPurchase, storeSettings,
     invoiceCurrentPage, setInvoiceCurrentPage, invoicePageSize, setInvoicePageSize, toPersianDigits,
     listFilter, setListFilter, invoiceGroupMode, setInvoiceGroupMode, List, clearDraft, setInvoiceType, setWarehouseOperationType, Calendar, renderPersonLink,
-    products, setPricingWizardItems, setPricingWizardInvoice, setSuccessMsg, setReceiptPersonId, setViewingInvoice, handleEditInvoiceAction, handleVoidInvoice,
+    products, setPricingWizardItems, setPricingWizardInvoice, setSuccessMsg, setReceiptPersonId, setViewingInvoice, handleEditInvoiceAction, handleVoidInvoice, handleFastWarehouseReceipt,
     ...rest
   } = props;
+
+  
+  const [fastReceiptInvoice, setFastReceiptInvoice] = useState<any>(null);
+  const [fastReceiptWarehouseId, setFastReceiptWarehouseId] = useState("");
 
   const [invoiceTabFilter, setInvoiceTabFilter] = useState("all");
 
@@ -236,7 +240,8 @@ export default function InvoicesList(props: any) {
         }
 
         return (
-          <motion.div
+    <>
+      <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
@@ -257,7 +262,8 @@ export default function InvoicesList(props: any) {
                             : "اسناد انبار (رسید و حواله)"}
                   </h2>
                   <div className="flex gap-2">
-                     <button
+                     
+                              <button
                         onClick={() => {
                            clearDraft();
                            if (activeTab === "list_sale") setActiveTab("create_sale");
@@ -761,7 +767,19 @@ export default function InvoicesList(props: any) {
                                   <Wallet className="w-4 h-4" />
                                 </button>
                               )}
-                              <button
+                              
+                              {inv.type === "purchase" && inv.status !== "voided" && getInvoiceWarehouseStatus(inv) !== "completed" && (
+                                <button
+                                  onClick={() => {
+                                    setFastReceiptInvoice(inv);
+                                  }}
+                                  className="p-1.5 text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 rounded-lg cursor-pointer bg-transparent border-none"
+                                  title="رسید سریع به انبار"
+                                >
+                                  <Package className="w-4 h-4" />
+                                </button>
+                              )}
+<button
                                 onClick={() => {
                                   setViewingInvoice(inv);
                                 }}
@@ -917,5 +935,71 @@ export default function InvoicesList(props: any) {
               </div>
             )}
           </motion.div>
-        );
+
+      {/* Fast Warehouse Receipt Modal */}
+      <AnimatePresence>
+        {fastReceiptInvoice && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+            dir="rtl"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl relative"
+            >
+              <div className="p-6">
+                <h3 className="text-xl font-black text-slate-800 mb-2 flex items-center gap-2">
+                  <Package className="w-6 h-6 text-emerald-500" />
+                  رسید سریع انبار
+                </h3>
+                <p className="text-slate-500 text-sm mb-6">
+                  لطفا انبار مقصد برای فاکتور خرید شماره {fastReceiptInvoice.invoiceNumber || fastReceiptInvoice.id} را انتخاب کنید:
+                </p>
+                <div className="space-y-4">
+                  <select
+                    value={fastReceiptWarehouseId}
+                    onChange={(e) => setFastReceiptWarehouseId(e.target.value)}
+                    className="w-full p-3 border border-emerald-100 rounded-xl focus:ring-2 focus:ring-emerald-500 bg-emerald-50/30 text-sm font-bold text-emerald-900 outline-none"
+                  >
+                    <option value="">-- انتخاب انبار --</option>
+                    {(warehouses || []).map((wh: any) => (
+                      <option key={wh.id} value={wh.id}>{wh.title}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mt-8 flex gap-3">
+                  <button
+                    onClick={() => {
+                      setFastReceiptInvoice(null);
+                      setFastReceiptWarehouseId("");
+                    }}
+                    className="flex-1 px-4 py-3 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl font-bold transition-colors"
+                  >
+                    انصراف
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleFastWarehouseReceipt(fastReceiptInvoice, fastReceiptWarehouseId);
+                      setFastReceiptInvoice(null);
+                      setFastReceiptWarehouseId("");
+                    }}
+                    disabled={!fastReceiptWarehouseId}
+                    className="flex-1 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-200 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-colors shadow-sm"
+                  >
+                    ثبت رسید انبار
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+    </>
+  );
 }

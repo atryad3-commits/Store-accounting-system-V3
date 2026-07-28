@@ -2225,6 +2225,20 @@ const handleDeleteProduct = async (id: number | string) => {
             const mm = String(new Date().getMonth() + 1).padStart(2, "0");
             newBarcode = `${yy}${mm}-${String(currentNumber).padStart(Number(barcodeLength), "0")}`;
             currentNumber++;
+          } else if (barcodeFormat === "ean13") {
+            const prefix = (barcodePrefix || "626").replace(/[^0-9]/g, '');
+            const requiredSerialLength = 12 - prefix.length;
+            const serialStr = String(currentNumber).padStart(requiredSerialLength, "0").slice(0, requiredSerialLength);
+            const base12 = (prefix + serialStr).padStart(12, "0").slice(0, 12);
+            let sum = 0;
+            for (let i = 0; i < 12; i++) {
+                const digit = parseInt(base12[i], 10);
+                sum += (i % 2 === 0) ? digit : digit * 3;
+            }
+            const remainder = sum % 10;
+            const checksum = remainder === 0 ? 0 : 10 - remainder;
+            newBarcode = base12 + checksum.toString();
+            currentNumber++;
           } else if (barcodeFormat === "random_alphanumeric") {
             const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             let randStr = "";
@@ -3926,17 +3940,6 @@ const handleItemChange = (
                 (p) => p.id.toString() === String(updatedItem.productId),
               );
               if (product) {
-                const ratio = product.unitRatio || 1;
-                const prevSec = Boolean(item.isSecondaryUnit);
-                if (prevSec === false && isSec === true) {
-                  updatedItem.unitPrice = Number(
-                    (Number(item.unitPrice) * ratio).toFixed(4),
-                  );
-                } else if (prevSec === true && isSec === false) {
-                  updatedItem.unitPrice = Number(
-                    (Number(item.unitPrice) / ratio).toFixed(4),
-                  );
-                }
                 updatedItem.selectedUnit = isSec
                   ? product.secondaryUnit || ""
                   : product.unit || "";
@@ -4155,6 +4158,52 @@ const handleVoidInvoice = async (id: string | number) => {
       }
     }, details);
   };
+
+
+const handleFastWarehouseReceipt = async (inv: any, warehouseId: string) => {
+    if (!warehouseId) {
+      customAlert("انتخاب انبار الزامی است.");
+      return;
+    }
+    
+    // Check if receipt already exists
+    const existing = invoices.find(i => i.type === "warehouse_receipt" && i.sourceInvoiceId?.toString() === inv.id?.toString() && i.status !== "voided" && !i.isDeleted);
+    if (existing) {
+       customAlert("رسید انبار برای این فاکتور قبلا ثبت شده است.");
+       return;
+    }
+
+    updateAppProcessing("در حال ثبت رسید انبار...");
+    
+    try {
+        const payload = {
+            type: "warehouse_receipt",
+            operationType: "purchase_invoice",
+            sourceInvoiceId: inv.id,
+            customerId: inv.customerId,
+            date: new Date().toISOString(),
+            items: inv.items.map((item: any) => ({
+                ...item,
+                warehouseId: warehouseId
+            })),
+            status: "final",
+            isDraft: false,
+            totalAmount: inv.totalAmount,
+            overallDiscountPercent: inv.overallDiscountPercent,
+            invoiceDescription: `رسید اتوماتیک انبار برای فاکتور خرید ${inv.invoiceNumber || inv.id}`
+        };
+        
+        await addInvoice(payload as any, false);
+        await fetchInvoices();
+        setSuccessMsg("رسید انبار با موفقیت ثبت شد.");
+        setTimeout(() => setSuccessMsg(""), 3000);
+    } catch (e) {
+        console.error("Fast receipt error:", e);
+        customAlert("خطا در ثبت رسید انبار");
+    } finally {
+        stopAppProcessing();
+    }
+};
 
 const handleEditInvoiceAction = async (inv: any) => {
     const isWarehouseDoc = inv.type === "warehouse_receipt" || inv.type === "warehouse_remittance";
@@ -4479,7 +4528,7 @@ const getInvoiceNumber = (typeOverride?: string) => {
       }
 
       // 3. بررسی باز بودن دوره مالی
-      const currentFY = activeFinancialYear || (financialYears || []).find((fy: any) => fy.isActive || fy.status === 'open' || fy.status === 'active');
+      const currentFY = activeFinancialYear;
       if (!currentFY) {
         validationErrors.push("• گیت ۳: هیچ دوره مالی فعالی برای ثبت این فاکتور یافت نشد.");
       } else if (currentFY.isClosed === true || currentFY.status === 'closed') {
@@ -4519,8 +4568,8 @@ const getInvoiceNumber = (typeOverride?: string) => {
               // 5. Inventory Check (Only if negative stock is not allowed)
               if (storeSettings.allowNegativeStock !== true) {
                 const whId = item.warehouseId || invoiceWarehouseId;
-                const stockEntry = prod.inventory?.find((inv: any) => inv.warehouseId?.toString() === whId?.toString());
-                const currentStock = stockEntry ? Number(stockEntry.quantity) || 0 : 0;
+                const stockInfo = getProductStockInfo(prod.id);
+                const currentStock = stockInfo.warehouses[whId] ? stockInfo.warehouses[whId].available : 0;
                 
                 let originalQty = 0;
                 if (editingInvoiceId) {
@@ -4551,7 +4600,7 @@ const getInvoiceNumber = (typeOverride?: string) => {
         const price = Number(item.unitPrice) || 0;
         const ratio = (item.isSecondaryUnit && item.unitRatio) ? Number(item.unitRatio) : 1;
         const discPercent = Number(item.discountPercent) || 0;
-        const lineTotal = (qty * price * ratio) * (1 - discPercent / 100);
+        const lineTotal = (qty * price) * (1 - discPercent / 100);
         rowSumCalculated += lineTotal;
       });
       const discOverall = Number(customPayload?.overallDiscountPercent ?? overallDiscountPercent) || 0;
@@ -4660,7 +4709,7 @@ const getInvoiceNumber = (typeOverride?: string) => {
       }
 
       // 3. بررسی باز بودن دوره مالی
-      const currentFY = activeFinancialYear || (financialYears || []).find((fy: any) => fy.isActive || fy.status === 'open' || fy.status === 'active');
+      const currentFY = activeFinancialYear;
       if (!currentFY) {
         validationErrors.push("• گیت ۳: هیچ دوره مالی فعالی برای ثبت این فاکتور یافت نشد.");
       } else if (currentFY.isClosed === true || currentFY.status === 'closed') {
@@ -4709,7 +4758,7 @@ const getInvoiceNumber = (typeOverride?: string) => {
         const price = Number(item.unitPrice) || 0;
         const ratio = (item.isSecondaryUnit && item.unitRatio) ? Number(item.unitRatio) : 1;
         const discPercent = Number(item.discountPercent) || 0;
-        const lineTotal = (qty * price * ratio) * (1 - discPercent / 100);
+        const lineTotal = (qty * price) * (1 - discPercent / 100);
         rowSumCalculated += lineTotal;
       });
 
@@ -4972,7 +5021,7 @@ const getInvoiceNumber = (typeOverride?: string) => {
               amount: paidAmt,
               date: payload.date || new Date().toISOString().split('T')[0],
               personId: payload.customerId,
-              resourceType: paymentAccount.type === 'bank' ? 'bank' : 'cashbox',
+              resourceType: (paymentAccount as any).type === 'bank' ? 'bank' : 'cashbox',
               resourceId: invoicePaymentAccountId,
               method: 'cash',
               description: `بابت تسویه فاکتور خرید شماره ${payload.invoiceNumber || invId}`,
@@ -6259,7 +6308,7 @@ const renderTabContent = () => {
       case "list_warehouse_docs": {
         return (
           <InvoicesList
-             invoices={invoices} invoiceSearchQuery={invoiceSearchQuery} setInvoiceSearchQuery={setInvoiceSearchQuery} persons={persons} activeTab={activeTab} setActiveTab={setActiveTab} purchaseFilter={purchaseFilter} setPurchaseFilter={setPurchaseFilter} formatCurrency={formatCurrency} getPersonDisplayName={getPersonDisplayName} formatDateDisplay={formatDateDisplay}  numToPersianWords={numToPersianWords} setInvoiceWarehouseId={setInvoiceWarehouseId} warehouses={warehouses} setCustomerId={setCustomerId}  getRoleName={getRoleName} setEditingInvoiceId={setEditingInvoiceId} handleDeleteInvoice={handleDeleteInvoice}     storeSettings={storeSettings} invoiceCurrentPage={invoiceCurrentPage} setInvoiceCurrentPage={setInvoiceCurrentPage} invoicePageSize={invoicePageSize} setInvoicePageSize={setInvoicePageSize} toPersianDigits={toPersianDigits} listFilter={listFilter} setListFilter={setListFilter} invoiceGroupMode={invoiceGroupMode} setInvoiceGroupMode={setInvoiceGroupMode} List={List} clearDraft={clearDraft} setInvoiceType={setInvoiceType} setWarehouseOperationType={setWarehouseOperationType} Calendar={Calendar} renderPersonLink={renderPersonLink} products={products} setPricingWizardItems={setPricingWizardItems} setPricingWizardInvoice={setPricingWizardInvoice} setSuccessMsg={setSuccessMsg} setReceiptPersonId={setReceiptPersonId} setViewingInvoice={setViewingInvoice} handleEditInvoiceAction={handleEditInvoiceAction} handleVoidInvoice={handleVoidInvoice}
+             invoices={invoices} invoiceSearchQuery={invoiceSearchQuery} setInvoiceSearchQuery={setInvoiceSearchQuery} persons={persons} activeTab={activeTab} setActiveTab={setActiveTab} purchaseFilter={purchaseFilter} setPurchaseFilter={setPurchaseFilter} formatCurrency={formatCurrency} getPersonDisplayName={getPersonDisplayName} formatDateDisplay={formatDateDisplay}  numToPersianWords={numToPersianWords} setInvoiceWarehouseId={setInvoiceWarehouseId} warehouses={warehouses} setCustomerId={setCustomerId}  getRoleName={getRoleName} setEditingInvoiceId={setEditingInvoiceId} handleDeleteInvoice={handleDeleteInvoice}     storeSettings={storeSettings} invoiceCurrentPage={invoiceCurrentPage} setInvoiceCurrentPage={setInvoiceCurrentPage} invoicePageSize={invoicePageSize} setInvoicePageSize={setInvoicePageSize} toPersianDigits={toPersianDigits} listFilter={listFilter} setListFilter={setListFilter} invoiceGroupMode={invoiceGroupMode} setInvoiceGroupMode={setInvoiceGroupMode} List={List} clearDraft={clearDraft} setInvoiceType={setInvoiceType} setWarehouseOperationType={setWarehouseOperationType} Calendar={Calendar} renderPersonLink={renderPersonLink} products={products} setPricingWizardItems={setPricingWizardItems} setPricingWizardInvoice={setPricingWizardInvoice} setSuccessMsg={setSuccessMsg} setReceiptPersonId={setReceiptPersonId} setViewingInvoice={setViewingInvoice} handleEditInvoiceAction={handleEditInvoiceAction} handleFastWarehouseReceipt={handleFastWarehouseReceipt} handleVoidInvoice={handleVoidInvoice}
           />
         );
       }

@@ -52,6 +52,7 @@ export default function PrintBarcodeModal({ product, products, onClose, storeSet
   const [showTitle, setShowTitle] = useState(true);
   const [showPrice, setShowPrice] = useState(true);
   const [barcodeScale, setBarcodeScale] = useState(100);
+  const [printLayout, setPrintLayout] = useState('a4'); // 'a4' | 'thermal'
 
   const handleFormatChange = (newFormatId: string) => {
     setFormatId(newFormatId);
@@ -150,6 +151,21 @@ export default function PrintBarcodeModal({ product, products, onClose, storeSet
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2 pt-4 border-t border-slate-100">
+                
+              <div className="flex flex-col gap-2 sm:col-span-2">
+                  <label className="text-sm font-bold text-slate-600">قالب چاپ</label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" checked={printLayout === 'a4'} onChange={() => setPrintLayout('a4')} className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-slate-700">کاغذ A4 (لیبل شیت)</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input type="radio" checked={printLayout === 'thermal'} onChange={() => setPrintLayout('thermal')} className="w-4 h-4 text-indigo-600" />
+                      <span className="text-sm text-slate-700">لیبل پرینتر حرارتی (50x30)</span>
+                    </label>
+                  </div>
+              </div>
+
                 <div className="flex flex-col gap-2">
                   <label className="flex items-center justify-between cursor-pointer">
                     <span className="text-sm font-bold text-slate-600">نمایش نام کالا</span>
@@ -224,12 +240,13 @@ export default function PrintBarcodeModal({ product, products, onClose, storeSet
         </div>
 
         {/* Print Layout */}
-        <div className="hidden print:flex print-container print:w-full" dir="rtl">
+        <style>{printLayout === 'thermal' ? `@media print { @page { size: 50mm 30mm; margin: 0; } body { margin: 0; } }` : `@media print { @page { size: A4; margin: 10mm; } }`}</style>
+        <div className={`hidden print:grid ${printLayout === 'a4' ? 'print:grid-cols-4 print:gap-4 print:p-4' : 'print:grid-cols-1 print:w-[50mm] print:gap-1'} print-section`} dir="rtl">
           
           {targetProducts.map((prod, pIdx) => {
             const bVal = prod.barcode || prod.code;
             return Array.from({ length: labelCount }).map((_, index) => (
-            <div key={`${pIdx}-${index}`} className="label-item border border-black p-2 bg-white flex flex-col justify-center items-center w-full overflow-hidden rounded-lg box-border">
+            <div key={`${pIdx}-${index}`} className={`label-item border border-black p-2 bg-white flex flex-col justify-center items-center overflow-hidden box-border ${printLayout === 'a4' ? 'rounded-lg w-full h-[120px]' : 'w-[50mm] h-[30mm]'}`}>
               <div 
                 className="font-bold text-black mb-1 truncate px-1 w-full text-center leading-tight"
                 style={{ fontSize: `12px` }}

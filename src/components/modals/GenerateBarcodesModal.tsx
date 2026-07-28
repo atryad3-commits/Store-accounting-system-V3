@@ -39,24 +39,26 @@ export default function GenerateBarcodesModal({
               className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
             >
               <option value="numeric_only">عدد تصادفی / سریال</option>
+              <option value="ean13">EAN-13 (استاندارد جهانی)</option>
               <option value="prefix_serial">پیشوند + سریال</option>
               <option value="date_prefix">تاریخ + سریال</option>
               <option value="random_alphanumeric">حروف و اعداد تصادفی</option>
             </select>
           </div>
-          {(barcodeFormat === "prefix_serial" || barcodeFormat === "random_alphanumeric") && (
+          {(barcodeFormat === "prefix_serial" || barcodeFormat === "random_alphanumeric" || barcodeFormat === "ean13") && (
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1.5">پیشوند (اختیاری)</label>
               <input
                 type="text"
                 value={barcodePrefix}
                 onChange={(e) => setBarcodePrefix(e.target.value)}
-                placeholder="مثال: PRD"
+                placeholder={barcodeFormat === "ean13" ? "پیشوند کشور/شرکت (مثال: 626)" : "مثال: PRD"}
+                maxLength={barcodeFormat === "ean13" ? 11 : undefined}
                 className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none text-left dir-ltr"
               />
             </div>
           )}
-          {(barcodeFormat === "prefix_serial" || barcodeFormat === "numeric_only" || barcodeFormat === "date_prefix") && (
+          {(barcodeFormat === "prefix_serial" || barcodeFormat === "numeric_only" || barcodeFormat === "date_prefix" || barcodeFormat === "ean13") && (
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1.5">شماره شروع سریال</label>
               <input
