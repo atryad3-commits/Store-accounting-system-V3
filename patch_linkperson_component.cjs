@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+const fs = require('fs');
+let content = fs.readFileSync('src/components/profile/LinkPerson.tsx', 'utf8');
+
+const newLinkPersonContent = `import React, { useState } from 'react';
 import { User } from '../../types';
 import Select from 'react-select';
 import { UserSquare, Plus, CheckCircle, Search, AlertCircle, LogOut } from 'lucide-react';
@@ -18,7 +21,7 @@ export default function LinkPerson({ user, persons, personRoles, personGroups, o
 
   const personOptions = persons.filter(p => p.role === 'employee').map(p => ({
     value: String(p.id),
-    label: `[${p.personCode || 'بدون کد'}] ${p.name} - ${p.nationalId || 'بدون کدملی'} - ${p.phone || 'بدون تلفن'}`,
+    label: \\\`[\\\${p.personCode || 'بدون کد'}] \\\${p.name} - \\\${p.nationalId || 'بدون کدملی'} - \\\${p.phone || 'بدون تلفن'}\\\`,
     person: p
   }));
 
@@ -73,8 +76,8 @@ export default function LinkPerson({ user, persons, personRoles, personGroups, o
         </div>
         
         <div className="flex border-b">
-           <button onClick={() => { setActiveTab('link'); setError(''); }} className={`flex-1 py-4 font-bold text-sm ${activeTab === 'link' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-500'}`}>اتصال به شخص موجود</button>
-           <button onClick={() => { setActiveTab('create'); setError(''); }} className={`flex-1 py-4 font-bold text-sm ${activeTab === 'create' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-500'}`}>تعریف شخص جدید</button>
+           <button onClick={() => { setActiveTab('link'); setError(''); }} className={\`flex-1 py-4 font-bold text-sm \${activeTab === 'link' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-500'}\`}>اتصال به شخص موجود</button>
+           <button onClick={() => { setActiveTab('create'); setError(''); }} className={\`flex-1 py-4 font-bold text-sm \${activeTab === 'create' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-slate-500'}\`}>تعریف شخص جدید</button>
         </div>
         
         <div className="p-8">
@@ -169,7 +172,6 @@ export default function LinkPerson({ user, persons, personRoles, personGroups, o
           personGroups={personGroups}
           personRoles={personRoles}
           onSuccess={handlePersonCreated}
-          confirmAction={(msg, onConfirm) => { if (window.confirm(msg)) onConfirm(); }}
           showNotification={(msg, type) => {
             if (type === 'error') setError(msg);
           }}
@@ -178,3 +180,6 @@ export default function LinkPerson({ user, persons, personRoles, personGroups, o
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/components/profile/LinkPerson.tsx', newLinkPersonContent);

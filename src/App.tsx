@@ -918,7 +918,7 @@ if (requiresInitSetup && user) {
   const requiresProfileLink = user && ['admin', 'manager', 'employee'].includes(user.role) && user.isProfileRequired !== false && !user.personId;
 
   if (requiresProfileLink) {
-    return <LinkPerson user={user} persons={persons || []} onPersonLinked={() => window.location.reload()} />;
+    return <LinkPerson user={user} persons={persons || []} personRoles={appState.personRoles || []} personGroups={appState.personGroups || []} onPersonLinked={() => window.location.reload()} />;
   }
 
   if (activeTab === "welcome_page") {
