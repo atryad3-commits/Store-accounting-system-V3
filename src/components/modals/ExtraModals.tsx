@@ -225,6 +225,7 @@ export default function ExtraModals(props: any) {
           setBarcodePrefix={setBarcodePrefix}
           barcodeLength={barcodeLength}
           setBarcodeLength={setBarcodeLength}
+          products={props.products}
           handleGenerateBarcodes={async () => {
             await handleGenerateBarcodes();
             setIsGenerateBarcodesModalOpen(false);
