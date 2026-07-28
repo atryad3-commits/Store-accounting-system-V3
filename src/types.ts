@@ -177,13 +177,15 @@ export type InvoiceItem = {
   maxQuantity?: number;
 };
 
-export type UserRole = 'admin' | 'accountant' | 'cashier' | 'viewer';
+export type UserRole = 'admin' | 'manager' | 'employee' | 'customer' | 'guest';
 
 export type RefundRequest = {
   id?: string | number;
   date: string; // YYYY/MM/DD
   amount: number;
-  personId?: string | number; // For selected existing person
+  personId?: string | null;
+  profileLinkedAt?: string | null;
+  isProfileRequired?: boolean; // For selected existing person
   miscName?: string; // For miscellaneous distinct from person entity
   miscGroupId?: string | number; // Group ID for new miscellaneous person
   cardNumber?: string;

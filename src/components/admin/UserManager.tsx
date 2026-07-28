@@ -14,7 +14,7 @@ export default function UserManager() {
     username: '',
     password: '',
     name: '',
-    role: 'cashier' as UserRole,
+    role: 'employee' as UserRole,
     isActive: true,
     requires2FA: false
   });
@@ -63,10 +63,11 @@ export default function UserManager() {
   };
 
   const roleLabels: Record<UserRole, string> = {
-    admin: 'مدیر سیستم',
-    accountant: 'حسابدار',
-    cashier: 'صندوق‌دار',
-    viewer: 'گزارش‌گیر'
+    admin: 'مدیر کل',
+    manager: 'مدیر',
+    employee: 'کارمند',
+    customer: 'مشتری',
+    guest: 'مهمان'
   };
 
   return (
@@ -81,7 +82,7 @@ export default function UserManager() {
             </div>
             <button onClick={() => {
                 setEditingId(null);
-                setForm({ username: '', password: '', name: '', role: 'cashier', isActive: true, requires2FA: false });
+                setForm({ username: '', password: '', name: '', role: 'employee', isActive: true, requires2FA: false });
                 setIsModalOpen(true);
             }} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-2 transition-colors text-sm font-medium">
                <Plus className="w-4 h-4"/> ایجاد کاربر جدید

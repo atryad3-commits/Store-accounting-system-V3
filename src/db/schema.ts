@@ -6,6 +6,9 @@ export const users = pgTable('users', {
   username: varchar('username', { length: 255 }).notNull().unique(),
   password: text('password').notNull(),
   role: varchar('role', { length: 50 }).default('user'),
+  personId: varchar('person_id', { length: 50 }),
+  profileLinkedAt: timestamp('profile_linked_at'),
+  isProfileRequired: boolean('is_profile_required').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -137,4 +140,13 @@ export const warehouseStocks = pgTable('warehouse_stocks', {
   warehouseId: varchar('warehouse_id', { length: 50 }).notNull(),
   productId: varchar('product_id', { length: 50 }).notNull(),
   stock: numeric('stock').default('0'),
+});
+
+
+export const roles = pgTable('roles', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  name: varchar('name', { length: 50 }).notNull().unique(), // admin, manager, employee, customer, guest
+  title: varchar('title', { length: 255 }), // Persian title
+  permissions: json('permissions'),
+  createdAt: timestamp('created_at').defaultNow(),
 });

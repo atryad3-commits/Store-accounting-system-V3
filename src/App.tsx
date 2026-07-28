@@ -121,6 +121,7 @@ import html2pdf from "html2pdf.js";
 import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+import LinkPerson from "./components/profile/LinkPerson";
 import Select from "react-select";
 import { useAuth } from "./context/AuthContext";
 import {
@@ -913,6 +914,13 @@ if (requiresInitSetup && user) {
     );
   }
   
+
+  const requiresProfileLink = user && ['admin', 'manager', 'employee'].includes(user.role) && user.isProfileRequired !== false && !user.personId;
+
+  if (requiresProfileLink) {
+    return <LinkPerson user={user} persons={persons || []} onPersonLinked={() => window.location.reload()} />;
+  }
+
   if (activeTab === "welcome_page") {
     return <WelcomePage onLoginClick={() => setActiveTab("financial_report")} />;
   }

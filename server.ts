@@ -160,7 +160,8 @@ const KNOWN_TABLES = [
   'warehouse_stocks', 'stocktakings', 'person_follow_ups', 'loans',
   'ledger_accounts', 'installments', 'sms_messages', 'person_opening_balances', 'product_price_history', 'sales_invoice_payments', 'purchase_invoice_payments',
   'issued_checks', 'received_checks', 'check_history',
-  'persons', 'person_contacts', 'person_bank_accounts', 'system_logs', 'database_logs', 'backupConfig',
+  'persons', 'person_contacts', 'person_bank_accounts', 'system_logs',
+  'roles', 'database_logs', 'backupConfig',
   'purchase_invoices', 'purchase_invoice_items',
   'sales_invoices', 'sales_invoice_items',
   'warehouse_receipts', 'warehouse_receipt_items',
@@ -1123,6 +1124,9 @@ async function startServer() {
         password: hashedPassword,
         name: 'مدیر سیستم',
         role: 'admin',
+        personId: null,
+        profileLinkedAt: null,
+        isProfileRequired: true,
         isActive: true,
         createdAt: Date.now()
       };
