@@ -15,6 +15,11 @@ export const FastBarcodeScanner = ({ onScan }: { onScan: (code: string) => void 
         dir="ltr"
         onKeyDown={(e) => {
           if (e.key === "Enter") {
+            if (e.defaultPrevented) {
+              // The global hook (useHardwareScanner) already captured this!
+              e.currentTarget.value = "";
+              return;
+            }
             e.preventDefault();
             const val = e.currentTarget.value.trim();
             if (val) {
