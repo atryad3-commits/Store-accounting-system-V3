@@ -228,6 +228,7 @@ import ConfirmModal from "./components/modals/ConfirmModal";
 const BusinessManager = React.lazy(() => import('./components/admin/BusinessManager'));
 const FastStocktakingMobile = React.lazy(() => import('./components/inventory/FastStocktakingMobile'));
 const PricingWizardModal = React.lazy(() => import('./components/modals/PricingWizardModal'));
+const SalePaymentModal = React.lazy(() => import('./components/invoices/SalePaymentModal'));
 const ReceiptsList = React.lazy(() => import('./components/financial/ReceiptsList'));
 const InvoicesList = React.lazy(() => import('./components/invoices/InvoicesList'));
 const CurrencyInput = React.lazy(() => import('./components/common/CurrencyInput'));
@@ -2191,7 +2192,22 @@ if (requiresInitSetup && user) {
 </div>
 </div>
 )}
-<PricingWizardModal
+<Suspense fallback={null}><SalePaymentModal
+      isOpen={appState.isSalePaymentModalOpen}
+      onClose={() => appState.setIsSalePaymentModalOpen(false)}
+      payload={appState.salePaymentModalPayload}
+      saveInvoiceData={appState.saveInvoiceData}
+      accounts={appState.accounts}
+      cashboxes={appState.cashboxes}
+      transactions={appState.transactions}
+      formatCurrency={appState.formatCurrency}
+      addCommas={(val) => {
+        return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }}
+      persons={appState.persons}
+      setViewingInvoice={appState.setViewingInvoice}
+  /></Suspense>
+  <PricingWizardModal
             pricingWizardInvoice={pricingWizardInvoice} setPricingWizardInvoice={setPricingWizardInvoice} pricingWizardItems={pricingWizardItems} setPricingWizardItems={setPricingWizardItems} products={products} storeSettings={storeSettings} toPersianDigits={toPersianDigits} formatDateDisplay={formatDateDisplay} formatNumber={formatNumber} setSuccessMsg={setSuccessMsg} fetchProducts={fetchProducts} updateProduct={updateProduct} List={List}
           />
           {isAccountingDocModalOpen && viewingAccountingDoc && (

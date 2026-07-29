@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import * as lucide from 'lucide-react';
 
@@ -310,7 +311,7 @@ export default function PersonLedger(props: any) {
 
                       return (
                         <div className="space-y-6">
-                          {printingPersonLedger && (
+                          {printingPersonLedger && createPortal(
                             <div
                               id="person-ledger-printable-area"
                               className="fixed inset-0 z-[9999] bg-white text-black p-8 print-section overflow-visible flex flex-col font-sans"
@@ -1258,7 +1259,7 @@ export default function PersonLedger(props: any) {
                                 })()}
                               </div>
                             </div>
-                          )}
+                          , document.body)}
                         </div>
                       );
                     })()}

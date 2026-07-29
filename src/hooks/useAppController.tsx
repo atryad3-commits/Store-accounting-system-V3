@@ -671,7 +671,7 @@ const filteredPersons = (persons || []).filter((p) => {
     }
 
     // 2. Search Filter
-    if (!personSearchTerm) return true;
+    if (!personSearchTerm) return addedInvoice || true;
     const terms = personSearchTerm.toLowerCase().split(" ").filter(Boolean);
     const grp = personGroups.find((g) => g.id === p.group);
     const searchable =
@@ -1060,6 +1060,9 @@ const autoSaveDbTimer = useRef<any>(null);
 const isAutoSavingDb = useRef<boolean>(false);
 
 const [submitting, setSubmitting] = useState(false);
+const [salePaymentModalPayload, setSalePaymentModalPayload] = useState<any>(null);
+const [isSalePaymentModalOpen, setIsSalePaymentModalOpen] = useState(false);
+
 
 const [transferProposal, setTransferProposal] = useState<{
     show: boolean;
@@ -1507,7 +1510,7 @@ const handleBulkImportItems = (importedItems: any[]) => {
 
 const handleBarcodeScan = (code: string) => {
     setIsScannerOpen(false);
-    const product = products.find((p) => p.barcode === code);
+    const product = products.find((p) => p.isActive !== false && p.barcode === code);
     if (product) {
       playAudioFeedback("scan" as any);
       handleFastAddProduct(String(product.id));
@@ -2084,7 +2087,7 @@ const handleFastSaveProduct = async (productData: any): Promise<boolean> => {
       }
 
       await fetchDataSilent();
-      return true;
+      return addedInvoice || true;
     } catch (error) {
       console.error("Error fast saving product", error);
       showNotification("خطا در ثبت سریع کالا.", "error");
@@ -3801,7 +3804,7 @@ const handleFastAddProduct = (
   ) => {
     if (!productIdStr) return;
     const product =
-      forceProductObj || products.find((p) => p.id.toString() === productIdStr);
+      forceProductObj || products.find((p) => p.isActive !== false && p.id.toString() === productIdStr);
     if (!product) return;
 
     if (activeTab === "create_warehouse_doc" && product.type === "service") {
@@ -3859,7 +3862,7 @@ const handleFastAddProduct = (
   };
 
 const handleFastBarcodeScan = (code: string) => {
-    const product = products.find((p) => p.barcode === code || p.code === code);
+    const product = products.find((p) => p.isActive !== false && (p.barcode === code || p.code === code));
     if (product) {
       playAudioFeedback("scan" as any);
       handleFastAddProduct(String(product.id), product);
@@ -5407,7 +5410,7 @@ const getInvoiceNumber = (typeOverride?: string) => {
         setSuccessMsg("");
         setPreviewInvoiceData(null); // Clear preview modal
       }, 1500);
-      return true;
+      return addedInvoice || true;
     } catch (error: any) {
       console.error("Error submitting invoice, rolling back operations...", error);
       updateAppProcessing('خطا رخ داد! در حال بازگردانی (Rollback)...');
@@ -5793,6 +5796,11 @@ const handleInvoicePreviewTrigger = () => {
       paidAmount: Number(invoicePaidAmount) || 0,
     };
 
+    if (invoiceType === "sale") {
+      setSalePaymentModalPayload(tempPayload);
+      setIsSalePaymentModalOpen(true);
+      return;
+    }
     saveInvoiceData(tempPayload);
   };
 
@@ -6363,6 +6371,8 @@ const renderTabContent = () => {
   return {
 
     activeStoreId, setActiveStoreId, availableStores, setAvailableStores, isStoreSelectionOpen, setIsStoreSelectionOpen, productSearchTerm,
+    salePaymentModalPayload, setSalePaymentModalPayload,
+    isSalePaymentModalOpen, setIsSalePaymentModalOpen,
     setProductSearchTerm,
     isFastStocktaking,
     authLoading,

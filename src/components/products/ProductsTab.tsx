@@ -528,7 +528,7 @@ export default function ProductsTab(props: any) {
                                   {paginatedProducts.map((p, index) => (
                                     <tr
                                       key={p.id ? `id-${p.id}-${index}` : `idx-${index}`}
-                                      className="hover:bg-slate-50/80 transition-colors group"
+                                      className={`hover:bg-slate-50/80 transition-colors group ${p.isActive === false ? "opacity-50 grayscale" : ""}`}
                                     >
                                       <td className="py-4 px-4 text-center">
                                         <input
@@ -566,7 +566,8 @@ export default function ProductsTab(props: any) {
                                             </div>
                                           )}
                                           <div className="flex flex-col gap-1.5 items-start">
-                                          <button
+                                          <div className="flex items-center gap-2">
+                                            <button
                                             onClick={() => {
                                               setViewingProduct(p);
                                               setActiveTab("product_view");
@@ -575,6 +576,10 @@ export default function ProductsTab(props: any) {
                                           >
                                             {p.name}
                                           </button>
+                                          {p.isActive === false && (
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold border border-rose-200 shadow-sm shrink-0">غیرفعال</span>
+                                          )}
+                                          </div>
                                         </div>
                                         </div>
                                       </td>

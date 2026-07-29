@@ -21,7 +21,7 @@ export default function ReceiptPrintTemplate({ data, storeSettings, persons, get
     <>
     <style dangerouslySetInnerHTML={{__html: `
         @media print {
-          @page { size: auto; margin: 10mm; }
+          @page { size: A5 landscape; margin: 10mm; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .print-border { border: 2px solid #0f172a !important; padding: 2px !important; }
           .print-inner-border { border: 1px solid #0f172a !important; }
@@ -31,12 +31,12 @@ export default function ReceiptPrintTemplate({ data, storeSettings, persons, get
       
       {/* Outer Border for Official Look */}
       <div className="print-border border-4 border-double border-slate-800 p-1 m-4 print:m-0 rounded-sm bg-white">
-        <div className="print-inner-border border-2 border-slate-800 rounded-sm p-6 min-h-[14cm] flex flex-col relative bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
+        <div className="print-inner-border border-2 border-slate-800 rounded-sm p-6 min-h-[11cm] p-4 print:p-2 flex flex-col relative bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]">
           
           {/* Header */}
           <div className="flex justify-between items-start border-b-2 border-slate-800 pb-6 mb-6">
             <div className="w-1/3 flex flex-col gap-2">
-              <h1 className="text-2xl font-black text-slate-900 bg-white inline-block px-2">{storeSettings?.storeName || 'نام مجموعه'}</h1>
+              <h1 className="text-xl font-black text-slate-900 bg-white inline-block px-2">{storeSettings?.storeName || 'نام مجموعه'}</h1>
               {storeSettings?.phone && (
                 <p className="text-slate-800 font-bold text-sm bg-white inline-block px-2">تلفن: {toPersianDigits(storeSettings.phone)}</p>
               )}
@@ -47,7 +47,7 @@ export default function ReceiptPrintTemplate({ data, storeSettings, persons, get
             
             <div className="w-1/3 text-center flex flex-col items-center justify-center pt-2">
               <div className="inline-block border-2 border-slate-800 rounded-lg px-8 py-3 bg-white shadow-sm">
-                 <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                 <h2 className="text-xl font-black text-slate-900 tracking-tight">
                    {docTitle}
                  </h2>
               </div>
@@ -68,33 +68,33 @@ export default function ReceiptPrintTemplate({ data, storeSettings, persons, get
           </div>
           
           {/* Body */}
-          <div className="flex-1 space-y-8 bg-white/90 p-4 rounded-xl border border-slate-200 shadow-sm relative z-10">
-            <div className="flex items-center gap-2 text-lg">
+          <div className="flex-1 space-y-5 print:space-y-4 bg-white/90 p-4 rounded-xl border border-slate-200 shadow-sm relative z-10">
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-2 text-base print:text-sm">
               <span className="font-bold text-slate-800 shrink-0">{isReceive ? 'مبلغ' : 'مبلغ'}</span>
-              <span className="font-black text-xl border-b-2 border-dotted border-slate-800 pb-1 px-4 inline-block font-mono tracking-wider">
+              <span className="font-black text-base print:text-sm print:text-base border-b-2 border-dotted border-slate-800 pb-1 px-4 inline-block font-mono tracking-wider">
                 {amountStr} <span className="text-base font-bold text-slate-600 mr-1">{currency}</span>
               </span>
               <span className="font-bold text-slate-800 shrink-0 mr-2">معادل حروف:</span>
-              <span className="font-black text-lg border-b-2 border-dotted border-slate-800 pb-1 flex-1 px-2 text-center">
+              <span className="font-black text-base print:text-sm border-b-2 border-dotted border-slate-800 pb-1 flex-1 px-2 text-center">
                 {amountWords} {currency}
               </span>
             </div>
 
-            <div className="flex items-center gap-2 text-lg">
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-2 text-base print:text-sm">
               <span className="font-bold text-slate-800 shrink-0">{isReceive ? 'از جناب آقای / سرکار خانم / شرکت :' : 'به جناب آقای / سرکار خانم / شرکت :'}</span>
-              <span className="font-black text-xl border-b-2 border-dotted border-slate-800 pb-1 flex-1 px-4">
+              <span className="font-black text-base print:text-sm print:text-base border-b-2 border-dotted border-slate-800 pb-1 flex-1 px-4">
                 {getPersonDisplayName(persons?.find((p: any) => p.id?.toString() === data.personId?.toString()))}
               </span>
             </div>
 
-            <div className="flex items-start gap-2 text-lg">
+            <div className="flex flex-wrap items-start gap-y-2 gap-x-2 text-base print:text-sm">
               <span className="font-bold text-slate-800 shrink-0 pt-1">بابت :</span>
-              <span className="font-bold text-slate-900 border-b-2 border-dotted border-slate-800 pb-1 flex-1 px-4 min-h-[3rem] leading-loose">
+              <span className="font-bold text-slate-900 border-b-2 border-dotted border-slate-800 pb-1 flex-1 px-4 min-h-[2.5rem] leading-loose break-words">
                 {data.description || '..................................................................'}
               </span>
             </div>
 
-            <div className="flex items-center gap-2 text-lg">
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-2 text-base print:text-sm">
               <span className="font-bold text-slate-800 shrink-0">به صورت :</span>
               <span className="font-bold text-slate-900 border-b-2 border-dotted border-slate-800 pb-1 px-4 inline-block min-w-[200px] text-center">
                 {data.method === 'cash' ? 'نقدی / فیش بانکی' : data.method === 'check' ? 'چک' : data.method === 'transfer' ? 'حواله' : 'کارت خوان'}
@@ -103,22 +103,22 @@ export default function ReceiptPrintTemplate({ data, storeSettings, persons, get
             </div>
 
             {data.method === 'check' && (
-              <div className="flex items-center gap-4 text-base bg-slate-100 p-4 rounded-lg border border-slate-300">
+              <div className="flex items-center gap-4 text-base bg-slate-100 p-3 print:p-2 rounded-lg border border-slate-300">
                 <div className="flex items-center gap-2">
                   <span className="text-slate-700 font-bold">شماره چک:</span>
-                  <span className="font-black text-lg">{toPersianDigits(data.checkNumber)}</span>
+                  <span className="font-black text-base print:text-sm">{toPersianDigits(data.checkNumber)}</span>
                 </div>
                 <div className="h-6 w-px bg-slate-300 mx-2"></div>
                 <div className="flex items-center gap-2">
                   <span className="text-slate-700 font-bold">تاریخ سررسید:</span>
-                  <span className="font-black text-lg">{toPersianDigits(data.checkDueDate)}</span>
+                  <span className="font-black text-base print:text-sm">{toPersianDigits(data.checkDueDate)}</span>
                 </div>
                 {data.checkBankName && (
                   <>
                     <div className="h-6 w-px bg-slate-300 mx-2"></div>
                     <div className="flex items-center gap-2">
                       <span className="text-slate-700 font-bold">عهده بانک:</span>
-                      <span className="font-black text-lg">{data.checkBankName}</span>
+                      <span className="font-black text-base print:text-sm">{data.checkBankName}</span>
                     </div>
                   </>
                 )}
@@ -127,13 +127,13 @@ export default function ReceiptPrintTemplate({ data, storeSettings, persons, get
           </div>
 
           {/* Signatures */}
-          <div className="mt-16 grid grid-cols-2 gap-12 px-12 text-center pb-8 z-10 relative bg-white">
+          <div className="mt-8 print:mt-6 grid grid-cols-2 gap-12 px-12 text-center pb-8 z-10 relative bg-white">
             <div className="flex flex-col items-center">
-              <div className="text-lg font-bold text-slate-800 mb-20">{isReceive ? 'مهر و امضاء پرداخت کننده' : 'مهر و امضاء تایید کننده'}</div>
+              <div className="text-base font-bold text-slate-800 mb-12 print:mb-10 print:text-sm">{isReceive ? 'مهر و امضاء پرداخت کننده' : 'مهر و امضاء تایید کننده'}</div>
               <div className="w-48 border-t-2 border-dotted border-slate-800"></div>
             </div>
             <div className="flex flex-col items-center">
-              <div className="text-lg font-bold text-slate-800 mb-20">{isReceive ? 'مهر و امضاء دریافت کننده' : 'مهر و امضاء پرداخت کننده'}</div>
+              <div className="text-base font-bold text-slate-800 mb-12 print:mb-10 print:text-sm">{isReceive ? 'مهر و امضاء دریافت کننده' : 'مهر و امضاء پرداخت کننده'}</div>
               <div className="w-48 border-t-2 border-dotted border-slate-800"></div>
             </div>
           </div>

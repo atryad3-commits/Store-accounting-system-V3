@@ -35,7 +35,7 @@ export default function ProductLastPricesView({
       }
     });
 
-    return (products || []).filter((p: any) => p.type !== 'service').map((p: any) => {
+    return (products || []).filter((p: any) => p.type !== 'service' && p.isActive !== false).map((p: any) => {
       const pId = p.id?.toString();
       return {
         ...p,

@@ -109,7 +109,7 @@ export default function StandardInvoiceTemplate({
   const isA5 = paperSize === 'a5';
 
   return (
-    <div className={`bg-white text-slate-800 ${isClassic ? 'font-serif' : 'font-sans'} ${isA5 ? 'text-xs' : 'text-sm'}`} dir="rtl">
+    <div className={`bg-white text-slate-800 font-sans ${isA5 ? 'text-xs' : 'text-sm'}`} dir="rtl">
       <style>{`
         @media print {
           @page {

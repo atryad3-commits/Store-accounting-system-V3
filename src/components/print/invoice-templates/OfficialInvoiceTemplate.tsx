@@ -16,7 +16,7 @@ export default function OfficialInvoiceTemplate({
   const totalDiscount = sumTotal - (data.totalAmount || 0);
 
   return (
-    <div className="p-4 bg-white min-h-[297mm] text-black font-serif text-sm border-2 border-black m-4" dir="rtl">
+    <div className="p-4 bg-white min-h-[297mm] text-black font-sans text-sm border-2 border-black m-4" dir="rtl">
       {/* Header */}
       <div className="flex justify-between items-center border-b-2 border-black pb-2 mb-2">
         <div className="flex-1 text-right">

@@ -30,9 +30,9 @@ export default function QuickPriceInquiry({ products, settings }: QuickPriceInqu
   useEffect(() => {
     // Handle exact barcode or code match automatically
     if (searchTerm) {
-      const exactMatch = products.find(p => 
-        (p.barcode && p.barcode === searchTerm) || 
-        (p.code && p.code === searchTerm)
+      const exactMatch = products.find(p => p.isActive !== false && 
+        ((p.barcode && p.barcode === searchTerm) || 
+        (p.code && p.code === searchTerm))
       );
       
       if (exactMatch) {
@@ -46,9 +46,11 @@ export default function QuickPriceInquiry({ products, settings }: QuickPriceInqu
   // We removed the "!selectedProduct" restriction so searching always works!
   const suggestedProducts = searchTerm.length >= 2 
     ? (products || []).filter(p => 
+        p.isActive !== false && (
         p.name.includes(searchTerm) || 
         (p.code && p.code.includes(searchTerm)) || 
         (p.barcode && p.barcode.includes(searchTerm))
+        )
       ).slice(0, 5) // Show top 5 suggestions
     : [];
 
