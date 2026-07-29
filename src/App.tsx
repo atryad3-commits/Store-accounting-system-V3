@@ -1739,10 +1739,19 @@ if (requiresInitSetup && user) {
                                 <div className="p-3 bg-slate-50">
                                   <div className="flex items-center gap-3 mb-3 px-2">
                                     <div className="w-10 h-10 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center font-black shadow-sm shrink-0">
-                                      {user.name?.charAt(0) || <User className="w-5 h-5" />}
+                                      {(() => {
+                                        const p = user.personId ? persons?.find(x => String(x.id) === String(user.personId)) : null;
+                                        const dName = p ? p.name : user.name;
+                                        return dName?.charAt(0) || <User className="w-5 h-5" />;
+                                      })()}
                                     </div>
                                     <div className="flex flex-col overflow-hidden">
-                                      <div className="text-sm font-black text-slate-800 truncate">{user.name}</div>
+                                      <div className="text-sm font-black text-slate-800 truncate">
+                                        {(() => {
+                                           const p = user.personId ? persons?.find(x => String(x.id) === String(user.personId)) : null;
+                                           return p ? p.name : user.name;
+                                        })()}
+                                      </div>
                                       <div className="text-[10px] font-bold text-slate-500 uppercase truncate">
                                         {user.role === "admin" ? "مدیر سیستم" : user.role === "accountant" ? "حسابدار" : user.role === "cashier" ? "صندوق‌دار" : "کاربر عادی"}
                                       </div>

@@ -14,7 +14,7 @@ export default function LinkPerson({ user, persons, personRoles, personGroups, o
   
   const [isPersonModalOpen, setIsPersonModalOpen] = useState(false);
   
-  const { signOut } = useAuth();
+  const { signOut, signIn } = useAuth();
 
   const personOptions = persons.filter(p => p.role === 'employee').map(p => ({
     value: String(p.id),
@@ -30,11 +30,9 @@ export default function LinkPerson({ user, persons, personRoles, personGroups, o
     try {
       setLoading(true);
       setError('');
-      await updateUser(user.id.toString(), {
-        ...user,
-        personId: selectedPersonId,
-        profileLinkedAt: new Date().toISOString()
-      });
+      const updatedUser = { ...user, personId: selectedPersonId, profileLinkedAt: new Date().toISOString() };
+      await updateUser(user.id.toString(), updatedUser);
+      await signIn(updatedUser as any);
       onPersonLinked();
     } catch (err: any) {
       setError(err.message || 'خطا در ارتباط پروفایل');
@@ -47,11 +45,9 @@ export default function LinkPerson({ user, persons, personRoles, personGroups, o
     try {
       setLoading(true);
       setError('');
-      await updateUser(user.id.toString(), {
-        ...user,
-        personId: addedPerson.id,
-        profileLinkedAt: new Date().toISOString()
-      });
+      const updatedUser = { ...user, personId: addedPerson.id, profileLinkedAt: new Date().toISOString() };
+      await updateUser(user.id.toString(), updatedUser);
+      await signIn(updatedUser as any);
       onPersonLinked();
     } catch (err: any) {
       setError(err.message || 'خطا در ارتباط پروفایل');

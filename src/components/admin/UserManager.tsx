@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Plus, Edit2, Trash2, CheckCircle, User as UserIcon, Lock } from 'lucide-react';
 import { User, UserRole } from '../../types';
-import { getUsers, addUser, updateUser, deleteUser } from '../../services/dataService';
+import { getUsers, addUser, updateUser, deleteUser, getPersons } from '../../services/dataService';
 import { motion } from 'motion/react';
 
 export default function UserManager() {
   const [users, setUsers] = useState<User[]>([]);
+  const [persons, setPersons] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | number | null>(null);
   const [successMsg, setSuccessMsg] = useState('');
@@ -22,6 +23,8 @@ export default function UserManager() {
   const loadUsers = async () => {
     const data = await getUsers();
     setUsers(data);
+    const pData = await getPersons();
+    setPersons(pData);
   };
 
   useEffect(() => {
@@ -106,6 +109,7 @@ export default function UserManager() {
                  <th className="px-6 py-4">نام کاربری</th>
                  <th className="px-6 py-4">نقش سیستمی</th>
                  <th className="px-6 py-4">وضعیت</th>
+                 <th className="px-6 py-4">پروفایل شخص</th>
                  <th className="px-6 py-4 text-center">عملیات</th>
                </tr>
              </thead>
@@ -128,6 +132,13 @@ export default function UserManager() {
                        {u.requires2FA && (
                          <span className="text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded text-[10px] text-center border border-blue-100">OTP روشن</span>
                        )}
+                    </td>
+                    <td className="px-6 py-4">
+                       {(() => {
+                         if (!u.personId) return <span className="text-gray-400 text-xs">متصل نیست</span>;
+                         const p = persons.find(x => String(x.id) === String(u.personId));
+                         return p ? <span className="text-indigo-600 font-bold text-xs">{p.name}</span> : <span className="text-gray-400 text-xs">یافت نشد</span>;
+                       })()}
                     </td>
                     <td className="px-6 py-4 flex gap-2 justify-center">
                        <button onClick={() => handleEdit(u)} className="p-2 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg">
