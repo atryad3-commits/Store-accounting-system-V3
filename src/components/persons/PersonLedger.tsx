@@ -142,6 +142,7 @@ export default function PersonLedger(props: any) {
                                   className="w-8 h-8 rounded-full object-cover shadow-sm border border-slate-200"
                                 />
                               ) : (
+                               
                                 <div className="w-8 h-8 rounded-full bg-violet-50 border border-violet-100 flex items-center justify-center">
                                   <User className="w-4 h-4 text-violet-400" />
                                 </div>
@@ -437,7 +438,7 @@ export default function PersonLedger(props: any) {
                                           <span className="bg-slate-200 text-slate-700 px-3 py-1 rounded-lg text-sm shadow-sm print:border print:border-slate-300 print:shadow-none print:bg-transparent">
                                             تسویه کامل
                                           </span>
-                                        ) : (
+                                          ) : (
                                           <div className="flex items-center gap-2">
                                             <span
                                               className={`text-xs font-bold px-2 py-1 rounded shadow-sm print:border print:shadow-none print:bg-transparent ${isOwed ? "bg-rose-100 text-rose-700 print:border-slate-300 print:text-slate-800" : "bg-emerald-100 text-emerald-700 print:border-slate-300 print:text-slate-800"}`}
@@ -614,7 +615,7 @@ export default function PersonLedger(props: any) {
                                 </div>
                               </div>
                             </div>
-                          )}
+                          , document.body)}
 
                           {/* Person Summary KPI Panel */}
                           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 print:hidden">
@@ -877,9 +878,9 @@ export default function PersonLedger(props: any) {
                             <PersonNotesAndAttachments
                               person={selectedPerson}
                               onDataChange={fetchPersons}
-                              showNotification={showNotification}
-                            />
+                              />
                           ) : (
+
                             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden print:overflow-visible">
                               <div className="bg-gray-50/50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                                 <h3 className="font-extrabold text-gray-800 flex items-center gap-2">
@@ -1259,7 +1260,7 @@ export default function PersonLedger(props: any) {
                                 })()}
                               </div>
                             </div>
-                          , document.body)}
+                          )}
                         </div>
                       );
                     })()}

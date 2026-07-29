@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, User as UserIcon, Shield, Settings, Briefcase, Save, CheckCircle, Lock, Activity } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
-import { updateUser } from "../../../services/dataService";
+import { updateUser, getUsers } from "../../../services/dataService";
 import { User } from "../../../types";
 
 import TabGeneral from "./tabs/TabGeneral";
@@ -14,11 +14,12 @@ import TabActivity from "./tabs/TabActivity";
 
 interface Props {
   onClose: () => void;
+  targetUserId?: string | number;
 }
 
 type TabType = 'general' | 'professional' | 'security' | 'preferences' | 'privacy' | 'activity';
 
-export default function AdvancedProfileModal({ onClose }: Props) {
+export default function AdvancedProfileModal({ onClose, targetUserId }: Props) {
   const { user, checkAuth } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('general');
   const [editData, setEditData] = useState<User | null>(null);
@@ -26,10 +27,19 @@ export default function AdvancedProfileModal({ onClose }: Props) {
   const [saveMessage, setSaveMessage] = useState('');
 
   useEffect(() => {
-    if (user) {
-      setEditData(JSON.parse(JSON.stringify(user)));
-    }
-  }, [user]);
+    const loadUser = async () => {
+      if (targetUserId) {
+        const users = await getUsers();
+        const target = users.find((u: User) => String(u.id) === String(targetUserId));
+        if (target) {
+          setEditData(JSON.parse(JSON.stringify(target)));
+        }
+      } else if (user) {
+        setEditData(JSON.parse(JSON.stringify(user)));
+      }
+    };
+    loadUser();
+  }, [user, targetUserId]);
 
   const calculateCompletion = () => {
     if (!editData) return 0;
@@ -45,11 +55,13 @@ export default function AdvancedProfileModal({ onClose }: Props) {
   };
 
   const handleSave = async () => {
-    if (!editData || !user) return;
+    if (!editData) return;
     setIsSaving(true);
     try {
-      await updateUser(String(user.id), editData);
-      await checkAuth();
+      await updateUser(String(editData.id), editData);
+      if (!targetUserId || targetUserId === user?.id) {
+        await checkAuth();
+      }
       setSaveMessage('تغییرات با موفقیت ذخیره شد.');
       setTimeout(() => {
         setSaveMessage('');

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '../../../../types';
-import { Camera, Mail, MapPin, Link as LinkIcon, AtSign, User as UserIcon, Briefcase, Eye } from 'lucide-react';
+import { Camera, Mail, MapPin, Link as LinkIcon, AtSign, User as UserIcon, Briefcase, Eye, Link } from 'lucide-react';
 import { z } from 'zod';
+import { getPersons } from '../../../../services/dataService';
 
 interface Props {
   data: User;
@@ -16,6 +17,11 @@ const generalSchema = z.object({
 export default function TabGeneral({ data, onChange }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [previewMode, setPreviewMode] = useState(false);
+  const [persons, setPersons] = useState<any[]>([]);
+
+  useEffect(() => {
+    getPersons().then(setPersons);
+  }, []);
 
   const validateField = (field: string, value: string) => {
     try {
@@ -30,7 +36,7 @@ export default function TabGeneral({ data, onChange }: Props) {
       }
     } catch (e: any) {
       if (e instanceof z.ZodError) {
-        setErrors(prev => ({ ...prev, [field]: e.errors[0].message }));
+        setErrors(prev => ({ ...prev, [field]: e.issues[0].message }));
       }
     }
   };
@@ -211,6 +217,25 @@ export default function TabGeneral({ data, onChange }: Props) {
                 className="w-full bg-slate-50 border border-transparent rounded-xl py-3 pr-10 pl-4 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm font-bold text-slate-700 outline-none transition-all"
                 placeholder="مثال: مدیر ارشد مالی"
               />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-2">اتصال به شخص (CRM)</label>
+            <div className="relative">
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                <Link className="w-4 h-4" />
+              </div>
+              <select
+                value={data.personId || ''}
+                onChange={e => updateField('personId', e.target.value)}
+                className="w-full bg-slate-50 border border-transparent rounded-xl py-3 pr-10 pl-4 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm font-bold text-slate-700 outline-none transition-all appearance-none"
+              >
+                <option value="">بدون اتصال (مستقل)</option>
+                {persons.map(p => (
+                  <option key={p.id} value={p.id}>{p.name} {p.mobile ? `(${p.mobile})` : ''}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

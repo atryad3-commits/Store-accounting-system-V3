@@ -1,0 +1,13 @@
+src/components/persons/PersonLedger.tsx(139,33): error TS2657: JSX expressions must have one parent element.
+src/components/persons/PersonLedger.tsx(148,32): error TS1005: ':' expected.
+src/components/persons/PersonLedger.tsx(437,43): error TS2657: JSX expressions must have one parent element.
+src/components/persons/PersonLedger.tsx(460,42): error TS1005: ':' expected.
+src/components/persons/PersonLedger.tsx(586,49): error TS2657: JSX expressions must have one parent element.
+src/components/persons/PersonLedger.tsx(599,48): error TS1005: ':' expected.
+src/components/persons/PersonLedger.tsx(643,37): error TS2657: JSX expressions must have one parent element.
+src/components/persons/PersonLedger.tsx(652,36): error TS1005: ':' expected.
+src/components/persons/PersonLedger.tsx(1191,53): error TS2657: JSX expressions must have one parent element.
+src/components/persons/PersonLedger.tsx(1204,52): error TS1005: ':' expected.
+src/components/persons/PersonLedger.tsx(1236,47): error TS2657: JSX expressions must have one parent element.
+src/components/persons/PersonLedger.tsx(1243,46): error TS1005: ':' expected.
+src/components/persons/PersonLedger.tsx(1262,43): error TS1005: ':' expected.

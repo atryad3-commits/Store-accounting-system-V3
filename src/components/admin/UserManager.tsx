@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Plus, Edit2, Trash2, CheckCircle, User as UserIcon, Lock } from 'lucide-react';
+import { Shield, Plus, Edit2, Trash2, CheckCircle, User as UserIcon, Lock, Settings } from 'lucide-react';
 import { User, UserRole } from '../../types';
 import { getUsers, addUser, updateUser, deleteUser, getPersons } from '../../services/dataService';
 import { motion } from 'motion/react';
+import AdvancedProfileModal from '../profile/advanced/AdvancedProfileModal';
 
 export default function UserManager() {
   const [users, setUsers] = useState<User[]>([]);
   const [persons, setPersons] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [profileModalId, setProfileModalId] = useState<string | number | null>(null);
   const [editingId, setEditingId] = useState<string | number | null>(null);
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -141,6 +143,9 @@ export default function UserManager() {
                        })()}
                     </td>
                     <td className="px-6 py-4 flex gap-2 justify-center">
+                       <button onClick={() => setProfileModalId(u.id)} title="پروفایل پیشرفته" className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg">
+                          <Settings className="w-4 h-4"/>
+                       </button>
                        <button onClick={() => handleEdit(u)} className="p-2 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg">
                           <Edit2 className="w-4 h-4"/>
                        </button>
@@ -155,6 +160,16 @@ export default function UserManager() {
              </tbody>
           </table>
        </div>
+
+       {profileModalId && (
+         <AdvancedProfileModal 
+           onClose={() => {
+             setProfileModalId(null);
+             loadUsers();
+           }} 
+           targetUserId={profileModalId} 
+         />
+       )}
 
        {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
