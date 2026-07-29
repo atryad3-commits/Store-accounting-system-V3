@@ -469,7 +469,7 @@ async function getAllDbData() {
           if (typeof row[k] === 'string' && (row[k].startsWith('{') || row[k].startsWith('['))) {
              try {
                 row[k] = JSON.parse(row[k]);
-             } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+             } catch(e) { }
           }
        }
        return row;
@@ -489,7 +489,7 @@ async function getAllDbData() {
                   catch(e) { cval[r.setting_key] = r.setting_value; }
                }
             }
-         } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+         } catch(e) { }
          allData.push({ key, value: cval });
        } else if (key === 'backupConfig') {
          allData.push({ key, value: res.rows.length > 0 ? parseJSONFields(res.rows[0]) : null });
@@ -564,7 +564,7 @@ async function migrateSqliteToPostgres() {
                     }
                 }
             }
-        } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+        } catch(e) { }
         
         tableSchemas.clear();
         const sqliteRows = getDb().prepare('SELECT key, value FROM store').all();
@@ -947,7 +947,7 @@ async function startServer() {
         const newFile = path.join(process.cwd(), `database_${newId}.sqlite`);
         
         if (dbs[id]) {
-          try { dbs[id].close(); } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+          try { dbs[id].close(); } catch(e) { }
           delete dbs[id];
         }
         await fsPromises.rename(oldFile, newFile);
@@ -971,14 +971,14 @@ async function startServer() {
             const stmt = defaultDb.prepare("DELETE FROM businesses WHERE id = ?");
             stmt.run(id);
         }
-      } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+      } catch(e) { }
 
       const dbFile = path.join(process.cwd(), `database_${id}.sqlite`);
       if (dbs[id]) {
-        try { dbs[id].close(); } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+        try { dbs[id].close(); } catch(e) { }
         delete dbs[id];
       }
-      try { await fsPromises.unlink(dbFile); } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+      try { await fsPromises.unlink(dbFile); } catch(e) { }
       res.json({ success: true });
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -1042,7 +1042,7 @@ async function startServer() {
                 `);
                 stmt.run(id, name, 'postgres', '', '', dbNameForBusiness, '', '');
             }
-          } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+          } catch(e) { }
           
           return res.json({ success: true, database: { id, name, db_type: 'postgres', db_name: dbNameForBusiness } });
         }
@@ -1077,7 +1077,7 @@ async function startServer() {
             `);
             stmt.run(id, name, 'sqlite', '', '', '', '', '');
         }
-      } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+      } catch(e) { }
 
       const dbFile = path.join(process.cwd(), `database_${id}.sqlite`);
       const newDb = new DatabaseSync(dbFile);
@@ -1270,7 +1270,7 @@ async function startServer() {
      if (backupData) {
         Object.assign(backupConfig, backupData);
      }
-  } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+  } catch(e) { }
 
   const getBackupsDir = () => {
      return backupConfig.path && backupConfig.path.trim() !== '' 
@@ -1368,7 +1368,7 @@ async function startServer() {
                  } catch (e) {}
                }
              } else {
-               try { getDb().prepare('DELETE FROM store').run(); } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+               try { getDb().prepare('DELETE FROM store').run(); } catch(e) { }
              }
 
              for (const [key, value] of Object.entries(backupData)) {
@@ -1506,7 +1506,7 @@ async function startServer() {
              try {
                 const col = (related.childTable === 'invoice_items' || related.childTable.endsWith('_invoice_items') || related.childTable.endsWith('_receipt_items') || related.childTable.endsWith('_remittance_items') || related.childTable.endsWith('_return_items') || related.childTable.endsWith('waste_items')) ? 'invoiceId' : (related.childTable === 'accounting_document_items' ? 'documentId' : 'stocktakingId');
                 await getActivePgPool().query(`DELETE FROM "${related.childTable}" WHERE "${col}" = $1`, [fId]);
-             } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+             } catch(e) { }
              for (const it of related.items) {
                  await syncTableSchema(getActivePgPool(), related.childTable, it);
                  const itKeys = Object.keys(it);
@@ -1586,7 +1586,7 @@ async function startServer() {
              try {
                 const col = (related.childTable === 'invoice_items' || related.childTable.endsWith('_invoice_items') || related.childTable.endsWith('_receipt_items') || related.childTable.endsWith('_remittance_items') || related.childTable.endsWith('_return_items') || related.childTable.endsWith('waste_items')) ? 'invoiceId' : (related.childTable === 'accounting_document_items' ? 'documentId' : 'stocktakingId');
                 await getActivePgPool().query(`DELETE FROM "${related.childTable}" WHERE "${col}" = $1`, [fId]);
-             } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+             } catch(e) { }
              for (const it of related.items) {
                  await syncTableSchema(getActivePgPool(), related.childTable, it);
                  const itKeys = Object.keys(it);
@@ -1899,7 +1899,7 @@ async function startServer() {
            const res = await getActivePgPool().query('SELECT pg_database_size(current_database()) as size');
            if (res.rows.length > 0) totalSize = parseInt(res.rows[0].size, 10);
         }
-      } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+      } catch(e) { }
       
       const rows = await getAllDbData();
       const collections = [];
@@ -2006,7 +2006,7 @@ async function startServer() {
        try {
            await fsPromises.access(DB_CONFIG_FILE);
            configExists = true;
-       } catch(e) { console.error('ERROR in loadPgPoolForStore:', e); }
+       } catch(e) { }
        
        const usingEnvVars = !!(process.env.SQL_HOST || process.env.DATABASE_URL);
        

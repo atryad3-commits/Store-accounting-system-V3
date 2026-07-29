@@ -71,7 +71,7 @@ export default function ReceiptPrintTemplate({ data, storeSettings, persons, get
           <div className="flex-1 space-y-5 print:space-y-4 bg-white/90 p-4 rounded-xl border border-slate-200 shadow-sm relative z-10">
             <div className="flex flex-wrap items-center gap-y-2 gap-x-2 text-base print:text-sm">
               <span className="font-bold text-slate-800 shrink-0">{isReceive ? 'مبلغ' : 'مبلغ'}</span>
-              <span className="font-black text-base print:text-sm print:text-base border-b-2 border-dotted border-slate-800 pb-1 px-4 inline-block font-mono tracking-wider">
+              <span className="font-black text-base print:text-sm border-b-2 border-dotted border-slate-800 pb-1 px-4 inline-block font-mono tracking-wider">
                 {amountStr} <span className="text-base font-bold text-slate-600 mr-1">{currency}</span>
               </span>
               <span className="font-bold text-slate-800 shrink-0 mr-2">معادل حروف:</span>
@@ -82,7 +82,7 @@ export default function ReceiptPrintTemplate({ data, storeSettings, persons, get
 
             <div className="flex flex-wrap items-center gap-y-2 gap-x-2 text-base print:text-sm">
               <span className="font-bold text-slate-800 shrink-0">{isReceive ? 'از جناب آقای / سرکار خانم / شرکت :' : 'به جناب آقای / سرکار خانم / شرکت :'}</span>
-              <span className="font-black text-base print:text-sm print:text-base border-b-2 border-dotted border-slate-800 pb-1 flex-1 px-4">
+              <span className="font-black text-base print:text-sm border-b-2 border-dotted border-slate-800 pb-1 flex-1 px-4">
                 {getPersonDisplayName(persons?.find((p: any) => p.id?.toString() === data.personId?.toString()))}
               </span>
             </div>
