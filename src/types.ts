@@ -177,7 +177,7 @@ export type InvoiceItem = {
   maxQuantity?: number;
 };
 
-export type UserRole = 'admin' | 'manager' | 'employee' | 'customer' | 'guest';
+export type UserRole = 'admin' | 'manager' | 'employee' | 'customer' | 'guest' | 'accountant' | 'cashier';
 
 export type RefundRequest = {
   id?: string | number;
@@ -208,6 +208,7 @@ export type User = {
   requires2FA?: boolean;
   personId?: string | number;
   autoLogoutMinutes?: number;
+  isProfileRequired?: boolean;
 }; 
 export type CompanySettings = {
   invoicePrintFormat?: "standard" | "minimal" | "official" | "compact" | "thermal";

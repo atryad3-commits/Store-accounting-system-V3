@@ -67,7 +67,9 @@ export default function UserManager() {
     manager: 'مدیر',
     employee: 'کارمند',
     customer: 'مشتری',
-    guest: 'مهمان'
+    guest: 'مهمان',
+    accountant: 'حسابدار',
+    cashier: 'صندوق‌دار'
   };
 
   return (

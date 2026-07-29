@@ -1,3 +1,4 @@
+import os from "os";
 import 'dotenv/config';
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
@@ -2030,6 +2031,19 @@ async function startServer() {
     } catch(e) {
        res.status(500).json({ error: e.message });
     }
+  });
+
+  app.get('/api/system/info', (req, res) => {
+    
+    res.json({
+      platform: os.platform(),
+      arch: os.arch(),
+      totalMem: os.totalmem(),
+      freeMem: os.freemem(),
+      cpus: os.cpus().length,
+      uptime: os.uptime(),
+      nodeVersion: process.version
+    });
   });
 
   app.post('/api/setup/admin', async (req, res) => {

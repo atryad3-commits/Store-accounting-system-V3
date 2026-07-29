@@ -671,7 +671,7 @@ const filteredPersons = (persons || []).filter((p) => {
     }
 
     // 2. Search Filter
-    if (!personSearchTerm) return addedInvoice || true;
+    if (!personSearchTerm) return true;
     const terms = personSearchTerm.toLowerCase().split(" ").filter(Boolean);
     const grp = personGroups.find((g) => g.id === p.group);
     const searchable =
@@ -2087,7 +2087,7 @@ const handleFastSaveProduct = async (productData: any): Promise<boolean> => {
       }
 
       await fetchDataSilent();
-      return addedInvoice || true;
+      return true;
     } catch (error) {
       console.error("Error fast saving product", error);
       showNotification("خطا در ثبت سریع کالا.", "error");
@@ -5410,7 +5410,7 @@ const getInvoiceNumber = (typeOverride?: string) => {
         setSuccessMsg("");
         setPreviewInvoiceData(null); // Clear preview modal
       }, 1500);
-      return addedInvoice || true;
+      return true;
     } catch (error: any) {
       console.error("Error submitting invoice, rolling back operations...", error);
       updateAppProcessing('خطا رخ داد! در حال بازگردانی (Rollback)...');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, RefreshCw, CreditCard, Wallet, Banknotes } from 'lucide-react';
+import { X, Save, RefreshCw, CreditCard, Wallet, Banknote } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getLocalData } from '../../services/coreService';
 import { addTransaction, updateTransaction } from '../../services/invoiceService';

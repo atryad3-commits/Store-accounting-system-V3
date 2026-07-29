@@ -197,6 +197,7 @@ export const allSidebarGroups: SidebarGroup[] = [
       { id: "data_reconciliation", label: "تطبیق و اصلاح داده‌ها", roles: ["admin"] },
       { id: "checklist", label: "چک‌لیست سیستم", roles: ["admin"] },
       { id: "system_diagnostics", label: "عیب‌یابی سیستم", roles: ["admin"] },
+      { id: "system_info", label: "جزئیات سیستم", roles: ["admin", "manager", "accountant"] },
       { id: "system_logs", label: "لاگ عملیات کاربران", roles: ["admin"] },
       { id: "database_logs", label: "لاگ دیتابیس", roles: ["admin"] },
       { id: "database", label: "مدیریت پایگاه داده", roles: ["admin"] },

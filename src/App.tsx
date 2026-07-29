@@ -305,6 +305,7 @@ const InventoryReport = React.lazy(() => import('./components/reports/InventoryR
 const KardexReport = React.lazy(() => import('./components/reports/KardexReport'));
 const CRMDashboard = React.lazy(() => import('./components/crm/CRMDashboard'));
 const SystemDiagnostics = React.lazy(() => import('./components/admin/SystemDiagnostics'));
+const SystemInfo = React.lazy(() => import('./components/admin/SystemInfo'));
 const StocktakingManager = React.lazy(() => import('./components/inventory/StocktakingManager'));
 const AnalyticalDashboard = React.lazy(() => import('./components/reports/AnalyticalDashboard'));
 const FinancialDashboard = React.lazy(() => import('./components/reports/FinancialDashboard'));
@@ -2026,6 +2027,7 @@ if (requiresInitSetup && user) {
                         transactions={transactions}
                         setTransactions={setTransactions}
                       />} />
+  <Route path="/system_info" element={<SystemInfo />} />
   <Route path="/system_diagnostics" element={<SystemDiagnostics persons={persons} products={products}
                        
                         invoices={invoices}

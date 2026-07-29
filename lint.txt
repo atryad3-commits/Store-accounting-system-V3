@@ -1,0 +1,6 @@
+
+> react-example@0.0.0 lint
+> tsc --noEmit
+
+src/components/admin/UserManager.tsx(65,9): error TS2739: Type '{ admin: string; manager: string; employee: string; customer: string; guest: string; }' is missing the following properties from type 'Record<UserRole, string>': accountant, cashier
+src/components/persons/PersonLedger.tsx(883,29): error TS2695: Left side of comma operator is unused and has no side effects.
