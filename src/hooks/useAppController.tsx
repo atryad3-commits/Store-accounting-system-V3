@@ -275,7 +275,7 @@ import EditReceiptModal from "../components/modals/EditReceiptModal";
 import FinancialTransfer from "../components/financial/FinancialTransfer";
 import QuickRefund from "../components/financial/QuickRefund";
 import UserManager from "../components/admin/UserManager";
-import ProfileModal from "../components/auth/ProfileModal";
+import ProfileModal from "../components/profile/advanced/AdvancedProfileModal";
 import InventoryReport from "../components/reports/InventoryReport";
 import KardexReport from "../components/reports/KardexReport";
 import CRMDashboard from "../components/crm/CRMDashboard";

@@ -300,7 +300,7 @@ const EditReceiptModal = React.lazy(() => import('./components/modals/EditReceip
 const FinancialTransfer = React.lazy(() => import('./components/financial/FinancialTransfer'));
 const QuickRefund = React.lazy(() => import('./components/financial/QuickRefund'));
 const UserManager = React.lazy(() => import('./components/admin/UserManager'));
-const ProfileModal = React.lazy(() => import('./components/auth/ProfileModal'));
+const ProfileModal = React.lazy(() => import('./components/profile/advanced/AdvancedProfileModal'));
 const InventoryReport = React.lazy(() => import('./components/reports/InventoryReport'));
 const KardexReport = React.lazy(() => import('./components/reports/KardexReport'));
 const CRMDashboard = React.lazy(() => import('./components/crm/CRMDashboard'));
