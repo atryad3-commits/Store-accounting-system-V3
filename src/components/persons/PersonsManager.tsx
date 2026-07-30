@@ -28,6 +28,7 @@ export default function PersonsManager(props: any) {
     selectedPersonRole,
     setSelectedPersonRole,
     personRoles,
+  personCategories = [],
     personsViewMode,
     setPersonsViewMode,
     setIsPersonModalOpen,
@@ -62,6 +63,16 @@ export default function PersonsManager(props: any) {
     setNewPersonPhone,
     setNewPersonContacts,
     setNewPersonRole,
+    newPersonTaxNumber,
+    setNewPersonTaxNumber,
+    newPersonRegistrationNumber,
+    setNewPersonRegistrationNumber,
+    newPersonRoles,
+    setNewPersonRoles,
+    newPersonCategories,
+    setNewPersonCategories,
+    duplicatePersonsWarning,
+    setDuplicatePersonsWarning,
     setNewPersonInitialBalance,
     setNewPersonInitialBalanceType,
     setNewPersonCreditLimit,
@@ -343,7 +354,7 @@ export default function PersonsManager(props: any) {
                                   {personGroups.slice(3).map((g, index) => {
                                     return (
                                       <option key={g.id ? `id-${g.id}` : `idx-${index}`} value={g.id}>
-                                        {g.name}
+                                        {g.icon ? g.icon + " " : ""}{g.name}
                                       </option>
                                     );
                                   })}
@@ -738,8 +749,9 @@ export default function PersonsManager(props: any) {
                                                   );
                                                   if (!g) return null;
                                                   return (
-                                                    <span className="text-[10px] font-bold text-slate-500">
-                                                      {g.name}
+                                                    <span className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                                                      {g.icon && <span>{g.icon}</span>}
+                                                      <span>{g.name}</span>
                                                     </span>
                                                   );
                                                 })()}

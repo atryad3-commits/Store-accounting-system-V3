@@ -18,6 +18,7 @@ interface PersonFormModalProps {
   persons: any[];
   personGroups: any[];
   personRoles: any[];
+  personCategories?: any[];
   storeSettings?: any;
   activeTab?: any;
   setReceiptPersonId?: any;
@@ -39,6 +40,7 @@ export default function PersonFormModal({
   persons,
   personGroups,
   personRoles,
+  personCategories = [],
   storeSettings,
   activeTab,
   setReceiptPersonId,
@@ -70,6 +72,11 @@ export default function PersonFormModal({
   const [newPersonCompany, setNewPersonCompany] = useState("");
   const [newPersonEconomicCode, setNewPersonEconomicCode] = useState("");
   const [newPersonRegistrationNumber, setNewPersonRegistrationNumber] = useState("");
+  const [newPersonRoles, setNewPersonRoles] = useState<string[]>([]);
+  const [newPersonCategories, setNewPersonCategories] = useState<string[]>([]);
+  const [duplicates, setDuplicates] = useState<any[]>([]);
+  const [showDuplicatesModal, setShowDuplicatesModal] = useState(false);
+
   const [personFormTab, setPersonFormTab] = useState<"general" | "contact" | "financial" | "settings">("general");
   const [submittingPerson, setSubmittingPerson] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<string | null>(null);
@@ -114,6 +121,8 @@ export default function PersonFormModal({
           setNewPersonRegistrationDate(person.registrationDate || "");
           
           setNewPersonRole(person.role || "customer");
+          setNewPersonRoles(person.roles || (person.role ? [person.role] : []));
+          setNewPersonCategories(person.categories || []);
           setNewPersonMobile(person.mobile || "");
           setNewPersonType(person.personType || (person.type === "legal" ? "legal" : "real"));
           setNewPersonNationalId(person.nationalId || "");
@@ -149,6 +158,10 @@ export default function PersonFormModal({
         setNewPersonRegistrationDate("");
         
         setNewPersonRole("customer");
+      setNewPersonRoles([]);
+      setNewPersonCategories([]);
+      setNewPersonRoles([]);
+      setNewPersonCategories([]);
         setNewPersonMobile("");
         setNewPersonType("real");
         setNewPersonNationalId("");
@@ -171,6 +184,48 @@ export default function PersonFormModal({
       setPersonFormTab("general");
     }
   }, [isOpen, editingPersonId, persons]);
+
+
+  const handleCheckDuplicates = async (e?: React.FormEvent) => {
+    if (e && typeof e.preventDefault === "function") {
+      try { e.preventDefault(); } catch (err) {}
+    }
+    
+    // Check duplicates API
+    try {
+        const response = await fetch('/api/persons/check-duplicates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: newPersonType === "legal" ? newPersonCompanyName : `${newPersonFirstName} ${newPersonLastName}`.trim(),
+                nationalId: newPersonNationalId,
+                phone: newPersonPhone,
+                taxNumber: newPersonEconomicCode,
+                registrationNumber: newPersonRegistrationNumber,
+                companyName: newPersonCompanyName
+            })
+        });
+        const result = await response.json();
+        
+        if (result.success && result.duplicates && result.duplicates.length > 0) {
+            // Remove the editing person from duplicates if it's edit mode
+            const filteredDuplicates = editingPersonId 
+               ? result.duplicates.filter((d: any) => d.id !== editingPersonId) 
+               : result.duplicates;
+               
+            if (filteredDuplicates.length > 0) {
+                setDuplicates(filteredDuplicates);
+                setShowDuplicatesModal(true);
+                return; // Stop submission
+            }
+        }
+    } catch (e) {
+        console.error("Failed to check duplicates", e);
+    }
+    
+    // Proceed to submit if no duplicates or error
+    handleSubmitPerson();
+  };
 
 const handleSubmitPerson = async (e?: React.FormEvent) => {
     if (e && typeof e.preventDefault === "function") {
@@ -295,6 +350,8 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
         address: newPersonAddress,
         imageUrl: newPersonImage,
         role: newPersonRole,
+        roles: newPersonRoles,
+        categories: newPersonCategories,
         phone: newPersonPhone,
         mobile: newPersonMobile,
         code: newPersonCode,
@@ -520,7 +577,7 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
                           e.preventDefault();
                           confirmAction(
                             "آیا از ثبت اطلاعات شخص اطمینان دارید؟",
-                            () => handleSubmitPerson(e as any),
+                            () => handleCheckDuplicates(e as any),
                           );
                         }}
                         className="flex flex-col gap-5"
@@ -841,6 +898,32 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
                                         setNewPersonNationalId(e.target.value)
                                       }
                                       placeholder="شناسه ملی"
+                                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-900 text-left"
+                                      dir="ltr"
+                                    />
+                                  </div>
+                                  <div className="w-full text-right">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      کد اقتصادی
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={newPersonEconomicCode}
+                                      onChange={(e) => setNewPersonEconomicCode(e.target.value)}
+                                      placeholder="مثال: ۴۱۱۱۱۱۱۱۱۱۱۱"
+                                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-900 text-left"
+                                      dir="ltr"
+                                    />
+                                  </div>
+                                  <div className="w-full text-right">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      شماره ثبت
+                                    </label>
+                                    <input
+                                      type="text"
+                                      value={newPersonRegistrationNumber}
+                                      onChange={(e) => setNewPersonRegistrationNumber(e.target.value)}
+                                      placeholder="مثال: ۱۲۳۴۵"
                                       className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 shadow-sm text-gray-900 text-left"
                                       dir="ltr"
                                     />
@@ -1169,7 +1252,7 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
                                     <option value="">بدون گروه</option>
                                     {(personGroups || []).map((g, index) => (
                                       <option key={g.id ? `id-${g.id}` : `idx-${index}`} value={g.id}>
-                                        {g.name}
+                                        {g.icon ? g.icon + " " : ""}{g.name}
                                       </option>
                                     ))}
                                   </select>

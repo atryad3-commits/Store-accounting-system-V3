@@ -100,6 +100,7 @@ export const allSidebarGroups: SidebarGroup[] = [
       { id: "persons", label: "مدیریت اشخاص", roles: ["admin", "accountant", "cashier"] },
       { id: "person_groups", label: "گروه‌بندی اشخاص", roles: ["admin", "accountant"] },
       { id: "person_roles", label: "نقش‌های اشخاص", roles: ["admin", "accountant"] },
+      { id: "person_categories", label: "برچسب‌ها و دسته‌بندی‌ها", roles: ["admin", "accountant"] },
       { id: "person_profile", label: "پروفایل شخص", roles: ["admin", "accountant", "cashier", "viewer"] },
       { id: "person_opening_balances", label: "مانده اول دوره اشخاص", roles: ["admin", "accountant"] },
       { id: "person_ledger", label: "دفتر کل اشخاص", roles: ["admin", "accountant", "viewer"] },

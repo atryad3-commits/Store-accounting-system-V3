@@ -195,6 +195,7 @@ import {
   updatePersonGroup,
   deletePersonGroup,
   getPersonRoles,
+  getPersonCategories,
   addPersonRole,
   updatePersonRole,
   deletePersonRole,
@@ -541,6 +542,7 @@ const [submittingOpeningBalance, setSubmittingOpeningBalance] =
 const [personGroups, setPersonGroups] = useState<PersonGroup[]>([]);
 
 const [personRoles, setPersonRoles] = useState<any[]>([]);
+  const [personCategories, setPersonCategories] = useState<any[]>([]);
 
 const [products, setProducts] = useState<Product[]>([]);
 
@@ -1648,6 +1650,12 @@ const [newPersonInitialBalanceType, setNewPersonInitialBalanceType] =
     useState<"debtor" | "creditor" | "settled">("settled");
 
 const [newPersonCreditLimit, setNewPersonCreditLimit] = useState("");
+  const [newPersonTaxNumber, setNewPersonTaxNumber] = useState("");
+  const [newPersonRegistrationNumber, setNewPersonRegistrationNumber] = useState("");
+  const [newPersonRoles, setNewPersonRoles] = useState<string[]>([]);
+  const [newPersonCategories, setNewPersonCategories] = useState<string[]>([]);
+  const [duplicatePersonsWarning, setDuplicatePersonsWarning] = useState<any[]>([]);
+  
 
 const [submittingPerson, setSubmittingPerson] = useState(false);
 
@@ -3429,6 +3437,11 @@ const handleEditPerson = (p: Person) => {
     setNewPersonContacts(p.contacts || []);
     setNewPersonGroup(p.group || "");
     setNewPersonRole(p.role);
+    setNewPersonTaxNumber(p.taxNumber || "");
+    setNewPersonRegistrationNumber(p.registrationNumber || "");
+    setNewPersonRoles(p.roles || (p.role ? [p.role] : []));
+    setNewPersonCategories(p.categories || []);
+
     setNewPersonProvince(p.province || "");
     setNewPersonCity(p.city || "");
     setNewPersonIsActive(p.isActive !== undefined ? p.isActive : true);
@@ -6369,6 +6382,11 @@ const renderTabContent = () => {
   };
 
   return {
+    newPersonTaxNumber, setNewPersonTaxNumber,
+    newPersonRegistrationNumber, setNewPersonRegistrationNumber,
+    newPersonRoles, setNewPersonRoles,
+    newPersonCategories, setNewPersonCategories,
+    duplicatePersonsWarning, setDuplicatePersonsWarning,
 
     activeStoreId, setActiveStoreId, availableStores, setAvailableStores, isStoreSelectionOpen, setIsStoreSelectionOpen, productSearchTerm,
     salePaymentModalPayload, setSalePaymentModalPayload,
@@ -6429,6 +6447,7 @@ const renderTabContent = () => {
     setSubmittingOpeningBalance,
     personGroups,
     personRoles,
+    personCategories,
     products,
     setProducts,
     invoices,

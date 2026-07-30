@@ -323,3 +323,32 @@ export const saveDebtorsTrackings = async (data: any[]) => {
   await saveLocalData('debtors_trackings', data);
 };
 
+
+export const getPersonCategories = async () => {
+  const categories = await getLocalData<any[]>('person_categories', []);
+  return categories.sort((a, b) => b.createdAt - a.createdAt);
+};
+
+export const addPersonCategory = async (category: any) => {
+  const now = Date.now();
+  const newCategory = { ...category, id: generateId(), createdAt: now, updatedAt: now };
+  await appendLocalData('person_categories', newCategory);
+  return newCategory;
+};
+
+export const updatePersonCategory = async (id: string, category: any) => {
+  const categories = await getPersonCategories();
+  const index = categories.findIndex((c: any) => String(c.id) === String(id));
+  if (index !== -1) {
+    const updatedCategory = { ...categories[index], ...category, updatedAt: Date.now() };
+    await updateLocalData('person_categories', id, updatedCategory);
+    return updatedCategory;
+  }
+  return null;
+};
+
+export const deletePersonCategory = async (id: string) => {
+  const categories = await getPersonCategories();
+  const filtered = categories.filter((c: any) => String(c.id) !== String(id));
+  await saveLocalData('person_categories', filtered);
+};

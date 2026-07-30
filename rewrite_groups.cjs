@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+const fs = require('fs');
+
+const code = `import React, { useState, useEffect } from "react";
 import {
   Users,
   Plus,
@@ -191,7 +193,7 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
   const getColorClasses = (colorName: string) => {
     const preset = colorPresets.find((p) => p.value === colorName);
     if (!preset) return "bg-slate-50 text-slate-700 border-slate-200";
-    return `${preset.bg} ${preset.text} ${preset.border}`;
+    return \`\${preset.bg} \${preset.text} \${preset.border}\`;
   };
   
   const getGroupUsageCount = (groupId: string) => {
@@ -225,7 +227,7 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
               <React.Fragment key={node.id}>
                   <tr className="hover:bg-slate-50/50 transition-colors group">
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2" style={{ paddingRight: `${level * 24}px` }}>
+                      <div className="flex items-center gap-2" style={{ paddingRight: \`\${level * 24}px\` }}>
                         {hasChildren ? (
                             <button onClick={() => toggleExpand(node.id)} className="p-1 hover:bg-slate-200 rounded-md text-slate-500">
                                 {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -233,7 +235,7 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
                         ) : (
                             <div className="w-6" /> // spacer
                         )}
-                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border shadow-sm flex items-center gap-1.5 ${getColorClasses(node.color || 'slate')}`}>
+                        <span className={\`px-2.5 py-1 rounded-lg text-xs font-bold border shadow-sm flex items-center gap-1.5 \${getColorClasses(node.color || 'slate')}\`}>
                           {node.icon && <span>{node.icon}</span>}
                           {node.name}
                         </span>
@@ -473,13 +475,13 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
                             key={preset.value}
                             type="button"
                             onClick={() => setGroupColor(preset.value)}
-                            className={`flex flex-col items-center justify-center p-3 rounded-2xl border text-[10px] font-black transition-all relative cursor-pointer ${
+                            className={\`flex flex-col items-center justify-center p-3 rounded-2xl border text-[10px] font-black transition-all relative cursor-pointer \${
                               groupColor === preset.value
-                                ? `${preset.bg} ${preset.text} border-2 border-indigo-600 scale-[1.05] shadow-md`
+                                ? \`\${preset.bg} \${preset.text} border-2 border-indigo-600 scale-[1.05] shadow-md\`
                                 : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
-                            }`}
+                            }\`}
                           >
-                            <span className={`w-4 h-4 rounded-full ${preset.dot} mb-2`} />
+                            <span className={\`w-4 h-4 rounded-full \${preset.dot} mb-2\`} />
                             {preset.label}
                             {groupColor === preset.value && (
                               <span className="absolute -top-1 -right-1 bg-indigo-600 text-white rounded-full p-0.5 shadow-sm">
@@ -550,3 +552,7 @@ export default function PersonGroupsManager({ showNotification }: PersonGroupsMa
     </div>
   );
 }
+`
+
+fs.writeFileSync('src/components/persons/PersonGroupsManager.tsx', code);
+console.log('Rewrote PersonGroupsManager');

@@ -53,6 +53,9 @@ export const productCategories = pgTable('product_categories', {
 });
 
 export const persons = pgTable('persons', {
+  personType: varchar('person_type', { length: 50 }).default('individual'),
+  taxNumber: varchar('tax_number', { length: 50 }),
+  registrationNumber: varchar('registration_number', { length: 50 }),
   id: varchar('id', { length: 50 }).primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   role: varchar('role', { length: 50 }),
@@ -149,4 +152,34 @@ export const roles = pgTable('roles', {
   title: varchar('title', { length: 255 }), // Persian title
   permissions: json('permissions'),
   createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const personCategories = pgTable('person_categories', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  color: varchar('color', { length: 50 }),
+  icon: varchar('icon', { length: 50 }),
+});
+
+export const personCategoryMappings = pgTable('person_category_mappings', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  personId: varchar('person_id', { length: 50 }).notNull(),
+  categoryId: varchar('category_id', { length: 50 }).notNull(),
+});
+
+export const personRolesMapping = pgTable('person_roles_mapping', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  personId: varchar('person_id', { length: 50 }).notNull(),
+  roleId: varchar('role_id', { length: 50 }).notNull(),
+});
+
+export const personGroups = pgTable('person_groups', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  color: varchar('color', { length: 50 }),
+  icon: varchar('icon', { length: 50 }),
+  parentId: varchar('parent_id', { length: 50 }),
+  sortOrder: integer('sort_order').default(0),
+  isActive: boolean('is_active').default(true),
 });

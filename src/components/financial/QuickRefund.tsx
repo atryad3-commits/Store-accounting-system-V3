@@ -406,7 +406,7 @@ export default function QuickRefund({ showNotification, onComplete }: { showNoti
                             >
                               <option value="">-- گروه مشتری متفرقه --</option>
                               {(personGroups || []).map(g => (
-                                <option key={g.id} value={g.id}>{g.name}</option>
+                                <option key={g.id} value={g.id}>{g.icon ? g.icon + " " : ""}{g.name}</option>
                               ))}
                             </select>
                           </div>

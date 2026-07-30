@@ -2,12 +2,11 @@ export type PersonGroup = {
   id: string;
   name: string;
   description?: string;
-  imageUrl?: string;
+  color?: string;
+  icon?: string;
+  parentId?: string | null;
+  sortOrder?: number;
   isActive?: boolean;
-  salePrice?: number;
-  discountPercent?: number;
-  minStockLevel?: number;
-  color?: string; // e.g., 'indigo', 'emerald', 'amber', 'rose'
 };
 
 export type PersonRole = {
@@ -16,6 +15,13 @@ export type PersonRole = {
   code: string;
   description?: string;
   color?: string;
+};
+
+export type PersonCategory = {
+  id: string;
+  name: string;
+  color?: string;
+  icon?: string;
 };
 
 export type Person = { 
@@ -34,7 +40,11 @@ export type Person = {
   address?: string;
   imageUrl?: string;
   personType: 'real' | 'legal';
-  role: 'customer' | 'employee' | 'supplier'; 
+  role: 'customer' | 'employee' | 'supplier';
+  roles?: string[];
+  categories?: string[];
+  taxNumber?: string;
+  registrationNumber?: string; 
   phone: string;
   contacts?: { id?: string; type: 'mobile' | 'phone' | 'fax' | 'other'; number: string; title?: string }[]; 
   bankName?: string;
@@ -473,3 +483,4 @@ export interface PersonalNote {
   history?: NoteHistory[];
 
 }
+
