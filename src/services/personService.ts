@@ -27,26 +27,40 @@ import { enqueueSyncTask, getSyncQueue } from './syncQueueService';
 
 export const getPersonGroups = async () => {
   const groups = await getLocalData<any[]>('person_groups', []);
-  return groups.sort((a, b) => b.createdAt - a.createdAt);
+  const queue = getSyncQueue();
+  let resultList = [...groups];
+
+  for (const task of queue) {
+    if (task.operation === 'ADD_PERSON_GROUP') resultList.push({ ...task.payload, isLocalUnsynced: true });
+    else if (task.operation === 'UPDATE_PERSON_GROUP') {
+       const idx = resultList.findIndex(p => p.id === task.payload.id || p.id === task.payload.originalId);
+       if (idx !== -1) resultList[idx] = { ...resultList[idx], ...task.payload.group, isLocalUnsynced: true };
+    }
+    else if (task.operation === 'DELETE_PERSON_GROUP') {
+       const idx = resultList.findIndex(p => p.id === task.payload.id || p.id === task.payload.originalId);
+       if (idx !== -1) resultList.splice(idx, 1);
+    }
+  }
+  return resultList.sort((a, b) => b.createdAt - a.createdAt);
 };
 
-export const addPersonGroup = async (group: any) => {
+export const addPersonGroupToServer = async (group: any) => {
   const now = Date.now();
   const newGroup = { ...group, id: generateId(), createdAt: now, updatedAt: now };
   await appendLocalData('person_groups', newGroup);
   return newGroup;
 };
 
-export const updatePersonGroup = async (id: string, group: any) => {
+export const updatePersonGroupToServer = async (id: string, group: any) => {
   return await updateLocalData('person_groups', id, { ...group, updatedAt: Date.now() });
 };
 
-export const deletePersonGroup = async (id: string) => {
+export const deletePersonGroupToServer = async (id: string) => {
   await batchLocalData([{ type: 'delete', key: 'person_groups', id }]);
 };
 
 export const getPersonRoles = async () => {
-  const roles = await getLocalData<any[]>('person_roles', []);
+  let roles = await getLocalData<any[]>('person_roles', []);
   if (roles.length === 0) {
     // initialize defaults
     const defaults = [
@@ -55,23 +69,39 @@ export const getPersonRoles = async () => {
       { id: 'employee', name: 'کارمند', code: '30', color: 'bg-purple-50 text-purple-800 border-purple-100', createdAt: Date.now() }
     ];
     await saveLocalData('person_roles', defaults);
-    return defaults;
+    roles = defaults;
   }
-  return roles.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  
+  const queue = getSyncQueue();
+  let resultList = [...roles];
+
+  for (const task of queue) {
+    if (task.operation === 'ADD_PERSON_ROLE') resultList.push({ ...task.payload, isLocalUnsynced: true });
+    else if (task.operation === 'UPDATE_PERSON_ROLE') {
+       const idx = resultList.findIndex(p => p.id === task.payload.id || p.id === task.payload.originalId);
+       if (idx !== -1) resultList[idx] = { ...resultList[idx], ...task.payload.role, isLocalUnsynced: true };
+    }
+    else if (task.operation === 'DELETE_PERSON_ROLE') {
+       const idx = resultList.findIndex(p => p.id === task.payload.id || p.id === task.payload.originalId);
+       if (idx !== -1) resultList.splice(idx, 1);
+    }
+  }
+
+  return resultList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 };
 
-export const addPersonRole = async (role: any) => {
+export const addPersonRoleToServer = async (role: any) => {
   const now = Date.now();
   const newRole = { ...role, id: generateId(), createdAt: now, updatedAt: now };
   await appendLocalData('person_roles', newRole);
   return newRole;
 };
 
-export const updatePersonRole = async (id: string, role: any) => {
+export const updatePersonRoleToServer = async (id: string, role: any) => {
   return await updateLocalData('person_roles', id, { ...role, updatedAt: Date.now() });
 };
 
-export const deletePersonRole = async (id: string) => {
+export const deletePersonRoleToServer = async (id: string) => {
   await batchLocalData([{ type: 'delete', key: 'person_roles', id }]);
 };
 
@@ -350,17 +380,32 @@ export const saveDebtorsTrackings = async (data: any[]) => {
 
 export const getPersonCategories = async () => {
   const categories = await getLocalData<any[]>('person_categories', []);
-  return categories.sort((a, b) => b.createdAt - a.createdAt);
+  const queue = getSyncQueue();
+  let resultList = [...categories];
+
+  for (const task of queue) {
+    if (task.operation === 'ADD_PERSON_CATEGORY') resultList.push({ ...task.payload, isLocalUnsynced: true });
+    else if (task.operation === 'UPDATE_PERSON_CATEGORY') {
+       const idx = resultList.findIndex(p => p.id === task.payload.id || p.id === task.payload.originalId);
+       if (idx !== -1) resultList[idx] = { ...resultList[idx], ...task.payload.category, isLocalUnsynced: true };
+    }
+    else if (task.operation === 'DELETE_PERSON_CATEGORY') {
+       const idx = resultList.findIndex(p => p.id === task.payload.id || p.id === task.payload.originalId);
+       if (idx !== -1) resultList.splice(idx, 1);
+    }
+  }
+
+  return resultList.sort((a, b) => b.createdAt - a.createdAt);
 };
 
-export const addPersonCategory = async (category: any) => {
+export const addPersonCategoryToServer = async (category: any) => {
   const now = Date.now();
   const newCategory = { ...category, id: generateId(), createdAt: now, updatedAt: now };
   await appendLocalData('person_categories', newCategory);
   return newCategory;
 };
 
-export const updatePersonCategory = async (id: string, category: any) => {
+export const updatePersonCategoryToServer = async (id: string, category: any) => {
   const categories = await getPersonCategories();
   const index = categories.findIndex((c: any) => String(c.id) === String(id));
   if (index !== -1) {
@@ -371,7 +416,7 @@ export const updatePersonCategory = async (id: string, category: any) => {
   return null;
 };
 
-export const deletePersonCategory = async (id: string) => {
+export const deletePersonCategoryToServer = async (id: string) => {
   const categories = await getPersonCategories();
   const filtered = categories.filter((c: any) => String(c.id) !== String(id));
   await saveLocalData('person_categories', filtered);
@@ -392,4 +437,49 @@ export const updatePerson = async (id: string, person: any) => {
 
 export const deletePerson = async (id: string) => {
   enqueueSyncTask('DELETE_PERSON', { id });
+};
+
+export const addPersonGroup = async (group: any) => {
+  const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  const now = Date.now();
+  const newGroup = { ...group, id: localId, createdAt: now, updatedAt: now };
+  enqueueSyncTask('ADD_PERSON_GROUP', newGroup);
+  return newGroup;
+};
+export const updatePersonGroup = async (id: string, group: any) => {
+  enqueueSyncTask('UPDATE_PERSON_GROUP', { id, group });
+  return { ...group, id };
+};
+export const deletePersonGroup = async (id: string) => {
+  enqueueSyncTask('DELETE_PERSON_GROUP', { id });
+};
+
+export const addPersonRole = async (role: any) => {
+  const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  const now = Date.now();
+  const newRole = { ...role, id: localId, createdAt: now, updatedAt: now };
+  enqueueSyncTask('ADD_PERSON_ROLE', newRole);
+  return newRole;
+};
+export const updatePersonRole = async (id: string, role: any) => {
+  enqueueSyncTask('UPDATE_PERSON_ROLE', { id, role });
+  return { ...role, id };
+};
+export const deletePersonRole = async (id: string) => {
+  enqueueSyncTask('DELETE_PERSON_ROLE', { id });
+};
+
+export const addPersonCategory = async (category: any) => {
+  const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  const now = Date.now();
+  const newCategory = { ...category, id: localId, createdAt: now, updatedAt: now };
+  enqueueSyncTask('ADD_PERSON_CATEGORY', newCategory);
+  return newCategory;
+};
+export const updatePersonCategory = async (id: string, category: any) => {
+  enqueueSyncTask('UPDATE_PERSON_CATEGORY', { id, category });
+  return { ...category, id };
+};
+export const deletePersonCategory = async (id: string) => {
+  enqueueSyncTask('DELETE_PERSON_CATEGORY', { id });
 };

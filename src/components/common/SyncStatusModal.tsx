@@ -103,16 +103,21 @@ export default function SyncStatusModal({ isOpen, onClose }: SyncStatusModalProp
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className={`px-2.5 py-1 text-xs font-bold rounded-md ${
-                        task.operation === 'ADD_PERSON' ? 'bg-emerald-100 text-emerald-700' :
-                        task.operation === 'UPDATE_PERSON' ? 'bg-blue-100 text-blue-700' :
+                        task.operation.startsWith('ADD') ? 'bg-emerald-100 text-emerald-700' :
+                        task.operation.startsWith('UPDATE') ? 'bg-blue-100 text-blue-700' :
                         'bg-rose-100 text-rose-700'
                       }`}>
-                        {task.operation === 'ADD_PERSON' ? 'افزودن شخص' :
-                         task.operation === 'UPDATE_PERSON' ? 'ویرایش شخص' :
-                         'حذف شخص'}
+                        {task.operation.startsWith('ADD_PERSON') ? 'افزودن' :
+                         task.operation.startsWith('UPDATE_PERSON') ? 'ویرایش' :
+                         'حذف'}
+                         {' '}
+                         {task.operation.includes('GROUP') ? 'گروه‌بندی' :
+                          task.operation.includes('ROLE') ? 'نقش' :
+                          task.operation.includes('CATEGORY') ? 'دسته‌بندی' :
+                          'شخص'}
                       </span>
                       <span className="text-sm font-medium text-slate-700">
-                        {task.payload?.name || task.payload?.person?.name || task.payload?.id}
+                        {task.payload?.name || task.payload?.person?.name || task.payload?.group?.name || task.payload?.role?.name || task.payload?.category?.name || task.payload?.id}
                       </span>
                     </div>
                     <div>
