@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import * as lucide from 'lucide-react';
-import { Menu } from 'lucide-react';
+import { Menu, CloudOff } from 'lucide-react';
 import { addProduct, updateProduct, deleteProduct,  } from '../../services/dataService';
 import FastBarcodeScanner from '../modals/BarcodeScannerModal';
 
@@ -576,6 +576,12 @@ export default function ProductsTab(props: any) {
                                           >
                                             {p.name}
                                           </button>
+                                          {p.isLocalUnsynced && (
+                                            <span className="mr-2 inline-flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md border border-amber-200/50 align-middle shrink-0" title="ذخیره محلی - در صف ارسال">
+                                              <CloudOff className="w-3 h-3" />
+                                              در صف
+                                            </span>
+                                          )}
                                           {p.isActive === false && (
                                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold border border-rose-200 shadow-sm shrink-0">غیرفعال</span>
                                           )}

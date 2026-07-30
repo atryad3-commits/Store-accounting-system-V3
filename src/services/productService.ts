@@ -17,16 +17,38 @@ import {
 } from './coreService';
 import { CompanySettings } from '../types';
 import { convertToGregorian } from '../utils/format';
+import { enqueueSyncTask, getSyncQueue } from './syncQueueService';
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 
 
 export const getProductCategories = async () => {
   const categories = await getLocalData<any[]>('product_categories', []);
-  return categories.sort((a, b) => b.createdAt - a.createdAt);
+  
+  const queue = getSyncQueue();
+  let resultList = [...categories];
+
+  for (const task of queue) {
+    if (task.operation === 'ADD_PRODUCT_CATEGORY') {
+       resultList.push({ ...task.payload, isLocalUnsynced: true });
+    } else if (task.operation === 'UPDATE_PRODUCT_CATEGORY') {
+       const idx = resultList.findIndex(p => p.id === task.payload.id || p.id === task.payload.originalId);
+       if (idx !== -1) {
+           resultList[idx] = { ...resultList[idx], ...task.payload.category, isLocalUnsynced: true };
+       }
+    } else if (task.operation === 'DELETE_PRODUCT_CATEGORY') {
+       const idx = resultList.findIndex(p => p.id === task.payload.id || p.id === task.payload.originalId);
+       if (idx !== -1) {
+           resultList.splice(idx, 1);
+       }
+    }
+  }
+
+  return resultList.sort((a, b) => b.createdAt - a.createdAt);
 };
 
-export const addProductCategory = async (category: any) => {
+export const addProductCategoryToServer = async (category: any) => {
   const categories = await getLocalData<any[]>('product_categories', []);
   const now = Date.now();
   
@@ -48,20 +70,41 @@ export const addProductCategory = async (category: any) => {
   return newCategory;
 };
 
-export const updateProductCategory = async (id: string, category: any) => {
+export const updateProductCategoryToServer = async (id: string, category: any) => {
   return await updateLocalData('product_categories', id, { ...category, updatedAt: Date.now() });
 };
 
-export const deleteProductCategory = async (id: string) => {
+export const deleteProductCategoryToServer = async (id: string) => {
   await batchLocalData([{ type: 'delete', key: 'product_categories', id }]);
 };
 
 export const getProducts = async () => {
   const products = await getLocalData<any[]>('products', []);
-  return (products || []).filter(p => !p.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
+  const baseList = (products || []).filter(p => !p.isDeleted);
+  
+  const queue = getSyncQueue();
+  let resultList = [...baseList];
+
+  for (const task of queue) {
+    if (task.operation === 'ADD_PRODUCT') {
+       resultList.push({ ...task.payload, isLocalUnsynced: true });
+    } else if (task.operation === 'UPDATE_PRODUCT') {
+       const idx = resultList.findIndex(p => p.id === task.payload.id || p.id === task.payload.originalId);
+       if (idx !== -1) {
+           resultList[idx] = { ...resultList[idx], ...task.payload.product, isLocalUnsynced: true };
+       }
+    } else if (task.operation === 'DELETE_PRODUCT') {
+       const idx = resultList.findIndex(p => p.id === task.payload.id || p.id === task.payload.originalId);
+       if (idx !== -1) {
+           resultList.splice(idx, 1);
+       }
+    }
+  }
+
+  return resultList.sort((a: any, b: any) => b.createdAt - a.createdAt);
 };
 
-export const addProduct = async (product: any) => {
+export const addProductToServer = async (product: any) => {
   const products = await getLocalData<any[]>('products', []);
   const categories = await getLocalData<any[]>('product_categories', []);
   const now = Date.now();
@@ -150,7 +193,7 @@ export const addProduct = async (product: any) => {
   return newProduct;
 };
 
-export const updateProduct = async (id: string, product: any) => {
+export const updateProductToServer = async (id: string, product: any) => {
   const products = await getLocalData<any[]>('products', []);
   const index = products.findIndex((p: any) => String(p.id) === String(id));
   if (index !== -1) {
@@ -193,7 +236,7 @@ export const updateProduct = async (id: string, product: any) => {
   return null;
 };
 
-export const deleteProduct = async (id: string) => {
+export const deleteProductToServer = async (id: string) => {
   const products = await getLocalData<any[]>('products', []);
   await saveLocalData('products', products.filter((p: any) => String(p.id) !== String(id)));
 };
@@ -305,4 +348,34 @@ export const useDeleteProduct = () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
     }
   });
+};
+
+export const addProduct = async (product: any) => {
+  const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  const now = Date.now();
+  const newProduct = { ...product, id: localId, createdAt: now, updatedAt: now };
+  enqueueSyncTask('ADD_PRODUCT', newProduct);
+  return newProduct;
+};
+export const updateProduct = async (id: string, product: any) => {
+  enqueueSyncTask('UPDATE_PRODUCT', { id, product });
+  return { ...product, id };
+};
+export const deleteProduct = async (id: string) => {
+  enqueueSyncTask('DELETE_PRODUCT', { id });
+};
+
+export const addProductCategory = async (category: any) => {
+  const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  const now = Date.now();
+  const newCategory = { ...category, id: localId, createdAt: now, updatedAt: now };
+  enqueueSyncTask('ADD_PRODUCT_CATEGORY', newCategory);
+  return newCategory;
+};
+export const updateProductCategory = async (id: string, category: any) => {
+  enqueueSyncTask('UPDATE_PRODUCT_CATEGORY', { id, category });
+  return { ...category, id };
+};
+export const deleteProductCategory = async (id: string) => {
+  enqueueSyncTask('DELETE_PRODUCT_CATEGORY', { id });
 };

@@ -107,14 +107,19 @@ export default function SyncStatusModal({ isOpen, onClose }: SyncStatusModalProp
                         task.operation.startsWith('UPDATE') ? 'bg-blue-100 text-blue-700' :
                         'bg-rose-100 text-rose-700'
                       }`}>
-                        {task.operation.startsWith('ADD_PERSON') ? 'افزودن' :
-                         task.operation.startsWith('UPDATE_PERSON') ? 'ویرایش' :
+                        {task.operation.startsWith('ADD') ? 'افزودن' :
+                         task.operation.startsWith('UPDATE') ? 'ویرایش' :
                          'حذف'}
                          {' '}
-                         {task.operation.includes('GROUP') ? 'گروه‌بندی' :
-                          task.operation.includes('ROLE') ? 'نقش' :
-                          task.operation.includes('CATEGORY') ? 'دسته‌بندی' :
-                          'شخص'}
+                         {task.operation.includes('PRODUCT') 
+                           ? (task.operation.includes('GROUP') ? 'گروه‌بندی کالا' 
+                              : task.operation.includes('CATEGORY') ? 'دسته‌بندی کالا' 
+                              : 'کالا')
+                           : (task.operation.includes('GROUP') ? 'گروه‌بندی شخص' 
+                              : task.operation.includes('ROLE') ? 'نقش' 
+                              : task.operation.includes('CATEGORY') ? 'دسته‌بندی شخص' 
+                              : 'شخص')
+                         }
                       </span>
                       <span className="text-sm font-medium text-slate-700">
                         {task.payload?.name || task.payload?.person?.name || task.payload?.group?.name || task.payload?.role?.name || task.payload?.category?.name || task.payload?.id}

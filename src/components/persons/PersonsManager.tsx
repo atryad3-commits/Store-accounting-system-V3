@@ -1,5 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { CloudOff } from "lucide-react";
 import { User, Search, Filter, Plus, GripHorizontal, List, Users, Edit2, FileText, ChevronUp, ChevronDown, CheckCircle, Database, Phone, MapPin, Activity, Ban, Banknote, History, Printer, ShoppingCart, ArrowDownToLine, ArrowUpFromLine, Info, Trash2, RefreshCw, Key, ArrowRightLeft, LayoutGrid, Table, Building, BookOpen, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import Select from "react-select";
@@ -721,6 +722,12 @@ export default function PersonsManager(props: any) {
                                               <div>
                                                 <div className="font-black text-slate-800">
                                                   {getPersonDisplayName(p)}
+                                                  {p.isLocalUnsynced && (
+                                                    <span className="mr-2 inline-flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-600 px-2 py-0.5 rounded-md align-middle" title="ذخیره محلی - در صف ارسال">
+                                                      <CloudOff className="w-3 h-3" />
+                                                      در صف
+                                                    </span>
+                                                  )}
                                                   {p.isActive === false && (
                                                     <span className="mr-2 text-[10px] font-bold bg-rose-50 text-rose-500 px-2 py-0.5 rounded-md align-middle">
                                                       غیرفعال

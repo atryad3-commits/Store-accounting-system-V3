@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getSyncQueue, updateSyncTaskStatus, removeSyncTask, SyncTask } from '../../services/syncQueueService';
 
+
+import { 
+  addProductToServer, updateProductToServer, deleteProductToServer,
+  addProductCategoryToServer, updateProductCategoryToServer, deleteProductCategoryToServer
+} from '../../services/productService';
 import { 
   addPersonToServer, updatePersonToServer, deletePersonToServer,
   addPersonGroupToServer, updatePersonGroupToServer, deletePersonGroupToServer,
@@ -51,6 +56,20 @@ export default function BackgroundSync() {
           await updatePersonCategoryToServer(task.payload.id, task.payload.category);
         } else if (task.operation === 'DELETE_PERSON_CATEGORY') {
           await deletePersonCategoryToServer(task.payload.id);
+        } else if (task.operation === 'ADD_PRODUCT') {
+          const { isLocalUnsynced, ...payload } = task.payload;
+          await addProductToServer(payload);
+        } else if (task.operation === 'UPDATE_PRODUCT') {
+          await updateProductToServer(task.payload.id, task.payload.product);
+        } else if (task.operation === 'DELETE_PRODUCT') {
+          await deleteProductToServer(task.payload.id);
+        } else if (task.operation === 'ADD_PRODUCT_CATEGORY') {
+          const { isLocalUnsynced, ...payload } = task.payload;
+          await addProductCategoryToServer(payload);
+        } else if (task.operation === 'UPDATE_PRODUCT_CATEGORY') {
+          await updateProductCategoryToServer(task.payload.id, task.payload.category);
+        } else if (task.operation === 'DELETE_PRODUCT_CATEGORY') {
+          await deleteProductCategoryToServer(task.payload.id);
         }
 
         // Successfully synced!
