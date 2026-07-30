@@ -1480,7 +1480,12 @@ async function startServer() {
          const keyOps = operations.filter((op: any) => op.key === key);
          for (const op of keyOps) {
             if (op.type === 'append') {
-               data.push(op.data);
+               const idx = data.findIndex((x: any) => String(x.id) === String(op.data.id));
+               if (idx !== -1) {
+                   data[idx] = { ...data[idx], ...op.data };
+               } else {
+                   data.push(op.data);
+               }
                results.push({ id: op.data.id, status: 'appended' });
                sysLogs.push({ id: Math.random().toString(36).substring(2, 15), action: 'CREATE', userId: 'system', details: 'ایجاد رکورد گروهی', entityType: key, entityId: op.data.id, timestamp });
             } else if (op.type === 'update') {
@@ -1558,7 +1563,12 @@ async function startServer() {
       } else {
          const data = (await getDbData(key)) || [];
          if (Array.isArray(data)) {
-           data.push(newItem);
+           const idx = data.findIndex((x: any) => String(x.id) === String(newItem.id));
+           if (idx !== -1) {
+               data[idx] = { ...data[idx], ...newItem };
+           } else {
+               data.push(newItem);
+           }
            await setDbData(key, data);
          } else {
            return res.status(400).json({ error: 'Target is not an array' });

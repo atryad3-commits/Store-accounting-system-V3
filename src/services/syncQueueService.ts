@@ -55,6 +55,9 @@ export const removeSyncTask = (taskId: string) => {
   const queue = getSyncQueue();
   const filtered = queue.filter(t => t.id !== taskId);
   saveSyncQueue(filtered);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('trigger_background_sync'));
+  }
 };
 
 export const updateSyncTaskStatus = (taskId: string, status: SyncTask['status'], error?: string) => {

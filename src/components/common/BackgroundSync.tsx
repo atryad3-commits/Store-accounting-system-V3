@@ -20,12 +20,21 @@ export default function BackgroundSync() {
   const processQueue = useCallback(async () => {
     if (isSyncing) return;
     const queue = getSyncQueue();
-    const pendingTasks = queue.filter(t => t.status === 'PENDING' || t.status === 'ERROR');
-    if (pendingTasks.length === 0) return;
+    
+    const tasksToProcess = [];
+    for (const task of queue) {
+      if (task.status === 'ERROR') {
+        break; // Stop auto-processing if there is an error
+      }
+      if (task.status === 'PENDING') {
+        tasksToProcess.push(task);
+      }
+    }
 
+    if (tasksToProcess.length === 0) return;
     setIsSyncing(true);
 
-    for (const task of pendingTasks) {
+    for (const task of tasksToProcess) {
       updateSyncTaskStatus(task.id, 'SYNCING');
       try {
         if (task.operation === 'ADD_PERSON') {

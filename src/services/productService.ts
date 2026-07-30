@@ -65,7 +65,7 @@ export const addProductCategoryToServer = async (category: any) => {
   }
   const catCode = (maxCatCode + 1).toString().padStart(2, '0');
 
-  const newCategory = { ...category, code: catCode, id: generateId(), createdAt: now, updatedAt: now };
+  const newCategory = { ...category, code: catCode, id: category.id || generateId(), createdAt: now, updatedAt: now };
   await appendLocalData('product_categories', newCategory);
   return newCategory;
 };
@@ -156,7 +156,7 @@ export const addProductToServer = async (product: any) => {
     newCode = await generateDocNumber('product');
   }
 
-  const newProduct = { ...product, code: newCode, id: generateId(), createdAt: now, updatedAt: now };
+  const newProduct = { ...product, code: newCode, id: product.id || generateId(), createdAt: now, updatedAt: now };
   await appendLocalData('products', newProduct);
   
   if (newProduct.code) {
@@ -351,7 +351,7 @@ export const useDeleteProduct = () => {
 };
 
 export const addProduct = async (product: any) => {
-  const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  const localId = generateId();
   const now = Date.now();
   const newProduct = { ...product, id: localId, createdAt: now, updatedAt: now };
   enqueueSyncTask('ADD_PRODUCT', newProduct);
@@ -366,7 +366,7 @@ export const deleteProduct = async (id: string) => {
 };
 
 export const addProductCategory = async (category: any) => {
-  const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  const localId = generateId();
   const now = Date.now();
   const newCategory = { ...category, id: localId, createdAt: now, updatedAt: now };
   enqueueSyncTask('ADD_PRODUCT_CATEGORY', newCategory);

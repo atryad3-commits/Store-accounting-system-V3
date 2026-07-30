@@ -46,7 +46,7 @@ export const getPersonGroups = async () => {
 
 export const addPersonGroupToServer = async (group: any) => {
   const now = Date.now();
-  const newGroup = { ...group, id: generateId(), createdAt: now, updatedAt: now };
+  const newGroup = { ...group, id: group.id || generateId(), createdAt: now, updatedAt: now };
   await appendLocalData('person_groups', newGroup);
   return newGroup;
 };
@@ -92,7 +92,7 @@ export const getPersonRoles = async () => {
 
 export const addPersonRoleToServer = async (role: any) => {
   const now = Date.now();
-  const newRole = { ...role, id: generateId(), createdAt: now, updatedAt: now };
+  const newRole = { ...role, id: role.id || generateId(), createdAt: now, updatedAt: now };
   await appendLocalData('person_roles', newRole);
   return newRole;
 };
@@ -221,7 +221,7 @@ export const addPersonToServer = async (person: any) => {
 
   const now = Date.now();
   const { contacts, bankAccounts, ...personData } = person;
-  const newPerson = { ...personData, personCode: finalPersonCode, accountingCode: finalAccountingCode, id: generateId(), createdAt: now, updatedAt: now };
+  const newPerson = { ...personData, personCode: finalPersonCode, accountingCode: finalAccountingCode, id: personData.id || generateId(), createdAt: now, updatedAt: now };
   await appendLocalData('persons', newPerson);
   
   if (contacts && contacts.length > 0) {
@@ -400,7 +400,7 @@ export const getPersonCategories = async () => {
 
 export const addPersonCategoryToServer = async (category: any) => {
   const now = Date.now();
-  const newCategory = { ...category, id: generateId(), createdAt: now, updatedAt: now };
+  const newCategory = { ...category, id: category.id || generateId(), createdAt: now, updatedAt: now };
   await appendLocalData('person_categories', newCategory);
   return newCategory;
 };
@@ -424,7 +424,7 @@ export const deletePersonCategoryToServer = async (id: string) => {
 
 export const addPerson = async (person: any) => {
   const now = Date.now();
-  const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  const localId = generateId();
   const newPerson = { ...person, id: localId, createdAt: now, updatedAt: now };
   enqueueSyncTask('ADD_PERSON', newPerson);
   return newPerson;
@@ -440,7 +440,7 @@ export const deletePerson = async (id: string) => {
 };
 
 export const addPersonGroup = async (group: any) => {
-  const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  const localId = generateId();
   const now = Date.now();
   const newGroup = { ...group, id: localId, createdAt: now, updatedAt: now };
   enqueueSyncTask('ADD_PERSON_GROUP', newGroup);
@@ -455,7 +455,7 @@ export const deletePersonGroup = async (id: string) => {
 };
 
 export const addPersonRole = async (role: any) => {
-  const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  const localId = generateId();
   const now = Date.now();
   const newRole = { ...role, id: localId, createdAt: now, updatedAt: now };
   enqueueSyncTask('ADD_PERSON_ROLE', newRole);
@@ -470,7 +470,7 @@ export const deletePersonRole = async (id: string) => {
 };
 
 export const addPersonCategory = async (category: any) => {
-  const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  const localId = generateId();
   const now = Date.now();
   const newCategory = { ...category, id: localId, createdAt: now, updatedAt: now };
   enqueueSyncTask('ADD_PERSON_CATEGORY', newCategory);
