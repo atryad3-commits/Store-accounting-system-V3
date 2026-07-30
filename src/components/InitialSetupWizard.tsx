@@ -33,6 +33,36 @@ export default function InitialSetupWizard({ onComplete }: { onComplete: () => v
   const [adminUsername, setAdminUsername] = useState('admin');
   const [adminPassword, setAdminPassword] = useState('');
   
+  const calculatePasswordStrength = (password: string) => {
+    let score = 0;
+    if (!password) return score;
+    
+    if (password.length >= 8) score += 20;
+    if (password.length >= 12) score += 10;
+    if (/[A-Z]/.test(password)) score += 20;
+    if (/[a-z]/.test(password)) score += 20;
+    if (/[0-9]/.test(password)) score += 15;
+    if (/[^A-Za-z0-9]/.test(password)) score += 15;
+    
+    return Math.min(100, score);
+  };
+
+  const passwordStrength = calculatePasswordStrength(adminPassword);
+  const isPasswordStrong = passwordStrength >= 80;
+
+  const getStrengthColor = (score: number) => {
+    if (score < 40) return 'bg-rose-500';
+    if (score < 80) return 'bg-amber-500';
+    return 'bg-emerald-500';
+  };
+
+  const getStrengthLabel = (score: number) => {
+    if (score === 0) return '';
+    if (score < 40) return 'ضعیف';
+    if (score < 80) return 'متوسط';
+    return 'قوی';
+  };
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -397,7 +427,14 @@ export default function InitialSetupWizard({ onComplete }: { onComplete: () => v
                     </div>
                  </div>
                  <div>
-                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2">رمز عبور امن</label>
+                    <div className="flex justify-between items-end mb-2">
+                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-wider">رمز عبور امن</label>
+                      {adminPassword && (
+                        <span className={`text-[10px] font-bold ${passwordStrength < 40 ? 'text-rose-600' : passwordStrength < 80 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                          {getStrengthLabel(passwordStrength)}
+                        </span>
+                      )}
+                    </div>
                     <div className="relative">
                       <KeySquare className="absolute left-3 top-3 w-4 h-4 text-slate-300" />
                       <input
@@ -409,10 +446,18 @@ export default function InitialSetupWizard({ onComplete }: { onComplete: () => v
                         dir="ltr"
                       />
                     </div>
+                    {adminPassword && (
+                      <div className="h-1.5 w-full bg-slate-100 rounded-full mt-2 overflow-hidden">
+                        <div 
+                          className={`h-full transition-all duration-500 ease-out ${getStrengthColor(passwordStrength)}`}
+                          style={{ width: `${passwordStrength}%` }}
+                        ></div>
+                      </div>
+                    )}
                  </div>
                  <button
                     type="submit"
-                    disabled={saving || !adminUsername || !adminPassword}
+                    disabled={saving || !adminUsername || !isPasswordStrong}
                     className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm shadow-md shadow-indigo-200"
                   >
                     {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'تکمیل نصب و ورود به سیستم'}
