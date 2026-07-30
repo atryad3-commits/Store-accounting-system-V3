@@ -1,4 +1,9 @@
 import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import BackgroundSync from './components/common/BackgroundSync';
+import SyncStatusModal from './components/common/SyncStatusModal';
+import { useSyncQueueLength } from './services/syncQueueService';
+import { CloudOff } from 'lucide-react';
+
 import { SystemUpdatePage } from "./components/admin/SystemUpdatePage";
 import { PersonalNotesManager } from "./components/notes/PersonalNotesManager";
 import changelogData from './data/changelog.json';
@@ -336,6 +341,9 @@ const OrderList = React.lazy(() => import('./components/inventory/OrderList'));
 
 
 export default function App() {
+  const syncQueueLength = useSyncQueueLength();
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
+
 
         const [invoicePrintFormat, setInvoicePrintFormat] = useState<'a4' | 'a5' | 'pos80'>('a4');
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
@@ -1652,6 +1660,19 @@ if (requiresInitSetup && user) {
                         </AnimatePresence>
                       </div>
 
+                      
+                      <button
+                        onClick={() => setIsSyncModalOpen(true)}
+                        className="relative p-2 border rounded-xl transition-all cursor-pointer shadow-3xs active:scale-95 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 bg-white border-slate-200"
+                        title="وضعیت همگام‌سازی"
+                      >
+                        <CloudOff className="w-5 h-5" />
+                        {syncQueueLength > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full animate-pulse shadow-sm shadow-rose-500/40">
+                            {syncQueueLength}
+                          </span>
+                        )}
+                      </button>
                       <button
                         onClick={() => setIsCalculatorOpen(true)}
                         className="p-2 border rounded-xl transition-all cursor-pointer shadow-3xs active:scale-95 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 bg-white border-slate-200"
@@ -2467,6 +2488,8 @@ if (requiresInitSetup && user) {
           </div>
 
           <CalculatorModal isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
+        <SyncStatusModal isOpen={isSyncModalOpen} onClose={() => setIsSyncModalOpen(false)} />
+        <BackgroundSync />
           <PreviewModals {...appState} />
           <ExtraModals {...appState} />
           <ConfirmModal confirmState={appState.confirmState} setConfirmState={appState.setConfirmState} />

@@ -21,6 +21,8 @@ import {
 } from './coreService';
 import { CompanySettings } from '../types';
 import { convertToGregorian } from '../utils/format';
+import { enqueueSyncTask, getSyncQueue } from './syncQueueService';
+
 
 
 export const getPersonGroups = async () => {
@@ -100,10 +102,32 @@ export const getPersons = async () => {
      return p;
   });
   
-  return formattedPersons.filter(p => !p.isDeleted).sort((a, b) => b.createdAt - a.createdAt);
+  const baseList = formattedPersons.filter(p => !p.isDeleted);
+  
+  // Apply sync queue
+  const queue = getSyncQueue();
+  let resultList = [...baseList];
+
+  for (const task of queue) {
+    if (task.operation === 'ADD_PERSON') {
+       resultList.push({ ...task.payload, isLocalUnsynced: true });
+    } else if (task.operation === 'UPDATE_PERSON') {
+       const idx = resultList.findIndex(p => p.id === task.payload.id || p.id === task.payload.originalId);
+       if (idx !== -1) {
+           resultList[idx] = { ...resultList[idx], ...task.payload.person, isLocalUnsynced: true };
+       }
+    } else if (task.operation === 'DELETE_PERSON') {
+       const idx = resultList.findIndex(p => p.id === task.payload.id || p.id === task.payload.originalId);
+       if (idx !== -1) {
+           resultList.splice(idx, 1);
+       }
+    }
+  }
+
+  return resultList.sort((a, b) => b.createdAt - a.createdAt);
 };
 
-export const addPerson = async (person: any) => {
+export const addPersonToServer = async (person: any) => {
   const persons = await getLocalData<any[]>('persons', []);
   const roles = await getPersonRoles();
   
@@ -190,7 +214,7 @@ export const addPerson = async (person: any) => {
   return newPerson;
 };
 
-export const updatePerson = async (id: string, person: any) => {
+export const updatePersonToServer = async (id: string, person: any) => {
   if (person.personCode) {
       await updateDocCounter('person', person.personCode);
   }
@@ -259,7 +283,7 @@ export const savePerson = async (person: any) => {
   return addPerson(person);
 };
 
-export const deletePerson = async (id: string) => {
+export const deletePersonToServer = async (id: string) => {
   // Check relations
   const invoices = await getInvoices();
   if (invoices.some(inv => String(inv.customerId) === String(id))) {
@@ -351,4 +375,21 @@ export const deletePersonCategory = async (id: string) => {
   const categories = await getPersonCategories();
   const filtered = categories.filter((c: any) => String(c.id) !== String(id));
   await saveLocalData('person_categories', filtered);
+};
+
+export const addPerson = async (person: any) => {
+  const now = Date.now();
+  const localId = 'local_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  const newPerson = { ...person, id: localId, createdAt: now, updatedAt: now };
+  enqueueSyncTask('ADD_PERSON', newPerson);
+  return newPerson;
+};
+
+export const updatePerson = async (id: string, person: any) => {
+  enqueueSyncTask('UPDATE_PERSON', { id, person });
+  return { ...person, id };
+};
+
+export const deletePerson = async (id: string) => {
+  enqueueSyncTask('DELETE_PERSON', { id });
 };
