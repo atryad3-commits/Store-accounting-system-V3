@@ -6142,7 +6142,17 @@ const invoiceTotalDiscount = () => {
   };
 
 const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("fa-IR").format(amount);
+    let maxDigits = 4;
+    let minDigits = 0;
+    if (storeSettings && storeSettings.use_decimals === false) {
+      maxDigits = 0;
+    } else if (storeSettings && storeSettings.use_decimals === true) {
+      maxDigits = storeSettings.decimal_places || 2;
+    }
+    return new Intl.NumberFormat("fa-IR", { 
+      maximumFractionDigits: maxDigits,
+      minimumFractionDigits: minDigits
+    }).format(amount || 0);
   };
 
 const toPersianDigits = (str: string | number | undefined | null) => {
@@ -6161,7 +6171,17 @@ const currencyLabel =
       : storeSettings.currency;
 
 const formatNumber = (num: number) => {
-    return new Intl.NumberFormat("fa-IR").format(num);
+    let maxDigits = 4;
+    let minDigits = 0;
+    if (storeSettings && storeSettings.use_decimals === false) {
+      maxDigits = 0;
+    } else if (storeSettings && storeSettings.use_decimals === true) {
+      maxDigits = storeSettings.decimal_places || 2;
+    }
+    return new Intl.NumberFormat("fa-IR", { 
+      maximumFractionDigits: maxDigits,
+      minimumFractionDigits: minDigits
+    }).format(num || 0);
   };
 
 const openPayslip = (tx: any) => {

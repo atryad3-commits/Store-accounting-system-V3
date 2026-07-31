@@ -464,10 +464,9 @@ import {
                         </td>
                         <td className="p-5">
                           <div className="flex flex-col gap-1.5">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
+                            <CurrencyInput
+                              hideWords={true}
+                              storeSettings={storeSettings}
                               value={item.quantity}
                               onChange={(e: any) =>
                                 handleItemChange(
@@ -477,7 +476,6 @@ import {
                                 )
                               }
                               className="w-full p-2.5 bg-emerald-50/30 border border-emerald-100 rounded-xl focus:ring-2 focus:ring-emerald-500 font-sans text-center font-black text-slate-800 outline-none"
-                              dir="ltr"
                             />
                           </div>
                         </td>

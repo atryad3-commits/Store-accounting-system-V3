@@ -491,10 +491,9 @@ export default function SaleInvoiceCreate(props: any) {
                         </td>
                         <td className="p-5">
                           <div className="flex flex-col gap-1.5">
-                            <input
-                              type="number"
-                              min="0"
-                              step="any"
+                            <CurrencyInput
+                              hideWords={true}
+                              storeSettings={storeSettings}
                               value={item.quantity}
                               onChange={(e: any) =>
                                 handleItemChange(
@@ -504,7 +503,6 @@ export default function SaleInvoiceCreate(props: any) {
                                 )
                               }
                               className="w-full p-2.5 bg-indigo-50/30 border border-indigo-100 rounded-xl focus:ring-2 focus:ring-indigo-500 font-sans text-center font-black text-slate-800 outline-none"
-                              dir="ltr"
                             />
                           </div>
                         </td>

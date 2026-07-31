@@ -4,7 +4,7 @@ import { X, Package, TrendingUp, TrendingDown, History, BarChart2 } from 'lucide
 import { Product, InvoiceItem, Warehouse } from '../../types';
 import { getInvoices, getProductPriceHistory, getInventoryTransactions } from '../../services/dataService';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { addCommas, toPersianDigits, formatDateDisplay } from '../../utils/format';
+import { addCommas, toPersianDigits, formatDateDisplay, formatAmount } from '../../utils/format';
 
 export default function ProductCardModal({ product, warehouses = [], currency = 'تومان', onClose, isModal = true, persons = [], storeSettings }: { product: Product, warehouses?: Warehouse[], currency?: string, onClose: () => void, isModal?: boolean, persons?: any[], storeSettings?: any }) {
   const [history, setHistory] = useState<any[]>([]);
@@ -18,8 +18,8 @@ export default function ProductCardModal({ product, warehouses = [], currency = 
   const [lastSaleDate, setLastSaleDate] = useState<string>('');
   const [lastPurchaseDate, setLastPurchaseDate] = useState<string>('');
   
-  const formatCur = (num) => toPersianDigits(addCommas(Math.round(Number(num) || 0)));
-  const formatNum = (num) => toPersianDigits(addCommas(Math.round(Number(num)*100)/100 || 0));
+  const formatCur = (num) => toPersianDigits(formatAmount(Number(num) || 0, storeSettings));
+  const formatNum = (num) => toPersianDigits(formatAmount(Number(num) || 0, storeSettings));
 
   useEffect(() => {
     const salePrices = priceHistory.filter((h: any) => h.type === 'sale').sort((a: any,b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());

@@ -6,7 +6,9 @@ import persian_fa from "react-date-object/locales/persian_fa";
 
 export function addCommas(num: number | string): string {
     if (!num && num !== 0 && num !== '0') return '';
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const parts = num.toString().split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
 }
 
 export function removeCommas(str: string): string {
@@ -194,3 +196,20 @@ export const customPersonFilter = (option: any, inputValue: string) => {
   ).toLowerCase();
   return terms.every((term) => searchable.includes(term));
 };
+
+export function formatAmount(num: number | string, storeSettings?: any): string {
+    if (!num && num !== 0 && num !== '0') return '';
+    let val = Number(num);
+    if (isNaN(val)) return num.toString();
+    
+    if (storeSettings && storeSettings.use_decimals === false) {
+        val = Math.round(val);
+    } else if (storeSettings && storeSettings.use_decimals === true) {
+        const places = storeSettings.decimal_places || 2;
+        val = Number(val.toFixed(places));
+    } else {
+        // default: round to 2 places maximum if not specified
+        val = Number(val.toFixed(4));
+    }
+    return addCommas(val.toString());
+}
