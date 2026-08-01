@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import DateObject from "react-date-object";
 import * as lucide from 'lucide-react';
 
 export default function PersonLedger(props: any) {
@@ -60,6 +61,10 @@ export default function PersonLedger(props: any) {
     X, Check, AlertCircle, ChevronDown, ChevronUp, Download, Upload, 
     Copy, Barcode, Eye, FileText, Image, CheckCircle, Save, DollarSign, Calculator, CalculatorIcon, ArrowRight, Printer, Share2
   } = lucide;
+
+  const [filterStartDate, setFilterStartDate] = useState("");
+  const [filterEndDate, setFilterEndDate] = useState("");
+  const [includeOpening, setIncludeOpening] = useState(true);
 
   return (
                   /* Contact/Person Ledger Card View (کارت حساب اشخاص) */
@@ -166,6 +171,117 @@ export default function PersonLedger(props: any) {
                             }),
                           }}
                         />
+                      </div>
+                      
+                      {/* Date Filter & Opening Balance Configuration */}
+                      <div className="mt-6 flex flex-col lg:flex-row gap-4 border-t border-gray-100 pt-6">
+                        <div className="flex-1">
+                          <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-violet-500" />
+                            محدوده زمانی گزارش:
+                          </label>
+                          <div className="flex flex-col sm:flex-row gap-3">
+                            <DatePicker
+                              calendar={persian}
+                              locale={persian_fa}
+                              calendarPosition="bottom-right"
+                              inputClass="w-full text-center px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 font-medium transition-all text-sm outline-none"
+                              placeholder="از تاریخ"
+                              value={filterStartDate}
+                              onChange={(date: any) => {
+                                setFilterStartDate(
+                                  date?.isValid ? date.format("YYYY/MM/DD") : ""
+                                );
+                              }}
+                            />
+                            <DatePicker
+                              calendar={persian}
+                              locale={persian_fa}
+                              calendarPosition="bottom-right"
+                              inputClass="w-full text-center px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 font-medium transition-all text-sm outline-none"
+                              placeholder="تا تاریخ"
+                              value={filterEndDate}
+                              onChange={(date: any) => {
+                                setFilterEndDate(
+                                  date?.isValid ? date.format("YYYY/MM/DD") : ""
+                                );
+                              }}
+                            />
+                          </div>
+                          
+                          <div className="flex gap-2 mt-3 overflow-x-auto pb-2 custom-scrollbar">
+                            <button
+                              onClick={() => {
+                                // 1 month ago
+                                const now = new Date();
+                                now.setMonth(now.getMonth() - 1);
+                                setFilterStartDate(convertToGregorian(now.toISOString()).split('T')[0]); // We actually need Persian date here, but wait, the convertToGregorian name might be confusing, let's use DateObject directly
+                                const dateObj = new DateObject({ calendar: persian, locale: persian_fa });
+                                dateObj.subtract(1, "month");
+                                setFilterStartDate(dateObj.format("YYYY/MM/DD"));
+                                setFilterEndDate("");
+                              }}
+                              className="px-3 py-1.5 text-xs font-bold bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-lg whitespace-nowrap transition-colors"
+                            >
+                              یک ماهه
+                            </button>
+                            <button
+                              onClick={() => {
+                                const dateObj = new DateObject({ calendar: persian, locale: persian_fa });
+                                dateObj.subtract(2, "month");
+                                setFilterStartDate(dateObj.format("YYYY/MM/DD"));
+                                setFilterEndDate("");
+                              }}
+                              className="px-3 py-1.5 text-xs font-bold bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-lg whitespace-nowrap transition-colors"
+                            >
+                              دو ماهه
+                            </button>
+                            <button
+                              onClick={() => {
+                                const dateObj = new DateObject({ calendar: persian, locale: persian_fa });
+                                dateObj.subtract(3, "month");
+                                setFilterStartDate(dateObj.format("YYYY/MM/DD"));
+                                setFilterEndDate("");
+                              }}
+                              className="px-3 py-1.5 text-xs font-bold bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-lg whitespace-nowrap transition-colors"
+                            >
+                              سه ماهه
+                            </button>
+                            <button
+                              onClick={() => {
+                                setFilterStartDate("");
+                                setFilterEndDate("");
+                              }}
+                              className="px-3 py-1.5 text-xs font-bold bg-slate-50 text-slate-700 hover:bg-slate-100 rounded-lg whitespace-nowrap transition-colors border border-slate-200"
+                            >
+                              پاک کردن فیلتر
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="flex-1">
+                          <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                            <Calculator className="w-4 h-4 text-violet-500" />
+                            محاسبه مانده از قبل:
+                          </label>
+                          <label className="flex items-center gap-3 p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors mt-2">
+                            <div className="relative flex items-center">
+                              <input 
+                                type="checkbox" 
+                                className="peer sr-only"
+                                checked={includeOpening}
+                                onChange={(e) => setIncludeOpening(e.target.checked)}
+                              />
+                              <div className="w-5 h-5 rounded-md border-2 border-gray-300 peer-checked:bg-violet-500 peer-checked:border-violet-500 transition-all flex items-center justify-center">
+                                <Check className="w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all" />
+                              </div>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-gray-800">مانده اول دوره لحاظ شود</span>
+                              <span className="text-xs text-gray-500 mt-0.5">در صورت انتخاب، مانده حساب شخص تا قبل از تاریخ شروع فیلتر محاسبه و نمایش داده می‌شود.</span>
+                            </div>
+                          </label>
+                        </div>
                       </div>
                     </div>
 
@@ -286,6 +402,47 @@ export default function PersonLedger(props: any) {
                         }
                         return dateDiff;
                       });
+                      
+                      // Apply Date Filters & Calculate Opening Balance
+                      const startMs = filterStartDate ? new Date(convertToGregorian(filterStartDate)).setHours(0,0,0,0) : 0;
+                      const endMs = filterEndDate ? new Date(convertToGregorian(filterEndDate)).setHours(23,59,59,999) : Infinity;
+
+                      if (filterStartDate || filterEndDate) {
+                         let openingBalance = 0;
+                         
+                         const filtered = [];
+                         for (const entry of allEntries) {
+                            const t = new Date(convertToGregorian(entry.date)).getTime();
+                            const entryMs = isNaN(t) ? 0 : t;
+                            
+                            if (filterStartDate && entryMs < startMs) {
+                               openingBalance += (entry.debit - entry.credit);
+                            } else if (filterEndDate && entryMs > endMs) {
+                               // skip
+                            } else {
+                               filtered.push(entry);
+                            }
+                         }
+                         
+                         if (includeOpening && filterStartDate && openingBalance !== 0) {
+                             filtered.unshift({
+                                 id: 'opening-balance',
+                                 date: filterStartDate,
+                                 desc: 'مانده از قبل',
+                                 description: 'مانده از قبل',
+                                 type: 'سیستم',
+                                 refId: '-',
+                                 debit: openingBalance > 0 ? openingBalance : 0,
+                                 credit: openingBalance < 0 ? Math.abs(openingBalance) : 0,
+                                 sourceType: 'system',
+                                 sourceId: '0',
+                                 isSynthetic: true,
+                                 entryType: 'opening_balance',
+                                 rawItem: { items: [], id: 'opening-balance' }
+                             });
+                         }
+                         allEntries = filtered;
+                      }
 
                       // Running progressive balance
                       let runningSum = 0;
