@@ -481,14 +481,7 @@ export default function PersonLedger(props: any) {
                                   <div className="text-left select-none text-sm font-semibold text-slate-500 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg print:bg-transparent print:border-none print:p-0">
                                     تاریخ چاپ:{" "}
                                     <span className="font-bold text-slate-700 print:text-black">
-                                      {toPersianDigits(
-                                        new Date().toLocaleDateString(
-                                          storeSettings?.calendarType ===
-                                            "gregorian"
-                                            ? "en-US"
-                                            : "fa-IR",
-                                        ),
-                                      )}
+                                      {formatDateDisplay(new Date(), storeSettings?.calendarType)}
                                     </span>
                                   </div>
                                 </div>
@@ -1083,7 +1076,7 @@ export default function PersonLedger(props: any) {
                                               <div className="flex justify-between items-center mb-1">
                                                 <span className="text-xs font-bold text-slate-400">#{index + 1}</span>
                                                 <span className="text-xs font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
-                                                  {new Date(entry.date).toLocaleDateString("fa-IR")}
+                                                  {formatDateDisplay(entry.date, storeSettings?.calendarType)}
                                                 </span>
                                               </div>
                                               

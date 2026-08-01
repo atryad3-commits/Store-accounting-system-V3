@@ -4,6 +4,7 @@ import { Loan, Installment, Person, Account } from '../../types';
 import { Plus, Percent, Edit2, Trash2, Search, CheckCircle, ChevronDown, ChevronUp, AlertCircle, RefreshCw, Layers, Calendar, DollarSign, Wallet, Users, Activity, List, ArrowLeftRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { saveLoans, saveInstallments, addTransaction, checkFinancialYear } from '../../services/dataService';
+import { formatDateDisplay } from '../../utils/format';
 
 
 
@@ -664,7 +665,7 @@ export default function LoansManager({
                                {loan.status === 'completed' && <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg text-xs font-black">تسویه شده</span>}
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-500">
-                               <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4"/> تاریخ: {loan.startDate}</span>
+                               <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4"/> تاریخ: {formatDateDisplay(loan.startDate.replace(/-/g, '/'))}</span>
                                <span className="flex items-center gap-1.5"><Layers className="w-4 h-4"/> اقساط: {totalInsts} {loan.frequency === 'yearly' ? '(سالانه)' : loan.frequency === 'quarterly' ? '(فصلی)' : '(ماهانه)'}</span>
                                {loan.interestRate && <span className="flex items-center gap-1.5"><Percent className="w-4 h-4"/> سود: {loan.interestRate}٪</span>}
                             </div>
@@ -707,8 +708,8 @@ export default function LoansManager({
                                         <div className="flex items-center gap-4">
                                             <div className={`w-3 h-3 rounded-full ${inst.status === 'paid' ? 'bg-emerald-500' : inst.status === 'overdue' ? 'bg-rose-500' : 'bg-amber-400'}`}></div>
                                             <div>
-                                              <div className="font-bold text-gray-800 text-sm mb-1">{inst.dueDate}</div>
-                                              {inst.status === 'paid' && <div className="text-xs font-bold text-gray-500">تاریخ پرداخت: {inst.paidDate}</div>}
+                                              <div className="font-bold text-gray-800 text-sm mb-1">{formatDateDisplay(inst.dueDate.replace(/-/g, '/'))}</div>
+                                              {inst.status === 'paid' && <div className="text-xs font-bold text-gray-500">تاریخ پرداخت: {formatDateDisplay(inst.paidDate?.replace(/-/g, '/'))}</div>}
                                               {inst.status === 'overdue' && <div className="text-xs font-bold text-rose-500">معوقه</div>}
                                             </div>
                                          </div>

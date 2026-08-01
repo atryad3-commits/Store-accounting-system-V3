@@ -546,7 +546,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
           <h2 className="text-2xl font-black text-black mb-2">
              {activeSubTab === 'issued_checks' ? 'لیست چک‌های پرداختی (صادره)' : activeSubTab === 'received_checks' ? 'لیست چک‌های دریافتی (وصولی)' : 'لیست چک‌ها'}
           </h2>
-          <p className="text-sm font-bold text-gray-700">تاریخ چاپ: {new Date().toLocaleDateString('fa-IR')} - ساعت: {new Date().toLocaleTimeString('fa-IR', {hour: '2-digit', minute: '2-digit'})}</p>
+          <p className="text-sm font-bold text-gray-700">تاریخ چاپ: {formatDateDisplay(new Date(), storeSettings?.calendarType)} - ساعت: {new Date().toLocaleTimeString('fa-IR', {hour: '2-digit', minute: '2-digit'})}</p>
         </div>
 
         
@@ -691,7 +691,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                 <h1 className="text-xl font-extrabold text-slate-900 font-sans">سامانه مدیریت مالی و حسابداری</h1>
                 <p className="text-sm text-gray-650 font-bold mt-1.5">گزارش و لیست چک‌های صادره (پرداختنی)</p>
                 <div className="flex justify-between items-center mt-5 text-xs text-slate-500 border-t border-slate-100 pt-3 font-bold">
-                  <span>تاریخ چاپ: {toPersianDigits(new Date().toLocaleDateString('fa-IR'))}</span>
+                  <span>تاریخ چاپ: {formatDateDisplay(new Date(), storeSettings?.calendarType)}</span>
                   <span>تعداد کل اقلام: {toPersianDigits(filteredIssuedChecks.length)}</span>
                 </div>
               </div>
@@ -925,7 +925,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                 <h1 className="text-xl font-extrabold text-slate-900 font-sans">سامانه مدیریت مالی و حسابداری</h1>
                 <p className="text-sm text-gray-650 font-bold mt-1.5">گزارش و لیست چک‌های دریافتی (وصولی)</p>
                 <div className="flex justify-between items-center mt-5 text-xs text-slate-500 border-t border-slate-100 pt-3 font-bold">
-                  <span>تاریخ چاپ: {toPersianDigits(new Date().toLocaleDateString('fa-IR'))}</span>
+                  <span>تاریخ چاپ: {formatDateDisplay(new Date(), storeSettings?.calendarType)}</span>
                   <span>تعداد کل اقلام: {toPersianDigits(filteredReceivedChecks.length)}</span>
                 </div>
               </div>
@@ -1477,7 +1477,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                            filtered.forEach(c => {
                              let dStr;
                              try {
-                               dStr = new Date(c.dueDate).toLocaleDateString('fa-IR');
+                               dStr = formatDateDisplay(c.dueDate, storeSettings?.calendarType);
                              } catch (e) {
                                dStr = c.dueDate;
                              }
@@ -1629,7 +1629,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                            filtered.forEach(c => {
                              let dStr;
                              try {
-                               dStr = new Date(c.dueDate).toLocaleDateString('fa-IR');
+                               dStr = formatDateDisplay(c.dueDate, storeSettings?.calendarType);
                              } catch (e) {
                                dStr = c.dueDate;
                              }
@@ -1852,7 +1852,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                     <div className="relative border-r-2 border-slate-100 pr-4 space-y-6 max-h-[40vh] overflow-y-auto print:max-h-none print:overflow-visible my-2">
                        {historyData.map((h: any, i: number) => {
                           const dateObj = new Date(h.date);
-                          const formattedDate = dateObj.toLocaleDateString('fa-IR');
+                          const formattedDate = formatDateDisplay(dateObj, storeSettings?.calendarType);
                           const formattedTime = dateObj.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
                           return (
                             <div key={i} className="relative">
