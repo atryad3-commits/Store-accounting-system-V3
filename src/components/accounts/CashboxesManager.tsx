@@ -72,7 +72,10 @@ export default function CashboxesManager(props: any) {
                                 مسئول صندوق
                               </th>
                               <th className="py-4 px-6 font-semibold">
-                                موجودی فعلی (تومان)
+                                شماره حساب
+                              </th>
+                              <th className="py-4 px-6 font-semibold">
+                                موجودی فعلی ({storeSettings?.currency || "تومان"})
                               </th>
                               <th className="py-4 px-6 font-semibold text-center w-24">
                                 عملیات
@@ -96,6 +99,9 @@ export default function CashboxesManager(props: any) {
                                 </td>
                                 <td className="py-4 px-6 text-sm">
                                   {box.manager || "نامشخص"}
+                                </td>
+                                <td className="py-4 px-6 text-sm font-mono text-left" dir="ltr">
+                                  {box.accountNumber || "-"}
                                 </td>
                                 <td
                                   className="py-4 px-6 text-sm font-semibold text-teal-600 font-mono text-left"

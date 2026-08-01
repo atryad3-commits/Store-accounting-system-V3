@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+const fs = require('fs');
+const file = 'src/components/financial/FinancialTransfer.tsx';
+
+const content = `import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { SwitchCamera, CheckCircle, ArrowRightLeft } from 'lucide-react';
 import { getAccounts, getCashboxes, updateAccount, updateCashbox, addTransaction, getStoreSettings, getLedgerAccounts, addAccountingDocument } from '../../services/dataService';
 import { Account, Cashbox } from '../../types';
 import CurrencyInput from '../ui/CurrencyInput';
-
+import { convertPersianToEnglishNumbers } from '../../utils/format';
 
 export default function FinancialTransfer({ showNotification, storeSettings: initialStoreSettings }: any) {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -35,7 +38,7 @@ export default function FinancialTransfer({ showNotification, storeSettings: ini
     }
   };
 
-  const amount = Number((amountStr || '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d).toString()).replace(/,/g, ''));
+  const amount = Number(convertPersianToEnglishNumbers(amountStr || '').replace(/,/g, ''));
 
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,14 +56,14 @@ export default function FinancialTransfer({ showNotification, storeSettings: ini
           const acc = accounts.find(a => a.id.toString() === fromId);
           if (acc) {
              await updateAccount(acc.id.toString(), { ...acc, balance: Number(acc.balance) - amount });
-             fromTitle = `${acc.bankName || ''} ${acc.branchName ? 'شعبه ' + acc.branchName : ''} ${acc.accountNumber ? 'حساب ' + acc.accountNumber : ''}`.trim();
+             fromTitle = \`\${acc.bankName || ''} \${acc.branchName ? 'شعبه ' + acc.branchName : ''} \${acc.accountNumber ? 'حساب ' + acc.accountNumber : ''}\`.trim();
              fromCode = acc.accountingCode || '';
           }
        } else {
           const cb = cashboxes.find(a => a.id.toString() === fromId);
           if (cb) {
              await updateCashbox(cb.id.toString(), { ...cb, balance: Number(cb.balance) - amount });
-             fromTitle = `صندوق ${cb.name || ''}`;
+             fromTitle = \`صندوق \${cb.name || ''}\`;
              fromCode = cb.accountingCode || '';
           }
        }
@@ -70,14 +73,14 @@ export default function FinancialTransfer({ showNotification, storeSettings: ini
           const acc = accounts.find(a => a.id.toString() === toId);
           if (acc) {
              await updateAccount(acc.id.toString(), { ...acc, balance: Number(acc.balance) + amount });
-             toTitle = `${acc.bankName || ''} ${acc.branchName ? 'شعبه ' + acc.branchName : ''} ${acc.accountNumber ? 'حساب ' + acc.accountNumber : ''}`.trim();
+             toTitle = \`\${acc.bankName || ''} \${acc.branchName ? 'شعبه ' + acc.branchName : ''} \${acc.accountNumber ? 'حساب ' + acc.accountNumber : ''}\`.trim();
              toCode = acc.accountingCode || '';
           }
        } else {
           const cb = cashboxes.find(a => a.id.toString() === toId);
           if (cb) {
              await updateCashbox(cb.id.toString(), { ...cb, balance: Number(cb.balance) + amount });
-             toTitle = `صندوق ${cb.name || ''}`;
+             toTitle = \`صندوق \${cb.name || ''}\`;
              toCode = cb.accountingCode || '';
           }
        }
@@ -91,19 +94,19 @@ export default function FinancialTransfer({ showNotification, storeSettings: ini
          jalaliDate: new Date().toLocaleDateString('fa-IR'),
          resourceType: fromType,
          resourceId: fromId,
-         description: `انتقال وجه به ${toType === 'bank' ? 'حساب' : 'صندوق'} ${toId}. توضیحات: ${description}`
+         description: \`انتقال وجه به \${toType === 'bank' ? 'حساب' : 'صندوق'} \${toId}. توضیحات: \${description}\`
        } as any);
 
        let actionTypeDesc = 'انتقال وجه';
        if (fromType === 'bank' && toType === 'cashbox') {
-           actionTypeDesc = `برداشت نقدی از ${fromTitle} به ${toTitle}`;
+           actionTypeDesc = \`برداشت نقدی از \${fromTitle} به \${toTitle}\`;
        } else if (fromType === 'cashbox' && toType === 'bank') {
-           actionTypeDesc = `واریز نقدی از ${fromTitle} به ${toTitle}`;
+           actionTypeDesc = \`واریز نقدی از \${fromTitle} به \${toTitle}\`;
        } else {
-           actionTypeDesc = `انتقال وجه از ${fromTitle} به ${toTitle}`;
+           actionTypeDesc = \`انتقال وجه از \${fromTitle} به \${toTitle}\`;
        }
 
-       const docDescription = description ? `${actionTypeDesc} - ${description}` : actionTypeDesc;
+       const docDescription = description ? \`\${actionTypeDesc} - \${description}\` : actionTypeDesc;
 
        const ledgers = await getLedgerAccounts();
        const fromLedger = ledgers.find((l: any) => l.code === fromCode);
@@ -219,3 +222,6 @@ export default function FinancialTransfer({ showNotification, storeSettings: ini
     </div>
   );
 }
+`;
+
+fs.writeFileSync(file, content);

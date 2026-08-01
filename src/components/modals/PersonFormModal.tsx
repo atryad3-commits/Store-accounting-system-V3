@@ -119,7 +119,7 @@ export default function PersonFormModal({
           setNewPersonAlias(person.alias || "");
           setNewPersonInitialBalance(person.initialBalance ? String(person.initialBalance) : "");
           setNewPersonInitialBalanceType(person.initialBalanceType || "");
-          setNewPersonImage(person.image || "");
+          setNewPersonImage(person.imageUrl || person.image || "");
           setNewPersonIsActive(person.isActive !== undefined ? person.isActive : true);
           setNewPersonRegistrationDate(person.registrationDate || "");
           
@@ -546,7 +546,7 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
                     <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                       <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <User className="w-5 h-5 text-indigo-500" />
-                        ثبت شخص جدید
+                        {editingPersonId ? `ویرایش شخص (${newPersonAlias || (newPersonFirstName + " " + newPersonLastName).trim() || newPersonCompanyName || ""})` : "ثبت شخص جدید"}
                       </h3>
                       <button
                         onClick={() => onClose()}
@@ -1305,7 +1305,7 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
                         ) : (
                           <Plus className="w-5 h-5" />
                         )}
-                        <span>ثبت شخص</span>
+                        <span>{editingPersonId ? "ذخیره تغییرات" : "ثبت شخص"}</span>
                       </button>
                     </div>
                   </motion.div>

@@ -86,7 +86,7 @@ export default function AccountsManager(props: any) {
                               </th>
                               <th className="py-4 px-6 font-semibold">شعبه</th>
                               <th className="py-4 px-6 font-semibold">
-                                موجودی (تومان)
+                                موجودی ({storeSettings?.currency || "تومان"})
                               </th>
                               <th className="py-4 px-6 font-semibold text-center w-24">
                                 عملیات

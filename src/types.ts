@@ -145,6 +145,7 @@ export type Product = {
 };
 
 export type Account = {
+  accountingCode?: string;
   id: string | number;
   bankName: string;
   branchName?: string;
@@ -158,9 +159,11 @@ export type Account = {
 };
 
 export type Cashbox = {
+  accountingCode?: string;
   id: string | number;
   name: string;
   manager?: string;
+  accountNumber?: string;
   balance: number;
 };
 
@@ -168,6 +171,7 @@ export type Warehouse = {
   id: string | number;
   name: string;
   manager?: string;
+  accountNumber?: string;
   location?: string;
   isActive: boolean;
 };

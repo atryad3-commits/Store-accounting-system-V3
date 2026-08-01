@@ -3,7 +3,7 @@ import { startAppProcessing, stopAppProcessing } from "../../utils/processingHel
 import { motion } from "motion/react";
 import CurrencyInput from "../ui/CurrencyInput";
 import { CreditCard, X, Check, Plus } from "lucide-react";
-import { addAccount, updateAccount } from "../../services/dataService";
+import { addAccount, updateAccount, addAccountingDocument, getLedgerAccounts, ensureLedgerAccount } from "../../services/dataService";
 
 interface AccountFormModalProps {
   isOpen: boolean;
@@ -83,10 +83,49 @@ const handleSubmitAccount = async (e?: React.FormEvent) => {
         accountHolder: newAccountHolder,
       };
 
+      let savedAccount;
       if (isEdit) {
-        await updateAccount(editingAccountId.toString(), payload as any);
+        savedAccount = await updateAccount(editingAccountId.toString(), payload as any);
       } else {
-        await addAccount(payload as any);
+        savedAccount = await addAccount(payload as any);
+        
+        if (payload.initialBalance > 0 && savedAccount?.accountingCode) {
+           const accounts = await getLedgerAccounts();
+           const openingBalanceTitle = "تراز افتتاحیه";
+           let openingBalanceAcc = accounts.find(a => a.title === openingBalanceTitle);
+           if (!openingBalanceAcc) {
+              const newAccCode = '3999';
+              await ensureLedgerAccount({ accountingCode: newAccCode }, '3', newAccCode, openingBalanceTitle, openingBalanceTitle, 'credit');
+              const updatedAccs = await getLedgerAccounts();
+              openingBalanceAcc = updatedAccs.find(a => a.title === openingBalanceTitle);
+           }
+           
+           const bankAcc = (await getLedgerAccounts()).find(a => a.code === savedAccount.accountingCode);
+           if (bankAcc && openingBalanceAcc) {
+              await addAccountingDocument({
+                  date: new Date().toISOString().split('T')[0],
+                  description: `ثبت موجودی اولیه حساب بانکی ${savedAccount.bankName}`,
+                  status: "approved",
+                  sourceType: "manual",
+                  items: [
+                     {
+                        ledgerAccountId: String(bankAcc.id),
+                        detailedAccountId: "",
+                        description: "موجودی اولیه حساب",
+                        debit: payload.initialBalance,
+                        credit: 0
+                     },
+                     {
+                        ledgerAccountId: String(openingBalanceAcc.id),
+                        detailedAccountId: "",
+                        description: "تراز افتتاحیه",
+                        debit: 0,
+                        credit: payload.initialBalance
+                     }
+                  ]
+              });
+           }
+        }
       }
 
       await onSuccess();
@@ -250,14 +289,14 @@ const handleSubmitAccount = async (e?: React.FormEvent) => {
 
                           <div className="w-full text-right">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              موجودی اولیه (تومان)
+                              موجودی اولیه ({storeSettings?.currency || "تومان"})
                             </label>
                             <CurrencyInput
                               value={newAccountBalance}
                               onChange={(e: any) =>
                                 setNewAccountBalance(e.target.value)
                               }
-                              placeholder="مثال: 1000000"
+                              placeholder="0"
                               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-gray-900 text-left"
                               dir="ltr"
                             />

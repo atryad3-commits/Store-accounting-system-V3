@@ -3,7 +3,7 @@ import { startAppProcessing, stopAppProcessing } from "../../utils/processingHel
 import { motion } from "motion/react";
 import CurrencyInput from "../ui/CurrencyInput";
 import { Wallet, X, Check, Plus } from "lucide-react";
-import { addCashbox, updateCashbox } from "../../services/dataService";
+import { addCashbox, updateCashbox, addAccountingDocument, getLedgerAccounts, ensureLedgerAccount } from "../../services/dataService";
 
 interface CashboxFormModalProps {
   isOpen: boolean;
@@ -28,6 +28,7 @@ export default function CashboxFormModal({
 }: CashboxFormModalProps) {
   const [newCashboxName, setNewCashboxName] = useState("");
   const [newCashboxManager, setNewCashboxManager] = useState("");
+  const [newCashboxAccountNumber, setNewCashboxAccountNumber] = useState("");
   const [newCashboxStatus, setNewCashboxStatus] = useState(true);
   const [newCashboxBalance, setNewCashboxBalance] = useState("");
   const [submittingCashbox, setSubmittingCashbox] = useState(false);
@@ -41,11 +42,13 @@ export default function CashboxFormModal({
         if (cb) {
           setNewCashboxName(cb.name || "");
           setNewCashboxManager(cb.manager || "");
+          setNewCashboxAccountNumber(cb.accountNumber || "");
           setNewCashboxStatus(cb.status !== false);
         }
       } else {
         setNewCashboxName("");
         setNewCashboxManager("");
+        setNewCashboxAccountNumber("");
         setNewCashboxStatus(true);
       }
     }
@@ -62,20 +65,61 @@ const handleSubmitCashbox = async (e?: React.FormEvent) => {
       const payload = {
         name: newCashboxName,
         manager: newCashboxManager,
+        accountNumber: newCashboxAccountNumber,
         description: newCashboxManager, // For firebase checking description
         initialBalance: Number(newCashboxBalance) || 0,
         balance: Number(newCashboxBalance) || 0,
       };
 
+      let savedCashbox;
       if (isEdit) {
-        await updateCashbox(editingCashboxId.toString(), payload as any);
+        savedCashbox = await updateCashbox(editingCashboxId.toString(), payload as any);
       } else {
-        await addCashbox(payload as any);
+        savedCashbox = await addCashbox(payload as any);
+        
+        if (payload.initialBalance > 0 && savedCashbox?.accountingCode) {
+           const accounts = await getLedgerAccounts();
+           const openingBalanceTitle = "تراز افتتاحیه";
+           let openingBalanceAcc = accounts.find(a => a.title === openingBalanceTitle);
+           if (!openingBalanceAcc) {
+              const newAccCode = '3999';
+              await ensureLedgerAccount({ accountingCode: newAccCode }, '3', newAccCode, openingBalanceTitle, openingBalanceTitle, 'credit');
+              const updatedAccs = await getLedgerAccounts();
+              openingBalanceAcc = updatedAccs.find(a => a.title === openingBalanceTitle);
+           }
+           
+           const cashboxAcc = (await getLedgerAccounts()).find(a => a.code === savedCashbox.accountingCode);
+           if (cashboxAcc && openingBalanceAcc) {
+              await addAccountingDocument({
+                  date: new Date().toISOString().split('T')[0],
+                  description: `ثبت موجودی اولیه صندوق ${savedCashbox.name}`,
+                  status: "approved",
+                  sourceType: "manual",
+                  items: [
+                     {
+                        ledgerAccountId: String(cashboxAcc.id),
+                        detailedAccountId: "",
+                        description: "موجودی اولیه صندوق",
+                        debit: payload.initialBalance,
+                        credit: 0
+                     },
+                     {
+                        ledgerAccountId: String(openingBalanceAcc.id),
+                        detailedAccountId: "",
+                        description: "تراز افتتاحیه",
+                        debit: 0,
+                        credit: payload.initialBalance
+                     }
+                  ]
+              });
+           }
+        }
       }
 
       await onSuccess();
       setNewCashboxName("");
       setNewCashboxManager("");
+      setNewCashboxAccountNumber("");
       setNewCashboxBalance("");
       
       onClose();
@@ -163,14 +207,14 @@ const handleSubmitCashbox = async (e?: React.FormEvent) => {
 
                           <div className="w-full text-right">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              موجودی اولیه (تومان)
+                              موجودی اولیه ({storeSettings?.currency || "تومان"})
                             </label>
                             <CurrencyInput
                               value={newCashboxBalance}
                               onChange={(e: any) =>
                                 setNewCashboxBalance(e.target.value)
                               }
-                              placeholder="مثال: 500000"
+                              placeholder="0"
                               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-gray-900 text-left"
                               dir="ltr"
                             />
