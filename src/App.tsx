@@ -316,6 +316,7 @@ const SystemInfo = React.lazy(() => import('./components/admin/SystemInfo'));
 const StocktakingManager = React.lazy(() => import('./components/inventory/StocktakingManager'));
 const AnalyticalDashboard = React.lazy(() => import('./components/reports/AnalyticalDashboard'));
 const FinancialDashboard = React.lazy(() => import('./components/reports/FinancialDashboard'));
+const AccountLedgerReport = React.lazy(() => import('./components/accounting/AccountLedgerReport'));
 const DebtsCreditsReport = React.lazy(() => import('./components/reports/DebtsCreditsReport'));
 const LoansManager = React.lazy(() => import('./components/loans/LoansManager'));
 const ChartOfAccounts = React.lazy(() => import('./components/accounting/ChartOfAccounts'));
@@ -804,6 +805,16 @@ export default function App() {
                         setWhStockSearch={setWhStockSearch}
                         warehouseStocks={warehouseStocks}
                         formatNumber={formatNumber}
+                      />} />
+    <Route path="/account_ledger" element={<AccountLedgerReport
+                        showNotification={showNotification}
+                        onNavigateToDoc={(docId: any) => {
+                          const doc = accountingDocuments.find(d => d.id.toString() === docId.toString());
+                          if (doc) {
+                             setViewingAccountingDoc(doc);
+                             setIsAccountingDocModalOpen(true);
+                          }
+                        }}
                       />} />
   <Route path="/financial_report" element={<FinancialDashboard
                         invoices={invoices}

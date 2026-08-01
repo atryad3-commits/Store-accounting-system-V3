@@ -203,3 +203,8 @@ export function formatAmount(num: number | string, storeSettings?: any): string 
     }
     return addCommas(val.toString());
 }
+
+export function formatNumber(num: number | string | undefined | null): string {
+  if (num === undefined || num === null) return "0";
+  return addCommas(num);
+}
