@@ -7,7 +7,8 @@ export default function BulkBarcodeGenerator({
   toPersianDigits,
   updateProduct,
   fetchProducts,
-  storeSettings
+  storeSettings,
+  showNotification
 }: any) {
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [barcodeFormat, setBarcodeFormat] = useState("numeric_only");
@@ -61,7 +62,7 @@ export default function BulkBarcodeGenerator({
 
   const handleGenerate = async () => {
     if (selectedProducts.length === 0) {
-       alert("لطفا حداقل یک کالا را انتخاب کنید");
+       (showNotification || window.alert)("لطفا حداقل یک کالا را انتخاب کنید", "error");
        return;
     }
     
@@ -119,12 +120,12 @@ export default function BulkBarcodeGenerator({
         updatedCount++;
       }
       
-      alert(`تعداد ${toPersianDigits(updatedCount)} بارکد با موفقیت تولید و ثبت شد.`);
+      (showNotification || window.alert)(`تعداد ${toPersianDigits(updatedCount)} بارکد با موفقیت تولید و ثبت شد.`, "success");
       setSelectedProducts([]);
       await fetchProducts();
     } catch (err) {
       console.error(err);
-      alert("خطا در تولید بارکدها");
+      (showNotification || window.alert)("خطا در تولید بارکدها", "error");
     } finally {
       setGenerating(false);
     }

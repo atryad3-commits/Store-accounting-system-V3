@@ -58,7 +58,7 @@ export default function TabGeneral({ data, onChange }: Props) {
 
   const triggerUpload = (type: 'avatar' | 'cover') => {
     // In a real app, this would open a file picker and a cropper
-    alert(`File picker and cropper for ${type} would open here.`);
+    console.log(`File picker and cropper for ${type} would open here.`);
   };
 
   if (previewMode) {

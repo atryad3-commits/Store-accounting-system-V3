@@ -3,7 +3,7 @@ import { getSyncQueue, SyncTask, removeSyncTask, updateSyncTaskStatus, saveSyncQ
 import { RefreshCw, Trash2, CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function SyncManager() {
+export default function SyncManager({ confirmAction }: { confirmAction?: any }) {
   const [tasks, setTasks] = useState<SyncTask[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -24,8 +24,12 @@ export default function SyncManager() {
   }, []);
 
   const handleRemove = (id: string) => {
-    if (window.confirm('آیا از حذف این رکورد اطمینان دارید؟')) {
-      removeSyncTask(id);
+    if (confirmAction) {
+      confirmAction('آیا از حذف این رکورد اطمینان دارید؟', () => removeSyncTask(id));
+    } else {
+      if (window.confirm('آیا از حذف این رکورد اطمینان دارید؟')) {
+        removeSyncTask(id);
+      }
     }
   };
 

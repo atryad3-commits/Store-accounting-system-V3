@@ -709,7 +709,7 @@ export default function App() {
 
   const appRoutes = (
     <Routes>
-  <Route path="/bulk_barcode_generator" element={<BulkBarcodeGenerator products={products} categories={productCategories} toPersianDigits={toPersianDigits} updateProduct={updateProduct} fetchProducts={fetchProducts} storeSettings={storeSettings} />} />
+  <Route path="/bulk_barcode_generator" element={<BulkBarcodeGenerator showNotification={showNotification} products={products} categories={productCategories} toPersianDigits={toPersianDigits} updateProduct={updateProduct} fetchProducts={fetchProducts} storeSettings={storeSettings} />} />
   <Route path="/products" element={<ProductsTab
                         {...appState}
                         formatCurrency={formatCurrency}
@@ -988,7 +988,7 @@ export default function App() {
   <Route path="/crm_dashboard" element={<CRMDashboard persons={persons} showNotification={showNotification} confirmAction={confirmAction} />} />
   <Route path="/analytical_dashboard" element={<AnalyticalDashboard showNotification={showNotification} />} />
   <Route path="/sms_panel" element={<SmsPanel storeSettings={storeSettings} setActiveTab={setActiveTab} setSettingsTab={setSettingsTab} />} />
-  <Route path="/sync_manager" element={<SyncManager />} />
+  <Route path="/sync_manager" element={<SyncManager confirmAction={confirmAction} />} />
   <Route path="/system_logs" element={<motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -2073,7 +2073,7 @@ return (
 
                       
                       <button
-                        onClick={() => setIsSyncModalOpen(true)}
+                        onClick={() => { setRawActiveTab("sync_manager"); }}
                         className="relative p-2 border rounded-xl transition-all cursor-pointer shadow-3xs active:scale-95 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 bg-white border-slate-200"
                         title="وضعیت همگام‌سازی"
                       >
