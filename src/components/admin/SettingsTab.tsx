@@ -102,6 +102,11 @@ export default function SettingsTab(props: any) {
                             icon: Printer,
                           },
                           {
+                            id: "date_time",
+                            label: "تاریخ و ساعت",
+                            icon: lucide.Calendar,
+                          },
+                          {
                             id: "notification",
                             label: "پیامک و ارتباطات",
                             icon: Bell,
@@ -426,22 +431,6 @@ export default function SettingsTab(props: any) {
                                       className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 shadow-sm font-bold cursor-not-allowed"
                                     />
                                   </div>
-                                  <div className="w-full text-right">
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                                      تقویم پایه
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={
-                                        storeSettings.calendarType ===
-                                        "gregorian"
-                                          ? "میلادی"
-                                          : "شمسی (جلالی)"
-                                      }
-                                      disabled
-                                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 shadow-sm font-bold cursor-not-allowed"
-                                    />
-                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -542,6 +531,133 @@ export default function SettingsTab(props: any) {
                                     </div>
                                   </div>
                                 </label>
+                              </div>
+                            </div>
+                          )}
+
+                          {settingsTab === "date_time" && (
+                            <div className="space-y-8">
+                              <div>
+                                <h3 className="text-lg font-black text-gray-800 mb-6 flex items-center gap-2">
+                                  <lucide.Calendar className="w-5 h-5 text-indigo-500" />
+                                  تنظیمات نمایش تاریخ و ساعت
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                                      تقویم پایه
+                                    </label>
+                                    <select
+                                      value={settingsForm.calendarType || "jalali"}
+                                      onChange={(e) =>
+                                        setSettingsForm({ ...settingsForm, calendarType: e.target.value })
+                                      }
+                                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold"
+                                    >
+                                      <option value="jalali">شمسی (جلالی)</option>
+                                      <option value="gregorian">میلادی (Gregorian)</option>
+                                    </select>
+                                  </div>
+                                  
+                                  <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                                      فرمت نمایش تاریخ
+                                    </label>
+                                    <select
+                                      value={settingsForm.dateFormat || "YYYY/MM/DD"}
+                                      onChange={(e) =>
+                                        setSettingsForm({ ...settingsForm, dateFormat: e.target.value })
+                                      }
+                                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold"
+                                    >
+                                      <option value="YYYY/MM/DD">سال/ماه/روز (مثال: ۱۴۰۳/۰۵/۱۰)</option>
+                                      <option value="DD/MM/YYYY">روز/ماه/سال (مثال: ۱۰/۰۵/۱۴۰۳)</option>
+                                      <option value="monthName">روز و نام ماه (مثال: ۱۰ مرداد ۱۴۰۳)</option>
+                                      <option value="dayMonthName">روز هفته، روز و نام ماه (مثال: پنجشنبه ۱۰ مرداد ۱۴۰۳)</option>
+                                    </select>
+                                  </div>
+
+                                  {(settingsForm.dateFormat === "YYYY/MM/DD" || settingsForm.dateFormat === "DD/MM/YYYY") && (
+                                    <div>
+                                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                                        جداکننده تاریخ
+                                      </label>
+                                      <select
+                                        value={settingsForm.dateSeparator || "/"}
+                                        onChange={(e) =>
+                                          setSettingsForm({ ...settingsForm, dateSeparator: e.target.value })
+                                        }
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold"
+                                      >
+                                        <option value="/">اسلش ( / )</option>
+                                        <option value="-">خط تیره ( - )</option>
+                                        <option value=".">نقطه ( . )</option>
+                                      </select>
+                                    </div>
+                                  )}
+
+                                  <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                                      فرمت سال
+                                    </label>
+                                    <select
+                                      value={settingsForm.dateYearFormat || "YYYY"}
+                                      onChange={(e) =>
+                                        setSettingsForm({ ...settingsForm, dateYearFormat: e.target.value })
+                                      }
+                                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold"
+                                    >
+                                      <option value="YYYY">۴ رقمی (مثال: ۱۴۰۳)</option>
+                                      <option value="YY">۲ رقمی (مثال: ۰۳)</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                
+                                <div className="mt-8 border-t border-gray-100 pt-8">
+                                  <h4 className="text-base font-bold text-gray-800 mb-6 flex items-center gap-2">
+                                    تنظیمات نمایش ساعت
+                                  </h4>
+                                  <div className="grid gap-4">
+                                    <label className="flex items-start gap-4 p-5 border border-gray-200 rounded-xl hover:bg-gray-50/80 cursor-pointer transition-all shadow-sm">
+                                      <div className="mt-0.5">
+                                        <input
+                                          type="checkbox"
+                                          checked={settingsForm.dateShowTime !== false}
+                                          onChange={(e) =>
+                                            setSettingsForm({ ...settingsForm, dateShowTime: e.target.checked })
+                                          }
+                                          className="w-5 h-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                        />
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="font-bold text-gray-900 mb-1">
+                                          نمایش ساعت کنار تاریخ
+                                        </div>
+                                        <div className="text-sm text-gray-500 font-medium">
+                                          در گزارش‌ها و فاکتورها در صورت وجود ساعت ذخیره شده، زمان نیز کنار تاریخ نمایش داده می‌شود.
+                                        </div>
+                                      </div>
+                                    </label>
+                                    
+                                    {settingsForm.dateShowTime !== false && (
+                                      <div className="mt-2 pl-10">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">
+                                          فرمت ساعت
+                                        </label>
+                                        <select
+                                          value={settingsForm.dateTimeFormat || "24"}
+                                          onChange={(e) =>
+                                            setSettingsForm({ ...settingsForm, dateTimeFormat: e.target.value })
+                                          }
+                                          className="w-full md:w-1/2 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-bold"
+                                        >
+                                          <option value="24">۲۴ ساعته (مثال: ۱۴:۳۰)</option>
+                                          <option value="12">۱۲ ساعته (مثال: ۰۲:۳۰ ب.ظ)</option>
+                                        </select>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           )}

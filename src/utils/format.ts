@@ -115,42 +115,33 @@ export function toPersianDigits(str: string | number | undefined | null): string
 
 export function formatDateDisplay(dateInput: string | Date | undefined | null, calendarType?: string): string {
   if (!dateInput || dateInput === "-") return "-";
-  
   try {
-    let d = new Date(dateInput);
-    if (typeof dateInput === 'string' && dateInput.includes('/')) {
-        const englishStr = dateInput.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString());
-        const parts = englishStr.split("/");
-        if (parts.length === 3) {
-           const year = parseInt(parts[0], 10);
-           if (year < 1500) {
-              if (calendarType === 'gregorian') {
-                 // Return as is if old jalali string
-                 return dateInput;
-              } else {
-                 const months = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
-                 const monthIndex = parseInt(parts[1], 10) - 1;
-                 const day = parseInt(parts[2].split(" ")[0], 10);
-                 if (monthIndex >= 0 && monthIndex < 12) {
-                    return toPersianDigits(`‏${day} ${months[monthIndex]} ${year}‏`);
-                 }
-              }
-           }
-        }
+    const { globalDateFormatter } = require("./dateFormatter");
+    
+    if (calendarType === 'gregorian' || calendarType === 'jalali') {
+      const originalCalendar = globalDateFormatter.getConfig().calendarType;
+      const originalShowTime = globalDateFormatter.getConfig().showTime;
+      
+      globalDateFormatter.updateConfig({ calendarType: calendarType, showTime: false });
+      const result = globalDateFormatter.formatDateOnly(dateInput);
+      
+      globalDateFormatter.updateConfig({ calendarType: originalCalendar, showTime: originalShowTime });
+      return result;
+    } else if (calendarType === 'gregorian_time' || calendarType === 'jalali_time') {
+      const originalCalendar = globalDateFormatter.getConfig().calendarType;
+      const originalShowTime = globalDateFormatter.getConfig().showTime;
+      
+      globalDateFormatter.updateConfig({ calendarType: calendarType.replace('_time', '') as any, showTime: true });
+      const result = globalDateFormatter.formatDateTime(dateInput);
+      
+      globalDateFormatter.updateConfig({ calendarType: originalCalendar, showTime: originalShowTime });
+      return result;
     }
-
-    if (!isNaN(d.getTime())) {
-      if (calendarType === 'gregorian') {
-         return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
-      } else if (calendarType === 'gregorian_time') {
-         return d.toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-      } else {
-         if (calendarType === 'jalali_time') { return toPersianDigits(`‏${d.toLocaleString("fa-IR", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}‏`); } return toPersianDigits(`‏${d.toLocaleDateString("fa-IR", { year: "numeric", month: "long", day: "numeric" })}‏`);
-      }
-    }
-  } catch (e) {}
-  
-  return calendarType === 'gregorian' ? String(dateInput) : toPersianDigits(String(dateInput));
+    
+    return globalDateFormatter.formatDate(dateInput);
+  } catch (e) {
+    return String(dateInput);
+  }
 }
 
 

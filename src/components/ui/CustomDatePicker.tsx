@@ -32,12 +32,31 @@ const TodayButton = ({ setValue, range }: any) => {
 };
 
 export default function CustomDatePicker(props: any) {
+  const { globalDateFormatter } = require("../../utils/dateFormatter");
+  const { convertToGregorian } = require("../../utils/format");
+  const globalProps = globalDateFormatter.getGlobalDatePickerProps(props.value, props.onChange);
+  const showTime = globalDateFormatter.getConfig().showTime;
+
+  let parsedValue = props.value;
+  if (typeof props.value === 'string' && props.value) {
+    parsedValue = new Date(convertToGregorian(props.value));
+  } else if (Array.isArray(props.value)) {
+    parsedValue = props.value.map((v: any) => typeof v === 'string' ? new Date(convertToGregorian(v)) : v);
+  }
+
   return (
     <DatePicker
       {...props}
-      format={props.format || (props.range ? "DD MMMM YYYY" : "DD MMMM YYYY HH:mm")}
+      calendar={globalProps.calendar}
+      locale={globalProps.locale}
+      format={props.format || globalProps.format}
+      value={parsedValue}
+      onChange={(date: any) => {
+         // if component has its own onChange, call it
+         if (props.onChange) props.onChange(date);
+      }}
       plugins={[
-        ...(!props.range ? [<TimePicker position="bottom" />] : []),
+        ...(!props.range && showTime ? [<TimePicker position="bottom" />] : []),
         <TodayButton position="bottom" range={props.range} />,
         ...(props.plugins || [])
       ]}

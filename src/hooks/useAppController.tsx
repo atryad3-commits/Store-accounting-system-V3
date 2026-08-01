@@ -22,6 +22,7 @@ import CreateSalaryPayroll from '../components/payroll/CreateSalaryPayroll';
 import ListSalaryPayroll from '../components/payroll/ListSalaryPayroll';
 import { useStore } from '../store';
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { globalDateFormatter } from "../utils/dateFormatter";
 import { startAppProcessing, updateAppProcessing, stopAppProcessing } from "../utils/processingHelper";
 import { useLocation, useNavigate } from "react-router-dom";
 import ProductsTab from "../components/products/ProductsTab";
@@ -712,6 +713,12 @@ const [storeSettings, setStoreSettings] = useState<any>({
     isSetup: false,
     fontFamily: "Vazirmatn",
     theme: "classic",
+    dateFormat: "YYYY/MM/DD",
+    dateSeparator: "/",
+    dateYearFormat: "YYYY",
+    dateShowTime: true,
+    dateTimeFormat: "24",
+    calendarType: "jalali",
   });
 
 const isGmailTheme = storeSettings?.theme === "gmail";
@@ -3485,6 +3492,14 @@ const fetchSettings = async () => {
           prefix_pay_receipt: savedData.prefix_pay_receipt ?? "PD-",
         };
         setStoreSettings(mergedSettings);
+        globalDateFormatter.updateConfig({
+          dateFormat: mergedSettings.dateFormat,
+          dateSeparator: mergedSettings.dateSeparator,
+          dateYearFormat: mergedSettings.dateYearFormat,
+          showTime: mergedSettings.dateShowTime,
+          timeFormat: mergedSettings.dateTimeFormat,
+          calendarType: mergedSettings.calendarType,
+        });
         setSettingsForm(mergedSettings);
         setInvoiceCurrency(mergedSettings.currency || "تومان");
         setExchangeRate(1);

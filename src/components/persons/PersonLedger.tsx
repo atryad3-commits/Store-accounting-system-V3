@@ -182,28 +182,24 @@ export default function PersonLedger(props: any) {
                           </label>
                           <div className="flex flex-col sm:flex-row gap-3">
                             <DatePicker
-                              calendar={persian}
-                              locale={persian_fa}
                               calendarPosition="bottom-right"
                               inputClass="w-full text-center px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 font-medium transition-all text-sm outline-none"
                               placeholder="از تاریخ"
-                              value={filterStartDate}
+                              value={filterStartDate || null}
                               onChange={(date: any) => {
                                 setFilterStartDate(
-                                  date?.isValid ? date.format("YYYY/MM/DD") : ""
+                                  date?.isValid ? date.toDate().toISOString() : ""
                                 );
                               }}
                             />
                             <DatePicker
-                              calendar={persian}
-                              locale={persian_fa}
                               calendarPosition="bottom-right"
                               inputClass="w-full text-center px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 font-medium transition-all text-sm outline-none"
                               placeholder="تا تاریخ"
-                              value={filterEndDate}
+                              value={filterEndDate || null}
                               onChange={(date: any) => {
                                 setFilterEndDate(
-                                  date?.isValid ? date.format("YYYY/MM/DD") : ""
+                                  date?.isValid ? date.toDate().toISOString() : ""
                                 );
                               }}
                             />
@@ -212,13 +208,9 @@ export default function PersonLedger(props: any) {
                           <div className="flex gap-2 mt-3 overflow-x-auto pb-2 custom-scrollbar">
                             <button
                               onClick={() => {
-                                // 1 month ago
-                                const now = new Date();
-                                now.setMonth(now.getMonth() - 1);
-                                setFilterStartDate(convertToGregorian(now.toISOString()).split('T')[0]); // We actually need Persian date here, but wait, the convertToGregorian name might be confusing, let's use DateObject directly
-                                const dateObj = new DateObject({ calendar: persian, locale: persian_fa });
-                                dateObj.subtract(1, "month");
-                                setFilterStartDate(dateObj.format("YYYY/MM/DD"));
+                                const d = new Date();
+                                d.setMonth(d.getMonth() - 1);
+                                setFilterStartDate(d.toISOString());
                                 setFilterEndDate("");
                               }}
                               className="px-3 py-1.5 text-xs font-bold bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-lg whitespace-nowrap transition-colors"
@@ -227,9 +219,9 @@ export default function PersonLedger(props: any) {
                             </button>
                             <button
                               onClick={() => {
-                                const dateObj = new DateObject({ calendar: persian, locale: persian_fa });
-                                dateObj.subtract(2, "month");
-                                setFilterStartDate(dateObj.format("YYYY/MM/DD"));
+                                const d = new Date();
+                                d.setMonth(d.getMonth() - 2);
+                                setFilterStartDate(d.toISOString());
                                 setFilterEndDate("");
                               }}
                               className="px-3 py-1.5 text-xs font-bold bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-lg whitespace-nowrap transition-colors"
@@ -238,9 +230,9 @@ export default function PersonLedger(props: any) {
                             </button>
                             <button
                               onClick={() => {
-                                const dateObj = new DateObject({ calendar: persian, locale: persian_fa });
-                                dateObj.subtract(3, "month");
-                                setFilterStartDate(dateObj.format("YYYY/MM/DD"));
+                                const d = new Date();
+                                d.setMonth(d.getMonth() - 3);
+                                setFilterStartDate(d.toISOString());
                                 setFilterEndDate("");
                               }}
                               className="px-3 py-1.5 text-xs font-bold bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-lg whitespace-nowrap transition-colors"
