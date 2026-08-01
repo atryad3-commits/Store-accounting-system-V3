@@ -111,13 +111,19 @@ export default function SettingsTab(props: any) {
                             label: "کنترل موجودی",
                             icon: Box,
                           },
+                          {
+                            id: "sync_manager",
+                            label: "مدیریت همگام‌سازی",
+                            icon: lucide.RefreshCw,
+                            action: () => props.setActiveTab("sync_manager"),
+                          },
                         ].map((tab) => {
                           const Icon = tab.icon;
                           const isActive = settingsTab === tab.id;
                           return (
                             <button
                               key={tab.id}
-                              onClick={() => setSettingsTab(tab.id)}
+                              onClick={() => tab.action ? tab.action() : setSettingsTab(tab.id)}
                               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-bold ${
                                 isActive
                                   ? "bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100"

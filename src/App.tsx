@@ -2132,6 +2132,16 @@ return (
                                   <LayoutDashboard className="w-4 h-4" />
                                   تغییر بخش کاری
                                 </button>
+                                <button
+                                  onClick={() => {
+                                    setIsHeaderMenuOpen(false);
+                                    setActiveTab("sync_manager");
+                                  }}
+                                  className="w-full text-right px-3 py-2.5 rounded-xl transition-all cursor-pointer font-black gap-2 flex items-center text-xs hover:bg-orange-50 text-slate-700 hover:text-orange-700 mt-1"
+                                >
+                                  <RefreshCw className="w-4 h-4" />
+                                  مدیریت همگام‌سازی
+                                </button>
                               </div>
                               
                               <div className="p-3 border-b border-slate-100">

@@ -592,10 +592,7 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
                         id="personForm"
                         onSubmit={(e) => {
                           e.preventDefault();
-                          confirmAction(
-                            "آیا از ثبت اطلاعات شخص اطمینان دارید؟",
-                            () => handleCheckDuplicates(e as any),
-                          );
+                          handleCheckDuplicates(e as any);
                         }}
                         className="flex flex-col gap-5"
                       >
