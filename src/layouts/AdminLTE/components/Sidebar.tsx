@@ -58,7 +58,10 @@ export default function Sidebar({ appState, isCollapsed, isDarkMode }: SidebarPr
       id: 'settings',
       label: 'تنظیمات سیستم',
       icon: <Settings className="w-[18px] h-[18px]" />,
-      action: () => setActiveTab('settings')
+      subItems: [
+        { id: 'settings', label: 'تنظیمات کلی', action: () => setActiveTab('settings') },
+        { id: 'sync_manager', label: 'مدیریت همگام‌سازی', action: () => setActiveTab('sync_manager') }
+      ]
     }
   ];
 

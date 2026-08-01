@@ -257,6 +257,7 @@ const PersonOpeningBalances = React.lazy(() => import('./components/persons/Pers
 const PersonLedger = React.lazy(() => import('./components/persons/PersonLedger'));
 const SettingsTab = React.lazy(() => import('./components/admin/SettingsTab'));
 const WelcomePage = React.lazy(() => import('./components/WelcomePage'));
+const SyncManager = React.lazy(() => import('./components/admin/SyncManager'));
 const MobileRestrictedMenu = React.lazy(() => import('./components/MobileRestrictedMenu'));
 const MinimalMobilePersonModal = React.lazy(() => import('./components/modals/MinimalMobilePersonModal'));
 
@@ -987,6 +988,7 @@ export default function App() {
   <Route path="/crm_dashboard" element={<CRMDashboard persons={persons} showNotification={showNotification} confirmAction={confirmAction} />} />
   <Route path="/analytical_dashboard" element={<AnalyticalDashboard showNotification={showNotification} />} />
   <Route path="/sms_panel" element={<SmsPanel storeSettings={storeSettings} setActiveTab={setActiveTab} setSettingsTab={setSettingsTab} />} />
+  <Route path="/sync_manager" element={<SyncManager />} />
   <Route path="/system_logs" element={<motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
