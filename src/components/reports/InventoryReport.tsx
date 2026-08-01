@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import BeautifulLoading from '../BeautifulLoading';
-import { Package, Search, Calendar, FileText, ArrowDownToLine, ArrowUpFromLine, RefreshCw, Box, AlertTriangle } from 'lucide-react';
-import { motion } from 'motion/react';
-import CustomDatePicker from "../ui/CustomDatePicker";
+import React, { useState, useEffect, useMemo } from "react";
+import { Package, Search, Download, FileText, ArrowUpDown, Filter, Printer, Box, RefreshCw, AlertTriangle, ArrowDownToLine, ArrowUpFromLine } from "lucide-react";
+const BeautifulLoading = () => <div className="flex justify-center items-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div></div>;
+import { motion } from "motion/react";
 import DatePickerModule from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { getProducts, getInvoices, getWarehouses, getStoreSettings } from '../../services/dataService';
 import { Product, Warehouse, CompanySettings } from '../../types';
+import CustomDatePicker from "../ui/CustomDatePicker";
 const DatePicker = CustomDatePicker;
 
 const formatNumber = (num: number) => new Intl.NumberFormat('fa-IR').format(num);

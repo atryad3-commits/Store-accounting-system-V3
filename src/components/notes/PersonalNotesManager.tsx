@@ -4,7 +4,9 @@ import {
   Pin, Palette, Archive, Trash2, Search, X, Plus, CheckSquare, 
   Image as ImageIcon, MoreVertical, Bell, User, FileText, History, Calendar, Check
 } from "lucide-react";
-import DatePicker from "react-multi-date-picker";
+import CustomDatePicker from "../ui/CustomDatePicker";
+import DatePickerModule from "react-multi-date-picker";
+const DatePicker = CustomDatePicker;
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import TimePicker from "react-multi-date-picker/plugins/time_picker";

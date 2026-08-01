@@ -87,7 +87,7 @@ export default function OfficialInvoiceTemplate({
                  <td className="border border-black p-1">{toPersianDigits(item.productId || "")}</td>
                  <td className="border border-black p-1 text-right">{item.productName}</td>
                  <td className="border border-black p-1">{toPersianDigits(item.quantity)}</td>
-                 <td className="border border-black p-1">{item.selectedUnit}</td>
+                 <td className="border border-black p-1">{item.selectedUnit || item.unit || ""}</td>
                  <td className="border border-black p-1">{toPersianDigits(addCommas(item.unitPrice))}</td>
                  <td className="border border-black p-1">{toPersianDigits(addCommas(rowTotal))}</td>
                  <td className="border border-black p-1">{toPersianDigits(addCommas(item.discountPercent || 0))} %</td>

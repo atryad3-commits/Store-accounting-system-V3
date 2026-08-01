@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Building2, Edit2, Trash2, X, ChevronDown, Calendar, Save } from 'lucide-react';
-import DatePicker from 'react-multi-date-picker';
+import CustomDatePicker from '../ui/CustomDatePicker';
+import DatePickerModule from 'react-multi-date-picker';
+const DatePicker = CustomDatePicker;
 import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
 

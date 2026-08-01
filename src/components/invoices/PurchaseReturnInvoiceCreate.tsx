@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
-import DatePicker from 'react-multi-date-picker';
+import CustomDatePicker from '../ui/CustomDatePicker';
+import DatePickerModule from 'react-multi-date-picker';
+const DatePicker = CustomDatePicker;
 import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
 import {  

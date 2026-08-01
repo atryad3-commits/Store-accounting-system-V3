@@ -55,7 +55,7 @@ export default function CompactInvoiceTemplate({
                <tr key={idx}>
                   <td className="py-1">{toPersianDigits(idx + 1)}</td>
                   <td className="py-1 text-right pr-2">{item.productName}</td>
-                  <td className="py-1">{toPersianDigits(item.quantity)} {item.selectedUnit}</td>
+                  <td className="py-1">{toPersianDigits(item.quantity)} {item.selectedUnit || item.unit || ""}</td>
                   <td className="py-1">{toPersianDigits(addCommas(item.unitPrice))}</td>
                   <td className="py-1 font-bold">{toPersianDigits(addCommas(item.totalPrice))}</td>
                </tr>

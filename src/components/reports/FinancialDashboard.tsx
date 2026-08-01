@@ -21,7 +21,9 @@ import {
   ShoppingCart, Receipt, TrendingUp, TrendingDown, 
   Wallet, CreditCard, GripHorizontal, Settings, Trash2, Plus, Users, FileText
 } from 'lucide-react';
-import DatePicker from "react-multi-date-picker";
+import CustomDatePicker from "../ui/CustomDatePicker";
+import DatePickerModule from "react-multi-date-picker";
+const DatePicker = CustomDatePicker;
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Cell, CartesianGrid } from 'recharts';

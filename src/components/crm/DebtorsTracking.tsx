@@ -20,7 +20,9 @@ import { CSS } from '@dnd-kit/utilities';
 import { Trash2, Plus, X, Search, Phone, User, Calendar, Save, ListFilter, UserPlus, Users, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getDebtorsTrackings, saveDebtorsTrackings, getCrmColumns, saveCrmColumns } from '../../services/dataService';
-import DatePicker from 'react-multi-date-picker';
+import CustomDatePicker from '../ui/CustomDatePicker';
+import DatePickerModule from 'react-multi-date-picker';
+const DatePicker = CustomDatePicker;
 import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
 

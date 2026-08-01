@@ -1285,7 +1285,7 @@ export default function PersonLedger(props: any) {
                                                                   {toPersianDigits(
                                                                     item.quantity,
                                                                   )}{" "}
-                                                                  {item.unit ||
+                                                                  {item.selectedUnit || item.unit ||
                                                                     "عدد"}
                                                                 </span>
                                                               </li>

@@ -4,7 +4,9 @@ import { motion } from "framer-motion";
 import { RefreshCw, Save, ArrowDownLeft, ArrowUpRight, CheckCircle, FileText, Calendar, Building2, User, UserPlus, Wallet, DollarSign, CreditCard, Printer, X, CheckSquare } from "lucide-react";
 import Select from "react-select";
 import CurrencyInput from "../common/CurrencyInput";
-import DatePicker from "react-multi-date-picker";
+import CustomDatePicker from "../ui/CustomDatePicker";
+import DatePickerModule from "react-multi-date-picker";
+const DatePicker = CustomDatePicker;
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 

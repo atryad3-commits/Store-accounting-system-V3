@@ -172,7 +172,7 @@ export default function WarehousePrintTemplate({
                       {toPersianDigits(item.quantity || 1)}
                     </td>
                     <td className="py-2 px-2 text-center text-slate-600">
-                      {item.selectedUnit || "-"}
+                      {item.selectedUnit || item.unit || "-"}
                     </td>
                   </tr>
                 );

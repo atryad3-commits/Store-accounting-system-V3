@@ -1,5 +1,5 @@
 import React from 'react';
-import { toPersianDigits, numToPersianWords } from '../../utils/format';
+import { toPersianDigits, formatDateDisplay, numToPersianWords } from '../../utils/format';
 
 export default function ReceiptPrintTemplate({ data, storeSettings, persons, getPersonDisplayName, formatCurrency }: any) {
   if (!data) return null;
@@ -7,9 +7,9 @@ export default function ReceiptPrintTemplate({ data, storeSettings, persons, get
   
   let formattedDate = '';
   try {
-    formattedDate = toPersianDigits(data.date ? new Date(data.date).toLocaleDateString('fa-IR') : '');
+    formattedDate = toPersianDigits(formatDateDisplay(data.date, storeSettings?.calendarType));
   } catch (e) {
-    formattedDate = toPersianDigits(data.date ? new Date(data.date).toLocaleDateString('fa-IR') : '');
+    formattedDate = toPersianDigits(formatDateDisplay(data.date, storeSettings?.calendarType));
   }
 
   const amountStr = toPersianDigits(formatCurrency(data.amount));

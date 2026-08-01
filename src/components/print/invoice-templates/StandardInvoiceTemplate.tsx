@@ -239,7 +239,7 @@ export default function StandardInvoiceTemplate({
                 <div>{item.productName}</div>
                 {item.productCode && <div className={`${isA5 ? 'text-[8px]' : 'text-xs'} text-slate-500 font-bold mt-0.5`}>کد: {toPersianDigits(item.productCode)}</div>}
               </td>
-              <td className={`${isA5 ? 'py-1 px-2 text-[10px]' : 'py-3 px-2'} text-center font-bold ${isClassic ? 'border-l-2 border-slate-800' : 'border-l border-slate-200'}`}>{toPersianDigits(item.quantity)} {item.unit}</td>
+              <td className={`${isA5 ? 'py-1 px-2 text-[10px]' : 'py-3 px-2'} text-center font-bold ${isClassic ? 'border-l-2 border-slate-800' : 'border-l border-slate-200'}`}>{toPersianDigits(item.quantity)} {item.selectedUnit || item.unit || ""}</td>
               <td className={`${isA5 ? 'py-1 px-2 text-[10px]' : 'py-3 px-4'} font-bold ${isClassic ? 'border-l-2 border-slate-800' : 'border-l border-slate-200'}`}>{toPersianDigits(addCommas(item.unitPrice || 0))}</td>
               <td className={`${isA5 ? 'py-1 px-2 text-[10px]' : 'py-3 px-2'} text-center font-bold ${isClassic ? 'border-l-2 border-slate-800' : 'border-l border-slate-200'}`}>{toPersianDigits(addCommas(item.discountPercent || 0))}</td>
               <td className={`${isA5 ? 'py-1 px-2 text-xs' : 'py-3 px-4 text-base'} text-center font-black ${isClassic ? 'border-l-2 border-slate-800' : 'border-l border-slate-200'}`}>{toPersianDigits(addCommas(item.totalPrice || 0))}</td>

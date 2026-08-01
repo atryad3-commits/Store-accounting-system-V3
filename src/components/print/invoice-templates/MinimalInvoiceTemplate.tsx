@@ -67,7 +67,7 @@ export default function MinimalInvoiceTemplate({
             {data.items?.map((item: any, idx: number) => (
               <tr key={idx}>
                 <td className="py-4 text-gray-900">{item.productName}</td>
-                <td className="py-4 text-center text-gray-600">{toPersianDigits(item.quantity)} {item.selectedUnit}</td>
+                <td className="py-4 text-center text-gray-600">{toPersianDigits(item.quantity)} {item.selectedUnit || item.unit || ""}</td>
                 <td className="py-4 text-center text-gray-600">{toPersianDigits(addCommas(item.unitPrice))}</td>
                 <td className="py-4 text-left font-medium text-gray-900">{toPersianDigits(addCommas(item.totalPrice))}</td>
               </tr>

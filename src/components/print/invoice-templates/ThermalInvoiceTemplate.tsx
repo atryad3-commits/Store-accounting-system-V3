@@ -46,7 +46,7 @@ export default function ThermalInvoiceTemplate({
            {data.items?.map((item: any, idx: number) => (
              <tr key={idx} className="border-b border-dashed border-gray-300">
                <td className="py-1 pr-1">{item.productName}</td>
-               <td className="py-1 text-center">{toPersianDigits(item.quantity)}</td>
+               <td className="py-1 text-center">{toPersianDigits(item.quantity)} {item.selectedUnit || item.unit || ""}</td>
                <td className="py-1 text-left font-bold">{toPersianDigits(addCommas(item.totalPrice))}</td>
              </tr>
            ))}

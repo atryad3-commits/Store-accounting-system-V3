@@ -6,6 +6,7 @@ import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { Stocktaking, StocktakingItem, Product, Warehouse, WarehouseStock } from '../../types';
 import FastProductCreateModal from '../products/FastProductCreateModal';
+import CustomDatePicker from "../ui/CustomDatePicker";
 const DatePicker = CustomDatePicker;
 
 interface Props {

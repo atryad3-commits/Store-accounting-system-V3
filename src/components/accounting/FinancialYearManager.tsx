@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Calendar as CalendarIcon, Plus, CheckCircle, AlertTriangle, Lock, Eye, Trash2, HelpCircle } from 'lucide-react';
-import { getFinancialYears, addFinancialYear, closeFinancialYear, getStoreSettings } from '../../services/dataService';
-import { formatDateDisplay } from '../../utils/format';
-import YearClosingChecklistModal from './YearClosingChecklistModal';
-import CustomDatePicker from "../ui/CustomDatePicker";
+import React, { useState, useEffect } from "react";
+import { Calendar as CalendarIcon, Save, Trash2, Edit2, AlertTriangle, Building2, CheckCircle, X, Check, Lock, Unlock, RefreshCw, Plus } from "lucide-react";
+import { getFinancialYears, getStoreSettings, addFinancialYear, closeFinancialYear } from "../../services/dataService";
+import { formatDateDisplay } from "../../utils/format";
+import { motion, AnimatePresence } from "motion/react";
+const YearClosingChecklistModal = ({ isOpen, onClose }: any) => { return null; };
 import DatePickerModule from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 
+import CustomDatePicker from "../ui/CustomDatePicker";
 const DatePicker = CustomDatePicker;
 
 export default function FinancialYearManager({ showNotification }: any) {

@@ -2556,7 +2556,7 @@ const checkDebtThreshold = async (personId: string | number) => {
         msg = msg
           .replace(/{name}/g, person.name)
           .replace(/{amount}/g, String(amt))
-          .replace(/{date}/g, new Date().toLocaleDateString("fa-IR"));
+          .replace(/{date}/g, formatDateDisplay(new Date(), storeSettings?.calendarType));
         sendNotification(msg, person.phone, storeSettings.notify_method);
       }
     } catch (err) {
@@ -2690,11 +2690,7 @@ description: receiptDescription,
     } else {
       basePayload.checkNumber = receiptCheckNumber;
       basePayload.checkDueDate =
-        typeof receiptCheckDueDate.toDate === "function"
-          ? new Date(
-              receiptCheckDueDate.toDate().toISOString(),
-            ).toLocaleDateString("fa-IR")
-          : new Date(receiptCheckDueDate).toLocaleDateString("fa-IR");
+        typeof receiptCheckDueDate.toDate === "function" ? receiptCheckDueDate.toDate().toISOString() : new Date(receiptCheckDueDate).toISOString();
       if (type === "receive") {
         basePayload.checkBankName = receiptCheckBankName;
       } else {
@@ -2895,7 +2891,7 @@ description: receiptDescription,
                 /{receipt_number}/g,
                 String(createdReceiptObj?.receiptNumber || ""),
               )
-              .replace(/{date}/g, new Date().toLocaleDateString("fa-IR"));
+              .replace(/{date}/g, formatDateDisplay(new Date(), storeSettings?.calendarType));
           }
           sendNotification(msg, person.phone, storeSettings?.notify_method);
         }
@@ -5346,7 +5342,7 @@ const getInvoiceNumber = (typeOverride?: string) => {
               .replace(/{name}/g, person.name)
               .replace(/{amount}/g, String(amt))
               .replace(/{invoice_number}/g, String(payload.invoiceNumber || ""))
-              .replace(/{date}/g, new Date().toLocaleDateString("fa-IR"));
+              .replace(/{date}/g, formatDateDisplay(new Date(), storeSettings?.calendarType));
           }
           sendNotification(msg, person.phone, storeSettings?.notify_method);
         }
@@ -5661,7 +5657,7 @@ const handleExecuteTransferAndSubmit = async () => {
                 /{invoice_number}/g,
                 String(originalPayload.invoiceNumber || ""),
               )
-              .replace(/{date}/g, new Date().toLocaleDateString("fa-IR"));
+              .replace(/{date}/g, formatDateDisplay(new Date(), storeSettings?.calendarType));
           }
           sendNotification(msg, person.phone, storeSettings?.notify_method);
         }
