@@ -106,13 +106,16 @@ export default function PersonFormModal({
       if (editingPersonId) {
         const person = persons.find(p => p.id === editingPersonId);
         if (person) {
-          setNewPersonFirstName(person.firstName || person.name || "");
+          const type = person.personType || (person.type === "legal" ? "legal" : "real");
+          setNewPersonType(type);
+          
+          setNewPersonFirstName(person.firstName || (type === "real" ? person.name : "") || "");
           setNewPersonLastName(person.lastName || "");
           setNewPersonTitle(person.title || "");
           setNewPersonFatherName(person.fatherName || "");
           setNewPersonGender(person.gender || "");
           setNewPersonAccountingCode(person.accountingCode || "");
-          setNewPersonCompanyName(person.companyName || person.name || "");
+          setNewPersonCompanyName(person.companyName || (type === "legal" ? person.name : "") || "");
           setNewPersonAlias(person.alias || "");
           setNewPersonInitialBalance(person.initialBalance ? String(person.initialBalance) : "");
           setNewPersonInitialBalanceType(person.initialBalanceType || "");
@@ -124,7 +127,6 @@ export default function PersonFormModal({
           setNewPersonRoles(person.roles || (person.role ? [person.role] : []));
           setNewPersonCategories(person.categories || []);
           setNewPersonMobile(person.mobile || "");
-          setNewPersonType(person.personType || (person.type === "legal" ? "legal" : "real"));
           setNewPersonNationalId(person.nationalId || "");
           setNewPersonCode(person.code || "");
           setNewPersonPhone(person.phone || "");
@@ -158,10 +160,8 @@ export default function PersonFormModal({
         setNewPersonRegistrationDate("");
         
         setNewPersonRole("customer");
-      setNewPersonRoles([]);
-      setNewPersonCategories([]);
-      setNewPersonRoles([]);
-      setNewPersonCategories([]);
+        setNewPersonRoles([]);
+        setNewPersonCategories([]);
         setNewPersonMobile("");
         setNewPersonType("real");
         setNewPersonNationalId("");
@@ -190,6 +190,23 @@ export default function PersonFormModal({
     if (e && typeof e.preventDefault === "function") {
       try { e.preventDefault(); } catch (err) {}
     }
+
+    if (newPersonType === "real" && (!newPersonFirstName || !newPersonLastName)) {
+      showNotification("لطفاً نام و نام خانوادگی را وارد کنید.", "error");
+      return;
+    }
+    if (newPersonType === "legal" && !newPersonCompanyName) {
+      showNotification("لطفاً نام شرکت/سازمان را وارد کنید.", "error");
+      return;
+    }
+    if (newPersonNationalId && !/^\d{10,11}$/.test(newPersonNationalId)) {
+      showNotification("کد ملی/شناسه ملی نامعتبر است (باید ۱۰ یا ۱۱ رقم باشد).", "error");
+      return;
+    }
+    if (newPersonPhone && !/^09\d{9}$|^\d{8,11}$/.test(newPersonPhone)) {
+      showNotification("شماره تماس نامعتبر است.", "error");
+      return;
+    }
     
     // Check duplicates API
     try {
@@ -215,8 +232,10 @@ export default function PersonFormModal({
                
             if (filteredDuplicates.length > 0) {
                 setDuplicates(filteredDuplicates);
-                setShowDuplicatesModal(true);
-                return; // Stop submission
+                confirmAction("موارد مشابهی در سیستم یافت شد (مانند نام یا نام شرکت مشابه). آیا از ثبت این شخص اطمینان دارید؟", () => {
+                    handleSubmitPerson();
+                });
+                return; // Stop submission until confirmed
             }
         }
     } catch (e) {
@@ -231,9 +250,7 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
     if (e && typeof e.preventDefault === "function") {
       try { e.preventDefault(); } catch (err) {}
     }
-    if (newPersonType === "real" && (!newPersonFirstName || !newPersonLastName))
-      return;
-    if (newPersonType === "legal" && !newPersonCompanyName) return;
+    // Validation is already handled in handleCheckDuplicates
 
     setSubmittingPerson(true);
     setSubmitStatus("در حال اعتبارسنجی اطلاعات...");
