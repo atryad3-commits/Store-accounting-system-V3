@@ -4,11 +4,12 @@ import { Calendar as CalendarIcon, Plus, CheckCircle, AlertTriangle, Lock, Eye, 
 import { getFinancialYears, addFinancialYear, closeFinancialYear, getStoreSettings } from '../../services/dataService';
 import { formatDateDisplay } from '../../utils/format';
 import YearClosingChecklistModal from './YearClosingChecklistModal';
+import CustomDatePicker from "../ui/CustomDatePicker";
 import DatePickerModule from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 
-const DatePicker = (DatePickerModule as any).default || DatePickerModule;
+const DatePicker = CustomDatePicker;
 
 export default function FinancialYearManager({ showNotification }: any) {
   const [years, setYears] = useState<any[]>([]);

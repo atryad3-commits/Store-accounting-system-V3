@@ -3,7 +3,7 @@ import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import gregorian from "react-date-object/calendars/gregorian";
 import gregorian_en from "react-date-object/locales/gregorian_en";
-import { toPersianDigits } from "./format";
+import { toPersianDigits, convertToGregorian } from "./format";
 
 export interface DateDisplayConfig {
   dateFormat: 'YYYY/MM/DD' | 'YYYY-MM-DD' | 'DD/MM/YYYY' | 'DD-MM-YYYY' | 'monthName' | 'dayMonthName';
@@ -83,7 +83,6 @@ export class DateFormatterService {
     try {
       let jsDate = date;
       if (typeof date === 'string' && date.includes('/')) {
-         const { convertToGregorian } = require('./format');
          const parsed = new Date(convertToGregorian(date));
          if (!isNaN(parsed.getTime())) jsDate = parsed;
       }

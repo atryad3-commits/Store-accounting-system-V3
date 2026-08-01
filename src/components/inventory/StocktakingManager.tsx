@@ -6,7 +6,7 @@ import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { Stocktaking, StocktakingItem, Product, Warehouse, WarehouseStock } from '../../types';
 import FastProductCreateModal from '../products/FastProductCreateModal';
-const DatePicker = (DatePickerModule as any).default || DatePickerModule;
+const DatePicker = CustomDatePicker;
 
 interface Props {
   showNotification?: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void;

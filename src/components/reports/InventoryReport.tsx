@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import BeautifulLoading from '../BeautifulLoading';
 import { Package, Search, Calendar, FileText, ArrowDownToLine, ArrowUpFromLine, RefreshCw, Box, AlertTriangle } from 'lucide-react';
 import { motion } from 'motion/react';
+import CustomDatePicker from "../ui/CustomDatePicker";
 import DatePickerModule from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { getProducts, getInvoices, getWarehouses, getStoreSettings } from '../../services/dataService';
 import { Product, Warehouse, CompanySettings } from '../../types';
-const DatePicker = (DatePickerModule as any).default || DatePickerModule;
+const DatePicker = CustomDatePicker;
 
 const formatNumber = (num: number) => new Intl.NumberFormat('fa-IR').format(num);
 const formatCurrency = formatNumber;

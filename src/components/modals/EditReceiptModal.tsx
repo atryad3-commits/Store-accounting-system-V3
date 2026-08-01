@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Save, User, DollarSign, Calendar, CreditCard, Wallet, Tag } from 'lucide-react';
+import CustomDatePicker from "../ui/CustomDatePicker";
 import DatePickerModule from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import { numToPersianWords, toPersianDigits } from '../../utils/format';
-const DatePicker = (DatePickerModule as any).default || DatePickerModule;
+const DatePicker = CustomDatePicker;
 
 interface EditReceiptModalProps {
   showNotification: (message: string, type?: "success" | "error" | "info" | "warning") => void;

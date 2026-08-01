@@ -3,6 +3,8 @@ import DatePickerModule from "react-multi-date-picker";
 import TimePickerModule from "react-multi-date-picker/plugins/time_picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+import { globalDateFormatter } from "../../utils/dateFormatter";
+import { convertToGregorian } from "../../utils/format";
 
 const DatePicker = (DatePickerModule as any).default || DatePickerModule;
 const TimePicker = (TimePickerModule as any).default || TimePickerModule;
@@ -32,8 +34,6 @@ const TodayButton = ({ setValue, range }: any) => {
 };
 
 export default function CustomDatePicker(props: any) {
-  const { globalDateFormatter } = require("../../utils/dateFormatter");
-  const { convertToGregorian } = require("../../utils/format");
   const globalProps = globalDateFormatter.getGlobalDatePickerProps(props.value, props.onChange);
   const showTime = globalDateFormatter.getConfig().showTime;
 

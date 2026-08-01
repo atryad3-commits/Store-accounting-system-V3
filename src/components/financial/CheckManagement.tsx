@@ -18,7 +18,7 @@ import {
 , addAccountingDocument, getLedgerAccounts } from '../../services/dataService';
 import { Checkbook, IssuedCheck, ReceivedCheck, Account, Person } from '../../types';
 import { formatDateDisplay } from '../../utils/format';
-const DatePicker = (DatePickerModule as any).default || DatePickerModule;
+const DatePicker = CustomDatePicker;
 
 export default function CheckManagement({ showNotification, activeTab = 'checkbooks', onDataChange, currentUser = 'کاربر سیستم', sendNotification, storeSettings, setViewingCheck, onEditReceiptByCheck }: { showNotification?: (msg: string, type?: 'success' | 'error' | 'info' | 'warning') => void, activeTab?: 'checkbooks' | 'issued_checks' | 'received_checks' | 'check_calendar' | 'check_charts' | 'check_panel', onDataChange?: () => void, currentUser?: string, sendNotification?: any, storeSettings?: any, setViewingCheck?: any, onEditReceiptByCheck?: any }) {
 

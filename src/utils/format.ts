@@ -2,6 +2,7 @@ import Num2persian from 'num2persian';
 import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+import { globalDateFormatter } from "./dateFormatter";
 
 
 export function addCommas(num: number | string): string {
@@ -116,8 +117,6 @@ export function toPersianDigits(str: string | number | undefined | null): string
 export function formatDateDisplay(dateInput: string | Date | undefined | null, calendarType?: string): string {
   if (!dateInput || dateInput === "-") return "-";
   try {
-    const { globalDateFormatter } = require("./dateFormatter");
-    
     if (calendarType === 'gregorian' || calendarType === 'jalali') {
       const originalCalendar = globalDateFormatter.getConfig().calendarType;
       const originalShowTime = globalDateFormatter.getConfig().showTime;
