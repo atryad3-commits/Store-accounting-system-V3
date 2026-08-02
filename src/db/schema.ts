@@ -183,3 +183,27 @@ export const personGroups = pgTable('person_groups', {
   sortOrder: integer('sort_order').default(0),
   isActive: boolean('is_active').default(true),
 });
+
+// --- Messaging Module ---
+export const messageChannels = pgTable('message_channels', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  type: varchar('type', { length: 50 }).notNull(), // sms_panel, gsm, whatsapp, telegram
+  priority: integer('priority').default(0),
+  isEnabled: boolean('is_enabled').default(false),
+  config: json('config'), // Store credentials, endpoints, etc.
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const messageLogs = pgTable('message_logs', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  channelId: varchar('channel_id', { length: 50 }),
+  recipient: varchar('recipient', { length: 255 }).notNull(),
+  content: text('content').notNull(),
+  status: varchar('status', { length: 50 }).default('pending'), // pending, sent, failed, delivered
+  error: text('error'),
+  messageId: varchar('message_id', { length: 255 }), // ID returned by the provider
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});

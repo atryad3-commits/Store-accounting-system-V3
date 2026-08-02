@@ -1,5 +1,5 @@
 import React from "react";
-import {
+import { MessageSquare,
   BarChart3,
   ShoppingCart,
   PackagePlus,
@@ -188,13 +188,22 @@ export const allSidebarGroups: SidebarGroup[] = [
     ],
   },
   {
+    id: "messaging_system",
+    label: "پیامک و اطلاع‌رسانی",
+    icon: <MessageSquare className="w-5 h-5" />,
+    items: [
+      { id: "send_message", label: "ارسال پیام", roles: ["admin", "manager", "accountant"] },
+      { id: "messaging_channels", label: "تنظیمات کانال‌ها", roles: ["admin"] },
+      { id: "messaging_logs", label: "گزارشات ارسال", roles: ["admin", "manager"] },
+    ],
+  },
+  {
     id: "admin",
     label: "تنظیمات و ادمین",
     icon: <Settings className="w-5 h-5" />,
     items: [
       { id: "settings", label: "تنظیمات پایه‌ای سیستم", roles: ["admin"] },
       { id: "users_manager", label: "مدیریت دسترسی کاربران", roles: ["admin"] },
-      { id: "sms_panel", label: "تنظیمات پنل پیامک", roles: ["admin"] },
       { id: "data_reconciliation", label: "تطبیق و اصلاح داده‌ها", roles: ["admin"] },
       { id: "checklist", label: "چک‌لیست سیستم", roles: ["admin"] },
       { id: "system_diagnostics", label: "عیب‌یابی سیستم", roles: ["admin"] },
@@ -267,7 +276,7 @@ export function getFilteredSidebarGroups(
         return ["admin", "reports"].includes(g.id) || g.id === "personal_workspace";
       }
       if (systemModule === "crm") {
-        return ["persons", "sales_operations", "sms_panel", "reports"].includes(g.id) || g.id === "personal_workspace";
+        return ["persons", "sales_operations", "messaging_system", "reports"].includes(g.id) || g.id === "personal_workspace";
       }
       if (systemModule === "hr") {
         return ["salary", "persons", "reports"].includes(g.id) || g.id === "personal_workspace";
