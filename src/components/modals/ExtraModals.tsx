@@ -13,7 +13,7 @@ const EditReceiptModal = React.lazy(() => import('./EditReceiptModal').catch(() 
 const AIProductSearchModal = React.lazy(() => import('../products/AIProductSearchModal').catch(() => ({ default: () => null })));
 const GenerateBarcodesModal = React.lazy(() => import('./GenerateBarcodesModal').catch(() => ({ default: () => null })));
 const PersonExtraModal = React.lazy(() => import('./PersonExtraModal').catch(() => ({ default: () => null })));
-const PersonExtraInfoModal = React.lazy(() => import('./PersonExtraInfoModal').catch(() => ({ default: () => null })));
+
 
 export default function ExtraModals(props: any) {
   const {
@@ -232,14 +232,6 @@ export default function ExtraModals(props: any) {
           }}
         />
       )}
-      <PersonExtraInfoModal
-          isOpen={isPersonExtraModalOpen}
-          onClose={() => setIsPersonExtraModalOpen(false)}
-          personId={personExtraId}
-          persons={props.persons}
-          fetchPersons={props.fetchPersons}
-          showNotification={props.showNotification}
-        />
       
       {historyProductId && (
         <ProductPriceHistoryModal
