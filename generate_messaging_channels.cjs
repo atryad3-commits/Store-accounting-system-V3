@@ -198,7 +198,7 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">مدیریت کانال‌های ارسال</h2>
           <p className="text-slate-500 text-sm mt-1 flex items-center gap-2">
@@ -207,48 +207,48 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
         </div>
         <button 
           onClick={() => setIsLogsOpen(!isLogsOpen)}
-          className="px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition-colors flex items-center gap-2 shadow-sm"
+          className="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-colors flex items-center gap-2"
         >
-          <Activity className="w-4 h-4 text-slate-500" />
+          <Activity className="w-4 h-4" />
           تاریخچه تراکنش‌ها (Logs)
         </button>
       </div>
 
       {/* Security Banner */}
-      <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
-        <ShieldAlert className="w-5 h-5 text-rose-600 mt-0.5 shrink-0" />
+      <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 flex items-start gap-3">
+        <ShieldAlert className="w-5 h-5 text-rose-600 mt-0.5" />
         <div>
           <h4 className="font-bold text-rose-800 text-sm">هشدار امنیتی: کلید API واتس‌اپ منقضی شده است</h4>
           <p className="text-rose-600 text-xs mt-1">جهت جلوگیری از اختلال در ارسال، لطفا کلید جدید را در تنظیمات وارد کنید.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left Column: Smart Failover Queue */}
-        <div className="xl:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col h-[520px]">
+        <div className="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col h-[500px]">
           <div className="mb-4">
             <h3 className="font-bold text-slate-800 flex items-center gap-2">
               <RefreshCw className="w-5 h-5 text-indigo-500" />
               صف هوشمند اولویت‌ها (Failover)
             </h3>
-            <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-              در صورت شکست در ارسال، سیستم به طور خودکار به کانال بعدی در صف سوییچ می‌کند. (برای تغییر اولویت بکشید و رها کنید)
+            <p className="text-xs text-slate-500 mt-2">
+              در صورت شکست در ارسال، سیستم به طور خودکار به کانال بعدی در صف سوییچ می‌کند. (برای تغییر اولویت کشیدن و رها کنید)
             </p>
           </div>
           
-          <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar">
-            <Reorder.Group axis="y" values={channels} onReorder={handleReorder} className="space-y-3 pb-4">
+          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+            <Reorder.Group axis="y" values={channels} onReorder={handleReorder} className="space-y-3">
               {channels.map((channel, index) => (
                 <Reorder.Item 
                   key={channel.id} 
                   value={channel}
-                  className={`relative flex items-center gap-3 p-3.5 rounded-xl border ${
+                  className={`relative flex items-center gap-3 p-3 rounded-xl border ${
                     index === 0 ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 shadow-sm' : 'bg-white border-slate-100 hover:border-slate-300'
                   } cursor-grab active:cursor-grabbing transition-colors group`}
                 >
-                  <GripVertical className="w-4 h-4 text-slate-400 group-hover:text-slate-600 shrink-0" />
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                  <GripVertical className="w-4 h-4 text-slate-400 group-hover:text-slate-600" />
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                     index === 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500'
                   }`}>
                     {getIconFixed(channel.type)}
@@ -260,7 +260,7 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
                     </div>
                     <span className="text-xs text-slate-400">اولویت {index + 1}</span>
                   </div>
-                  <div className={`w-2 h-2 rounded-full shrink-0 ${channel.isEnabled ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+                  <div className={`w-2 h-2 rounded-full ${channel.isEnabled ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
                 </Reorder.Item>
               ))}
             </Reorder.Group>
@@ -268,34 +268,33 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
         </div>
 
         {/* Right Column: Cards Grid */}
-        <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5 h-fit">
+        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 h-fit">
           {channels.map((channel) => (
             <div 
               key={channel.id} 
               onClick={() => setEditingChannel(channel)}
-              className={`group bg-white rounded-2xl border ${channel.isEnabled ? 'border-indigo-100 shadow-sm hover:shadow-md hover:border-indigo-200 hover:-translate-y-0.5' : 'border-slate-100 opacity-80 hover:opacity-100 hover:border-slate-300'} p-5 cursor-pointer transition-all duration-300 relative overflow-hidden`}
+              className={`group bg-white rounded-2xl border ${channel.isEnabled ? 'border-indigo-100 shadow-sm hover:shadow-md hover:border-indigo-200' : 'border-slate-100 opacity-80 hover:opacity-100 hover:border-slate-300'} p-5 cursor-pointer transition-all duration-300 relative overflow-hidden`}
             >
               {/* Status Indicator Bar */}
-              <div className={`absolute top-0 left-0 w-full h-1 transition-colors ${
+              <div className={`absolute top-0 left-0 w-full h-1 ${
                 channel.status === 'connected' ? 'bg-emerald-500' : 
                 channel.status === 'rate-limited' ? 'bg-amber-500' : 'bg-rose-500'
               }`}></div>
 
-              <div className="flex justify-between items-start mb-5">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors shadow-sm ${
-                    channel.isEnabled ? 'bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600 group-hover:from-indigo-100 group-hover:to-indigo-200' : 'bg-slate-50 border border-slate-100 text-slate-400'
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                    channel.isEnabled ? 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100' : 'bg-slate-50 text-slate-400'
                   }`}>
                     {getIconFixed(channel.type)}
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-800 text-lg">{channel.name}</h3>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 ${
-                        channel.status === 'connected' ? 'bg-emerald-50 text-emerald-700' : 
-                        channel.status === 'rate-limited' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700'
+                    <h3 className="font-bold text-slate-800">{channel.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        channel.status === 'connected' ? 'bg-emerald-50 text-emerald-600' : 
+                        channel.status === 'rate-limited' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'
                       }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${channel.status === 'connected' ? 'bg-emerald-500' : channel.status === 'rate-limited' ? 'bg-amber-500' : 'bg-rose-500'}`}></span>
                         {channel.status === 'connected' ? 'متصل' : channel.status === 'rate-limited' ? 'محدودیت نرخ' : 'قطع ارتباط'}
                       </span>
                     </div>
@@ -304,22 +303,22 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
                 
                 {/* Sleek Toggle Switch */}
                 <div 
-                  className="relative inline-flex items-center shrink-0 mt-1"
+                  className="relative inline-flex items-center"
                   onClick={(e) => toggleStatus(e, channel.id)}
                 >
-                  <div className={`w-11 h-6 rounded-full transition-colors duration-300 ${channel.isEnabled ? 'bg-indigo-500 shadow-inner' : 'bg-slate-200'}`}></div>
-                  <div className={`absolute w-5 h-5 bg-white rounded-full shadow transition-transform duration-300 top-0.5 left-0.5 ${channel.isEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                  <div className={`w-10 h-5 rounded-full transition-colors duration-300 ${channel.isEnabled ? 'bg-indigo-500' : 'bg-slate-200'}`}></div>
+                  <div className={`absolute w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300 top-0.5 left-0.5 ${channel.isEnabled ? 'translate-x-5' : 'translate-x-0'}`}></div>
                 </div>
               </div>
               
-              <div className="flex justify-between items-end mt-6 pt-5 border-t border-slate-50/80">
-                <div className="text-xs text-slate-500 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                  <span>آخرین: <span className="font-bold text-slate-700">{channel.lastUsed}</span></span>
+              <div className="flex justify-between items-end mt-6 pt-4 border-t border-slate-50">
+                <div className="text-xs text-slate-500">
+                  <span className="block mb-1">آخرین استفاده:</span>
+                  <span className="font-medium text-slate-700">{channel.lastUsed}</span>
                 </div>
-                <div className="text-xs text-slate-500 flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5 text-slate-400" />
-                  <span>ظرفیت: <span className="font-bold text-slate-700">{channel.dailyRateLimit.toLocaleString()}</span> پیام</span>
+                <div className="text-xs text-slate-500 text-left">
+                  <span className="block mb-1">ظرفیت روزانه:</span>
+                  <span className="font-medium text-slate-700">{channel.dailyRateLimit.toLocaleString()} پیام</span>
                 </div>
               </div>
             </div>
@@ -330,12 +329,12 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
       {/* Slide-in Modal / Drawer for Advanced Configuration */}
       <AnimatePresence>
         {editingChannel && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center sm:justify-end p-0">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:justify-end sm:p-0">
             <motion.div 
               initial={{ opacity: 0 }} 
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }} 
-              className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
               onClick={() => setEditingChannel(null)}
             />
             
@@ -343,13 +342,13 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
               initial={{ x: "100%" }} 
               animate={{ x: 0 }} 
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="bg-white w-full sm:max-w-md h-full sm:h-screen sm:rounded-l-3xl shadow-2xl relative z-10 flex flex-col overflow-hidden border-l border-slate-200/60"
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="bg-white w-full max-w-md h-full sm:h-screen sm:rounded-l-3xl shadow-2xl relative z-10 flex flex-col overflow-hidden"
               dir="rtl"
             >
-              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-white sticky top-0 z-20">
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
                     {getIconFixed(editingChannel.type)}
                   </div>
                   <div>
@@ -357,24 +356,24 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
                     <p className="text-xs text-slate-500">{editingChannel.name}</p>
                   </div>
                 </div>
-                <button onClick={() => setEditingChannel(null)} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors">
+                <button onClick={() => setEditingChannel(null)} className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar bg-slate-50/30">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 
                 {/* Auth & API Keys */}
                 <div className="space-y-4">
-                  <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b border-slate-100 pb-3">
+                  <h4 className="font-semibold text-slate-700 text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
                     <Key className="w-4 h-4 text-indigo-500" />
-                    احراز هویت و امنیت (API)
+                    احراز هویت و API
                   </h4>
                   
                   {Object.keys(editingChannel.config).map((key) => (
                     <div key={key} className="space-y-1.5">
-                      <label className="text-[13px] font-bold text-slate-700 capitalize">{key}</label>
-                      <div className="relative group">
+                      <label className="text-xs font-bold text-slate-600 capitalize">{key}</label>
+                      <div className="relative">
                         <input
                           type={key.toLowerCase().includes('key') || key.toLowerCase().includes('token') ? (showKey ? "text" : "password") : "text"}
                           value={editingChannel.config[key]}
@@ -382,13 +381,13 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
                             ...editingChannel,
                             config: { ...editingChannel.config, [key]: e.target.value }
                           })}
-                          className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3 dir-ltr text-left pr-11 pl-11 shadow-sm transition-shadow"
+                          className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3 dir-ltr text-left pr-10"
                         />
                         {(key.toLowerCase().includes('key') || key.toLowerCase().includes('token')) && (
                           <button 
                             type="button"
                             onClick={() => setShowKey(!showKey)}
-                            className="absolute right-3 top-3.5 text-slate-400 hover:text-indigo-600 transition-colors"
+                            className="absolute right-3 top-3 text-slate-400 hover:text-indigo-600"
                           >
                             {showKey ? <AlertCircle className="w-4 h-4" /> : <Settings className="w-4 h-4" />}
                           </button>
@@ -396,7 +395,7 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
                         <button 
                           type="button"
                           onClick={() => copyToClipboard(editingChannel.config[key])}
-                          className="absolute left-3 top-3.5 text-slate-400 hover:text-indigo-600 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                          className="absolute left-3 top-3 text-slate-400 hover:text-indigo-600"
                         >
                           <Copy className="w-4 h-4" />
                         </button>
@@ -407,24 +406,24 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
 
                 {/* General Settings */}
                 <div className="space-y-4">
-                  <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b border-slate-100 pb-3">
+                  <h4 className="font-semibold text-slate-700 text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
                     <Settings className="w-4 h-4 text-indigo-500" />
-                    پارامترهای عملکردی
+                    تنظیمات عمومی
                   </h4>
                   
                   <div className="space-y-1.5">
-                    <label className="text-[13px] font-bold text-slate-700">فرستنده پیش‌فرض (Sender ID / From Name)</label>
+                    <label className="text-xs font-bold text-slate-600">فرستنده پیش‌فرض (Sender ID / From)</label>
                     <input
                       type="text"
                       value={editingChannel.defaultSenderId}
                       onChange={e => setEditingChannel({...editingChannel, defaultSenderId: e.target.value})}
-                      className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3 shadow-sm dir-ltr text-left"
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3"
                     />
                   </div>
 
-                  <div className="space-y-3 pt-2">
-                    <label className="text-[13px] font-bold text-slate-700">محدودیت ارسال روزانه (Daily Rate Limit)</label>
-                    <div className="flex items-center gap-4 bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-600">محدودیت ارسال روزانه (Daily Rate Limit)</label>
+                    <div className="flex items-center gap-3">
                       <input
                         type="range"
                         min="0"
@@ -432,16 +431,16 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
                         step="100"
                         value={editingChannel.dailyRateLimit}
                         onChange={e => setEditingChannel({...editingChannel, dailyRateLimit: parseInt(e.target.value)})}
-                        className="flex-1 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                        className="flex-1 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                       />
-                      <span className="text-sm font-bold text-indigo-600 w-16 text-center bg-indigo-50 py-1 rounded-md">
+                      <span className="text-sm font-bold text-indigo-600 w-16 text-left">
                         {editingChannel.dailyRateLimit.toLocaleString()}
                       </span>
                     </div>
                   </div>
 
-                  <div className="space-y-2 pt-2">
-                    <label className="text-[13px] font-bold text-slate-700">ساعات مجاز فعالیت (Business Hours)</label>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-600">ساعات مجاز فعالیت (Business Hours)</label>
                     <div className="flex items-center gap-3">
                       <input
                         type="time"
@@ -450,9 +449,9 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
                           ...editingChannel, 
                           activeHours: {...editingChannel.activeHours, start: e.target.value}
                         })}
-                        className="bg-white border border-slate-200 text-slate-800 font-medium text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 p-2.5 flex-1 text-center shadow-sm"
+                        className="bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 p-2 flex-1 text-center"
                       />
-                      <span className="text-slate-400 text-sm font-medium">تا</span>
+                      <span className="text-slate-400">تا</span>
                       <input
                         type="time"
                         value={editingChannel.activeHours.end}
@@ -460,32 +459,31 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
                           ...editingChannel, 
                           activeHours: {...editingChannel.activeHours, end: e.target.value}
                         })}
-                        className="bg-white border border-slate-200 text-slate-800 font-medium text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 p-2.5 flex-1 text-center shadow-sm"
+                        className="bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 p-2 flex-1 text-center"
                       />
                     </div>
                   </div>
                 </div>
                 
+                {/* Actions */}
+                <div className="pt-4">
+                  <button 
+                    onClick={testConnection}
+                    className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors flex items-center justify-center gap-2 mb-3"
+                  >
+                    <Activity className="w-5 h-5" />
+                    تست اتصال (Test Connection)
+                  </button>
+                  <button 
+                    onClick={handleSave}
+                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
+                  >
+                    <Check className="w-5 h-5" />
+                    ذخیره تغییرات
+                  </button>
+                </div>
+                
               </div>
-
-              {/* Actions Footer */}
-              <div className="p-6 border-t border-slate-100 bg-white">
-                <button 
-                  onClick={testConnection}
-                  className="w-full py-3 mb-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
-                >
-                  <Activity className="w-5 h-5" />
-                  تست اتصال شبکه (Ping)
-                </button>
-                <button 
-                  onClick={handleSave}
-                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-md shadow-indigo-200 hover:shadow-lg hover:shadow-indigo-300 flex items-center justify-center gap-2"
-                >
-                  <Check className="w-5 h-5" />
-                  ذخیره پیکربندی
-                </button>
-              </div>
-
             </motion.div>
           </div>
         )}
@@ -500,55 +498,54 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mt-2 mb-8">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mt-6">
+              <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
                   <Activity className="w-5 h-5 text-indigo-500" />
-                  تاریخچه و تریل حسابرسی (Audit Trail)
+                  تاریخچه ارسال و لاگ‌ها (Transmission Logs)
                 </h3>
                 
                 {/* Filter Chips */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <button className="px-3 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg flex items-center gap-1 border border-indigo-100">
+                <div className="hidden md:flex items-center gap-2">
+                  <button className="px-3 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg flex items-center gap-1">
                     <Filter className="w-3.5 h-3.5" />
                     امروز
                   </button>
-                  <button className="px-3 py-1.5 bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-100 text-xs font-bold rounded-lg transition-colors">
+                  <button className="px-3 py-1.5 bg-slate-50 text-slate-600 hover:bg-slate-100 text-xs font-medium rounded-lg">
                     موفق
                   </button>
-                  <button className="px-3 py-1.5 bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-100 text-xs font-bold rounded-lg transition-colors">
+                  <button className="px-3 py-1.5 bg-slate-50 text-slate-600 hover:bg-slate-100 text-xs font-medium rounded-lg">
                     خطا دار
                   </button>
                 </div>
               </div>
 
-              <div className="overflow-x-auto rounded-xl border border-slate-100">
+              <div className="overflow-x-auto">
                 <table className="w-full text-sm text-right text-slate-500">
-                  <thead className="text-[11px] font-bold text-slate-500 bg-slate-50/80 uppercase tracking-wider">
+                  <thead className="text-xs text-slate-700 bg-slate-50 uppercase rounded-xl overflow-hidden">
                     <tr>
-                      <th className="px-5 py-3.5 rounded-tr-xl">زمان</th>
-                      <th className="px-5 py-3.5">کانال ارتباطی</th>
-                      <th className="px-5 py-3.5">گیرنده</th>
-                      <th className="px-5 py-3.5">وضعیت</th>
-                      <th className="px-5 py-3.5 rounded-tl-xl">خطا (در صورت وجود)</th>
+                      <th className="px-4 py-3 rounded-tr-xl">زمان</th>
+                      <th className="px-4 py-3">کانال ارتباطی</th>
+                      <th className="px-4 py-3">گیرنده</th>
+                      <th className="px-4 py-3">وضعیت</th>
+                      <th className="px-4 py-3 rounded-tl-xl">خطا (در صورت وجود)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody>
                     {mockLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-50/50 transition-colors bg-white">
-                        <td className="px-5 py-3.5 whitespace-nowrap font-mono text-[13px] text-slate-600">{log.time}</td>
-                        <td className="px-5 py-3.5 font-bold text-slate-700 text-[13px]">{log.channel}</td>
-                        <td className="px-5 py-3.5 font-mono text-slate-600 text-[13px]">{log.recipient}</td>
-                        <td className="px-5 py-3.5">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold ${
-                            log.status === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100/50' : 
-                            log.status === 'failed' ? 'bg-rose-50 text-rose-700 border border-rose-100/50' : 'bg-amber-50 text-amber-700 border border-amber-100/50'
+                      <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                        <td className="px-4 py-3 whitespace-nowrap font-mono text-slate-600">{log.time}</td>
+                        <td className="px-4 py-3 font-medium text-slate-800">{log.channel}</td>
+                        <td className="px-4 py-3 font-mono text-slate-600">{log.recipient}</td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                            log.status === 'success' ? 'bg-emerald-50 text-emerald-600' : 
+                            log.status === 'failed' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'
                           }`}>
-                            <span className={`w-1 h-1 rounded-full ${log.status === 'success' ? 'bg-emerald-500' : log.status === 'failed' ? 'bg-rose-500' : 'bg-amber-500'}`}></span>
-                            {log.status === 'success' ? 'ارسال موفق' : log.status === 'failed' ? 'خطا در ارسال' : 'در صف ارسال'}
+                            {log.status === 'success' ? 'ارسال شده' : log.status === 'failed' ? 'خطا' : 'در صف ارسال'}
                           </span>
                         </td>
-                        <td className="px-5 py-3.5 text-rose-600 text-[13px] font-medium">
+                        <td className="px-4 py-3 text-rose-500 text-xs font-medium">
                           {log.error || '-'}
                         </td>
                       </tr>
