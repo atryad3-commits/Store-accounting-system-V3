@@ -343,22 +343,22 @@ export default function PersonProfileView({
                         <span className="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded-lg border border-slate-200">{acc.bankName || 'نامشخص'}</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
-                        {acc.accountNumber && (
+                        {(acc.accountNumber || acc.accountNo) && (
                           <div className="bg-white p-2 rounded-xl border border-slate-200 flex flex-col">
                             <span className="text-[10px] text-slate-400 font-bold mb-0.5">شماره حساب</span>
-                            <span className="text-sm font-mono text-slate-700" dir="ltr">{acc.accountNumber}</span>
+                            <span className="text-sm font-mono text-slate-700" dir="ltr">{acc.accountNumber || acc.accountNo}</span>
                           </div>
                         )}
-                        {acc.cardNumber && (
+                        {(acc.cardNumber || acc.cardNo) && (
                           <div className="bg-white p-2 rounded-xl border border-slate-200 flex flex-col">
                             <span className="text-[10px] text-slate-400 font-bold mb-0.5">شماره کارت</span>
-                            <span className="text-sm font-mono text-slate-700" dir="ltr">{acc.cardNumber}</span>
+                            <span className="text-sm font-mono text-slate-700" dir="ltr">{acc.cardNumber || acc.cardNo}</span>
                           </div>
                         )}
-                        {acc.shebaNumber && (
+                        {(acc.shebaNumber || acc.sheba) && (
                           <div className="bg-white p-2 rounded-xl border border-slate-200 flex flex-col">
                             <span className="text-[10px] text-slate-400 font-bold mb-0.5">شماره شبا</span>
-                            <span className="text-sm font-mono text-slate-700" dir="ltr">{acc.shebaNumber}</span>
+                            <span className="text-sm font-mono text-slate-700" dir="ltr">{acc.shebaNumber || acc.sheba}</span>
                           </div>
                         )}
                       </div>
