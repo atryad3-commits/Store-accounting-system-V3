@@ -59,10 +59,10 @@ export default function SmsTemplatesView({ showNotification }: any) {
   const saveTemplatesToDb = async (newTemplates: SmsTemplate[]) => {
     setIsSaving(true);
     try {
-      await fetch('/api/data', {
+      await fetch('/api/data/sms_templates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: 'sms_templates', data: newTemplates })
+        body: JSON.stringify(newTemplates)
       });
       setTemplates(newTemplates);
       if (showNotification) showNotification('تغییرات با موفقیت ذخیره شد', 'success');

@@ -34,8 +34,8 @@ export default function SendMessageView({ showNotification, persons = [], person
       const name = p.firstName || p.lastName ? `${p.firstName || ''} ${p.lastName || ''}`.trim() : (p.companyName || p.title || 'نامشخص');
       
       let groupName = 'بدون گروه';
-      if (p.personGroupId) {
-         const grp = personGroups.find((g: any) => g.id === p.personGroupId);
+      if (p.group) {
+         const grp = personGroups.find((g: any) => g.id === p.group);
          if (grp) groupName = grp.name;
       }
       return {
@@ -50,7 +50,7 @@ export default function SendMessageView({ showNotification, persons = [], person
 
   const formattedGroups = React.useMemo(() => {
     return (personGroups || []).map((g: any) => {
-       const count = (persons || []).filter((p: any) => p.personGroupId === g.id).length;
+       const count = (persons || []).filter((p: any) => p.group === g.id).length;
        return { id: g.id, name: g.name, count };
     });
   }, [persons, personGroups]);
