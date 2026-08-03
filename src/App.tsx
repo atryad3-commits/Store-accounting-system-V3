@@ -286,6 +286,7 @@ const WarehouseFormModal = React.lazy(() => import('./components/modals/Warehous
 const SendMessageView = React.lazy(() => import('./components/messaging/SendMessageView'));
 const MessagingChannelsView = React.lazy(() => import('./components/messaging/MessagingChannelsView'));
 const MessagingLogsView = React.lazy(() => import('./components/messaging/MessagingLogsView'));
+const SmsTemplatesView = React.lazy(() => import('./components/messaging/SmsTemplatesView'));
 
 
 const ModuleSelector = React.lazy(() => import('./components/ui/ModuleSelector'));
@@ -985,9 +986,10 @@ export default function App() {
 <Route path="/kardex" element={<KardexReport />} />
 <Route path="/crm_dashboard" element={<CRMDashboard persons={persons} showNotification={showNotification} confirmAction={confirmAction} />} />
 <Route path="/analytical_dashboard" element={<AnalyticalDashboard showNotification={showNotification} />} />
-<Route path="/send_message" element={<SendMessageView showNotification={showNotification} />} />
+<Route path="/send_message" element={<SendMessageView showNotification={showNotification} persons={persons} personGroups={personGroups} />} />
 <Route path="/messaging_channels" element={<MessagingChannelsView showNotification={showNotification} />} />
 <Route path="/messaging_logs" element={<MessagingLogsView showNotification={showNotification} />} />
+<Route path="/sms_templates" element={<SmsTemplatesView showNotification={showNotification} />} />
 <Route path="/sync_manager" element={<SyncManager confirmAction={confirmAction} />} />
 <Route path="/system_logs" element={<motion.div
                         initial={{ opacity: 0, y: 10 }}

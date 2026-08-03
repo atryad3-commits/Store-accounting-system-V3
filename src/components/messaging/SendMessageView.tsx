@@ -8,30 +8,60 @@ import {
 } from 'lucide-react';
 
 // Mock Data
-const MOCK_CONTACTS = [
-  { id: '1', name: 'علی رضایی', phone: '09123456789', group: 'مشتری ویژه', avatarColor: 'bg-blue-500' },
-  { id: '2', name: 'سارا احمدی', phone: '09351112233', group: 'کاربر سیستم', avatarColor: 'bg-rose-500' },
-  { id: '3', name: 'محمد کریمی', phone: '09198887766', group: 'کارمند', avatarColor: 'bg-emerald-500' },
-  { id: '4', name: 'زهرا موسوی', phone: '09102223344', group: 'مشتری', avatarColor: 'bg-purple-500' },
-];
 
-const MOCK_GROUPS = [
-  { id: 'g1', name: 'مشتریان طلایی', count: 85 },
-  { id: 'g2', name: 'همکاران فروش', count: 12 },
-  { id: 'g3', name: 'خبرنامه', count: 1240 },
-];
 
-const MOCK_TEMPLATES = [
-  { id: 't1', title: 'خوش‌آمدگویی', category: 'تبریک', body: 'سلام {name} عزیز، به سیستم ما خوش آمدید.', usage: 142 },
-  { id: 't2', title: 'کد تأیید', category: 'کد تأیید', body: 'کد تأیید شما: {code}\nلطفا این کد را در اختیار دیگران قرار ندهید.', usage: 5231 },
-  { id: 't3', title: 'هشدار پایان اعتبار', category: 'هشدار', body: 'مشترک گرامی، اعتبار سرویس شما تا {date} به پایان می‌رسد.', usage: 84 },
-];
 
-export default function SendMessageView({ showNotification }: any) {
+
+
+
+export default function SendMessageView({ showNotification, persons = [], personGroups = [] }: any) {
+  
+  const [templates, setTemplates] = useState<any[]>([]);
+  
+  useEffect(() => {
+    fetch('/api/data/sms_templates')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setTemplates(data);
+      })
+      .catch(err => console.error(err));
+  }, []);
+  
+  const formattedPersons = React.useMemo(() => {
+    return (persons || []).map((p: any, index: number) => {
+      const colors = ['bg-blue-500', 'bg-rose-500', 'bg-emerald-500', 'bg-purple-500', 'bg-orange-500', 'bg-teal-500'];
+      const color = colors[index % colors.length];
+      const name = p.firstName || p.lastName ? `${p.firstName || ''} ${p.lastName || ''}`.trim() : (p.companyName || p.title || 'نامشخص');
+      
+      let groupName = 'بدون گروه';
+      if (p.personGroupId) {
+         const grp = personGroups.find((g: any) => g.id === p.personGroupId);
+         if (grp) groupName = grp.name;
+      }
+      return {
+        id: p.id,
+        name,
+        phone: p.phone || p.mobile || 'بدون شماره',
+        group: groupName,
+        avatarColor: color
+      }
+    });
+  }, [persons, personGroups]);
+
+  const formattedGroups = React.useMemo(() => {
+    return (personGroups || []).map((g: any) => {
+       const count = (persons || []).filter((p: any) => p.personGroupId === g.id).length;
+       return { id: g.id, name: g.name, count };
+    });
+  }, [persons, personGroups]);
+
   // State
   const [sendMode, setSendMode] = useState<'single' | 'bulk' | 'group' | 'scheduled'>('single');
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState(MOCK_CONTACTS);
+  useEffect(() => {
+    setSearchResults(formattedPersons);
+  }, [formattedPersons]);
+  const [searchResults, setSearchResults] = useState([]);
   const [selectedRecipients, setSelectedRecipients] = useState<any[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [manualNumbers, setManualNumbers] = useState('');
@@ -224,7 +254,7 @@ export default function SendMessageView({ showNotification }: any) {
 
           {sendMode === 'group' && (
             <div className="space-y-3">
-              {MOCK_GROUPS.map(group => (
+              {formattedGroups.map(group => (
                 <label key={group.id} className="flex items-center justify-between p-4 bg-white rounded-xl border border-slate-200 hover:border-indigo-300 cursor-pointer shadow-sm transition-all">
                   <div className="flex items-center gap-3">
                     <input 
@@ -540,10 +570,10 @@ export default function SendMessageView({ showNotification }: any) {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-                {MOCK_TEMPLATES.map(template => (
+                {templates.map(template => (
                   <div key={template.id} className="bg-white border border-slate-200 rounded-2xl p-4 hover:border-indigo-300 hover:shadow-md transition-all group">
                     <div className="flex items-start justify-between mb-2">
-                      <h3 className="font-bold text-slate-800">{template.title}</h3>
+                      <h3 className="font-bold text-slate-800">{template.name}</h3>
                       <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md">{template.category}</span>
                     </div>
                     <p className="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-3">
@@ -552,7 +582,7 @@ export default function SendMessageView({ showNotification }: any) {
                     <div className="flex items-center justify-between border-t border-slate-100 pt-3">
                       <div className="text-xs text-slate-400 flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" />
-                        {template.usage} بار استفاده شده
+                        {template.usageCount || 0} بار استفاده شده
                       </div>
                       <button 
                         onClick={() => applyTemplate(template)}

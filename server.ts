@@ -174,7 +174,10 @@ const KNOWN_TABLES = [
   'wastes', 'waste_items',
   'receipt_transactions', 'payment_transactions',
   'issued_checks', 'received_checks', 'payslips'
-, 'InventoryTransactions', 'personal_notes'];
+, 'InventoryTransactions', 'personal_notes',
+  'sms_providers', 'sms_provider_settings', 'sms_templates', 'sms_campaigns',
+  'sms_delivery_logs', 'sms_retry_logs', 'sms_settings', 'sms_quota_logs', 'sms_audit_logs'];
+
 
 
 const tableSchemas = new Map<string, Set<string>>();
