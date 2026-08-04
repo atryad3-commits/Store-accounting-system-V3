@@ -1,4 +1,4 @@
-import { pgTable, serial, text, varchar, timestamp, json, integer, boolean, numeric, index } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, varchar, timestamp, json, integer, boolean, numeric, index, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // Core Users Table
@@ -454,3 +454,189 @@ export const smsQuotaLogsRelations = relations(smsQuotaLogs, ({ one }) => ({
     references: [smsProviders.id],
   }),
 }));
+
+
+export const loanTypes = pgTable('loan_types', {
+  id: varchar('id').primaryKey(),
+  name: text('name').notNull(),
+  type: text('type').notNull(), // 'long_term', 'short_term', 'qard_al_hasan', 'murabaha'
+  interestRate: numeric('interest_rate', { precision: 5, scale: 2 }).notNull(),
+  interestType: text('interest_type').notNull().default('simple'), // 'simple', 'compound', 'diminishing'
+  gracePeriodDays: integer('grace_period_days').default(0),
+  defaultPenaltyRate: numeric('default_penalty_rate', { precision: 5, scale: 2 }), // Daily penalty rate
+  minAmount: numeric('min_amount'),
+  maxAmount: numeric('max_amount'),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const loanApplications = pgTable('loan_applications', {
+  id: varchar('id').primaryKey(),
+  applicationNumber: text('application_number').unique().notNull(),
+  customerId: text('customer_id').notNull(), // References persons
+  loanTypeId: varchar('loan_type_id').references(() => loanTypes.id),
+  requestedAmount: numeric('requested_amount').notNull(),
+  durationMonths: integer('duration_months').notNull(),
+  status: text('status').notNull().default('pending'), // 'pending', 'approved', 'rejected', 'disbursed'
+  riskScore: integer('risk_score'),
+  approvedAmount: numeric('approved_amount'),
+  rejectionReason: text('rejection_reason'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const collaterals = pgTable('collaterals', {
+  id: varchar('id').primaryKey(),
+  applicationId: varchar('application_id').references(() => loanApplications.id),
+  customerId: text('customer_id'),
+  type: text('type').notNull(), // 'real_estate', 'bank_guarantee', 'promissory_note', 'check'
+  value: numeric('value').notNull(),
+  description: text('description'),
+  status: text('status').default('active'), // 'active', 'released', 'liquidated'
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const loanAccounts = pgTable('loan_accounts', {
+  id: varchar('id').primaryKey(),
+  loanNumber: text('loan_number').unique().notNull(),
+  applicationId: varchar('application_id').references(() => loanApplications.id),
+  customerId: text('customer_id').notNull(),
+  loanTypeId: varchar('loan_type_id').references(() => loanTypes.id),
+  principalAmount: numeric('principal_amount').notNull(),
+  totalInterest: numeric('total_interest').notNull(),
+  totalPenalty: numeric('total_penalty').default('0'),
+  paidAmount: numeric('paid_amount').default('0'),
+  remainingBalance: numeric('remaining_balance').notNull(),
+  disbursementDate: timestamp('disbursement_date'),
+  status: text('status').notNull().default('active'), // 'active', 'closed', 'defaulted', 'written_off'
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const repaymentSchedules = pgTable('repayment_schedules', {
+  id: varchar('id').primaryKey(),
+  loanAccountId: varchar('loan_account_id').references(() => loanAccounts.id),
+  installmentNumber: integer('installment_number').notNull(),
+  dueDate: timestamp('due_date').notNull(),
+  principalPortion: numeric('principal_portion').notNull(),
+  interestPortion: numeric('interest_portion').notNull(),
+  totalAmount: numeric('total_amount').notNull(),
+  penaltyAmount: numeric('penalty_amount').default('0'),
+  paidAmount: numeric('paid_amount').default('0'),
+  status: text('status').default('pending'), // 'pending', 'partial', 'paid', 'overdue'
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const repaymentTransactions = pgTable('repayment_transactions', {
+  id: varchar('id').primaryKey(),
+  loanAccountId: varchar('loan_account_id').references(() => loanAccounts.id),
+  scheduleId: varchar('schedule_id').references(() => repaymentSchedules.id),
+  transactionDate: timestamp('transaction_date').notNull().defaultNow(),
+  amount: numeric('amount').notNull(),
+  principalAllocation: numeric('principal_allocation').notNull(),
+  interestAllocation: numeric('interest_allocation').notNull(),
+  penaltyAllocation: numeric('penalty_allocation').notNull(),
+  paymentMethod: text('payment_method'), // 'cash', 'bank_transfer', 'cheque'
+  referenceNumber: text('reference_number'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const customersRiskProfile = pgTable('customers_risk_profile', {
+  id: varchar('id').primaryKey(),
+  customerId: text('customer_id').unique().notNull(),
+  creditScore: integer('credit_score'),
+  creditLimit: numeric('credit_limit'),
+  totalActiveLoans: numeric('total_active_loans').default('0'),
+  riskCategory: text('risk_category'), // 'low', 'medium', 'high'
+  lastAssessmentDate: timestamp('last_assessment_date'),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// --- Check Management Tables ---
+export const checkbooks = pgTable('checkbooks', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  accountId: varchar('account_id', { length: 50 }),
+  bankName: varchar('bank_name', { length: 255 }),
+  startNumber: varchar('start_number', { length: 50 }),
+  endNumber: varchar('end_number', { length: 50 }),
+  totalLeaves: integer('total_leaves'),
+  issuedDate: timestamp('issued_date'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+  deletedAt: timestamp('deleted_at'),
+});
+
+
+export const issuedChecks = pgTable('issued_checks', {
+  creatorId: varchar('creator_id', { length: 50 }),
+  approvalStatus: varchar('approval_status', { length: 50 }).default('approved'), // pending_approval, approved, rejected
+  approvedById: varchar('approved_by_id', { length: 50 }),
+  approvedAt: timestamp('approved_at'),
+  id: varchar('id', { length: 50 }).primaryKey(),
+  checkbookId: varchar('checkbook_id', { length: 50 }),
+  checkNumber: varchar('check_number', { length: 50 }).notNull(),
+  sayadId: varchar('sayad_id', { length: 16 }).notNull().default('0000000000000000'),
+  reason: varchar('reason', { length: 50 }),
+  amount: numeric('amount').notNull(),
+  issueDate: timestamp('issue_date'),
+  dueDate: timestamp('due_date'),
+  payeeId: varchar('payee_id', { length: 50 }),
+  status: varchar('status', { length: 50 }).default('blank'), // 'blank' | 'issued' | 'cashed' | 'bounced' | 'cancelled'
+  receiptNumber: varchar('receipt_number', { length: 255 }),
+  assignedToId: varchar('assigned_to_id', { length: 50 }),
+  bankAccountId: varchar('bank_account_id', { length: 50 }),
+  description: text('description'),
+  imageUrl: text('image_url'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+  deletedAt: timestamp('deleted_at'),
+}, (table) => ({
+  statusDueDateIdx: index('idx_issued_checks_status_due_date').on(table.status, table.dueDate),
+}));
+
+export const receivedChecks = pgTable('received_checks', {
+  creatorId: varchar('creator_id', { length: 50 }),
+  approvalStatus: varchar('approval_status', { length: 50 }).default('approved'), // pending_approval, approved, rejected
+  approvedById: varchar('approved_by_id', { length: 50 }),
+  approvedAt: timestamp('approved_at'),
+  id: varchar('id', { length: 50 }).primaryKey(),
+  checkNumber: varchar('check_number', { length: 50 }).notNull(),
+  sayadId: varchar('sayad_id', { length: 16 }).notNull().default('0000000000000000'),
+  reason: varchar('reason', { length: 50 }),
+  bankName: varchar('bank_name', { length: 255 }),
+  branchName: varchar('branch_name', { length: 255 }),
+  amount: numeric('amount').notNull(),
+  receiveDate: timestamp('receive_date'),
+  dueDate: timestamp('due_date'),
+  payerId: varchar('payer_id', { length: 50 }),
+  status: varchar('status', { length: 50 }).default('received'), // 'received' | 'deposited' | 'cashed' | 'bounced' | 'returned' | 'assigned' | 'bounced_assigned'
+  receiptNumber: varchar('receipt_number', { length: 255 }),
+  assignedToId: varchar('assigned_to_id', { length: 50 }),
+  accountId: varchar('account_id', { length: 50 }),
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+  deletedAt: timestamp('deleted_at'),
+}, (table) => ({
+  statusDueDateIdx: index('idx_received_checks_status_due_date').on(table.status, table.dueDate),
+}));
+
+export const checkAuditLogs = pgTable('check_audit_logs', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  checkId: varchar('check_id', { length: 50 }).notNull(),
+  checkType: varchar('check_type', { length: 50 }).notNull(), // 'issued' | 'received'
+  action: varchar('action', { length: 100 }), // 'create', 'update', 'status_change', 'delete'
+  oldValues: json('old_values'),
+  newValues: json('new_values'),
+  userId: varchar('user_id', { length: 50 }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const notifications = pgTable('notifications', {
+  id: varchar('id', { length: 50 }).primaryKey(),
+  userId: varchar('user_id', { length: 50 }),
+  title: varchar('title', { length: 255 }).notNull(),
+  message: text('message').notNull(),
+  type: varchar('type', { length: 50 }).default('info'), // 'info', 'warning', 'success', 'error'
+  read: boolean('read').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+});

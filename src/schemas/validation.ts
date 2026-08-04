@@ -62,3 +62,32 @@ export const validateData = (key: string, data: any) => {
 
   return schema.safeParse(data);
 };
+
+const sayadIdRegex = /^\d{16}$/;
+
+export const issuedCheckSchema = z.object({
+  id: z.string().or(z.number()).optional(),
+  checkNumber: z.string().min(1, "شماره چک الزامی است"),
+  sayadId: z.string().regex(sayadIdRegex, "شناسه صیادی باید دقیقاً ۱۶ رقم باشد"),
+  reason: z.string().optional().nullable(),
+  amount: z.union([z.number(), z.string()]).refine(val => Number(val) > 0, "مبلغ چک نامعتبر است"),
+  issueDate: z.string().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
+  payeeId: z.string().or(z.number()).optional().nullable(),
+  status: z.string().optional(),
+}).passthrough();
+
+export const receivedCheckSchema = z.object({
+  id: z.string().or(z.number()).optional(),
+  checkNumber: z.string().min(1, "شماره چک الزامی است"),
+  sayadId: z.string().regex(sayadIdRegex, "شناسه صیادی باید دقیقاً ۱۶ رقم باشد"),
+  reason: z.string().optional().nullable(),
+  amount: z.union([z.number(), z.string()]).refine(val => Number(val) > 0, "مبلغ چک نامعتبر است"),
+  receiveDate: z.string().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
+  payerId: z.string().or(z.number()).optional().nullable(),
+  status: z.string().optional(),
+}).passthrough();
+
+schemas['issued_checks'] = issuedCheckSchema;
+schemas['received_checks'] = receivedCheckSchema;

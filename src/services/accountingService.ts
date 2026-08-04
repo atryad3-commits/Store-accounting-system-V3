@@ -162,7 +162,8 @@ export const deleteCashbox = async (id: string) => {
 
 export const getCheckbooks = async () => {
   const data = await getLocalData<any[]>('checkbooks', []);
-  return data.sort((a, b) => b.createdAt - a.createdAt);
+  if (data && data.data) return data; // Server-side paginated response
+  return data.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 export const addCheckbook = async (record: any) => {
@@ -226,26 +227,37 @@ export const updateCheckbook = async (id: string, record: any) => {
 
 export const deleteCheckbook = async (id: string) => {
   const data = await getLocalData<any[]>('checkbooks', []);
-  await saveLocalData('checkbooks', data.filter((p: any) => String(p.id) !== String(id)));
+  const index = data.findIndex(c => String(c.id) === String(id));
+  if (index !== -1) {
+    data[index].deletedAt = new Date().toISOString();
+    await saveLocalData('checkbooks', data);
+  }
+  return;
 };
 
-export const getIssuedChecks = async () => {
-  const data = await getLocalData<any[]>('issued_checks', []);
-  return data.sort((a, b) => b.createdAt - a.createdAt);
+export const getIssuedChecks = async (page?: number, pageSize?: number, sortBy?: string, sortDir?: string) => {
+  const query: any = { status: 'all' };
+  if (page) query.page = page;
+  if (pageSize) query.pageSize = pageSize;
+  if (sortBy) query.sortBy = sortBy;
+  if (sortDir) query.sortDir = sortDir;
+  const data = await getLocalData<any>('issued_checks', [], query);
+  if (data && data.data) return data; // Server-side paginated response
+  return data.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
-export const getCheckHistory = async (checkId?: string | number, checkType?: 'issued' | 'received') => {
-  const data = await getLocalData<any[]>('check_history', []);
+export const getCheckAuditLogs = async (checkId?: string | number, checkType?: 'issued' | 'received') => {
+  const data = await getLocalData<any[]>('check_audit_logs', []);
   let filtered = data;
   if (checkId) filtered = filtered.filter(h => String(h.checkId) === String(checkId));
   if (checkType) filtered = filtered.filter(h => h.checkType === checkType);
-  return filtered.sort((a, b) => b.createdAt - a.createdAt);
+  return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
-export const addCheckHistory = async (record: { checkId: string | number, checkType: 'issued' | 'received', status: string, date: string, desc?: string, user?: string }) => {
-  const now = Date.now();
-  const newItem = { ...record, id: generateId(), createdAt: now };
-  await appendLocalData('check_history', newItem);
+export const addCheckAuditLog = async (record: { checkId: string | number, checkType: 'issued' | 'received', action: string, oldValues?: any, newValues?: any, userId?: string }) => {
+  const now = new Date().toISOString();
+  const newItem = { ...record, id: (Math.random() + 1).toString(36).substring(7), createdAt: now };
+  await appendLocalData('check_audit_logs', newItem);
   return newItem;
 };
 
@@ -255,7 +267,7 @@ export const addIssuedCheck = async (record: any) => {
   const now = Date.now();
   const newItem = { ...record, id: generateId(), createdAt: now, updatedAt: now, fiscalYearId: activeYear ? activeYear.id : undefined };
   await appendLocalData('issued_checks', newItem);
-  await addCheckHistory({ checkId: newItem.id, checkType: 'issued', status: newItem.status || 'issued', date: new Date().toISOString(), desc: 'ثبت اولیه چک صادره' });
+  await addCheckAuditLog({ checkId: newItem.id, checkType: 'issued', action: 'create', newValues: newItem, userId: 'system' });
   
   if (typeof addSystemLog !== 'undefined') {
     await addSystemLog('ADD_' + 'IssuedCheck'.toUpperCase(), 'ثبت رکورد جدید در issued_checks', 'IssuedCheck', newItem.id);
@@ -276,6 +288,7 @@ export const updateIssuedCheck = async (id: string, record: any) => {
      const oldChecks = await getIssuedChecks();
      const previous = oldChecks.find((c: any) => String(c.id) === String(id));
      const saved = await updateLocalData('issued_checks', id, updatedData);
+     await addCheckAuditLog({ checkId: saved.id, checkType: 'issued', action: 'update', oldValues: previous, newValues: saved, userId: 'system' });
      if (typeof addSystemLog !== 'undefined') {
        await addSystemLog('UPDATE_' + 'IssuedCheck'.toUpperCase(), 'ویرایش رکورد در issued_checks', 'IssuedCheck', saved.id);
      }
@@ -284,16 +297,16 @@ export const updateIssuedCheck = async (id: string, record: any) => {
      }
      return saved;
   } catch (e) {
-     return null;
+     throw e;
   }
 };
 
 export const deleteIssuedCheck = async (id: string) => {
   const data = await getLocalData<any[]>('issued_checks', []);
-  const index = data.findIndex((p: any) => String(p.id) === String(id));
+  const index = data.findIndex(c => String(c.id) === String(id));
   if (index !== -1) {
-    const deletedCheck = { ...data[index], isDeleted: true };
-    await updateLocalData('issued_checks', id, deletedCheck);
+    data[index].deletedAt = new Date().toISOString();
+    await saveLocalData('issued_checks', data);
     try {
       const existingDocs = await getAccountingDocuments();
       for (const d of existingDocs) {
@@ -306,8 +319,13 @@ export const deleteIssuedCheck = async (id: string) => {
   }
 };
 
-export const getReceivedChecks = async () => {
-  const data = await getLocalData<any[]>('received_checks', []);
+export const getReceivedChecks = async (page?: number, pageSize?: number, sortBy?: string, sortDir?: string) => {
+  const query: any = { status: 'all' };
+  if (page) query.page = page;
+  if (pageSize) query.pageSize = pageSize;
+  if (sortBy) query.sortBy = sortBy;
+  if (sortDir) query.sortDir = sortDir;
+  const data = await getLocalData<any>('received_checks', [], query);
   return data.sort((a, b) => b.createdAt - a.createdAt);
 };
 
@@ -318,7 +336,7 @@ export const addReceivedCheck = async (record: any) => {
   const now = Date.now();
   const newItem = { ...record, id: generateId(), createdAt: now, updatedAt: now, fiscalYearId: activeYear ? activeYear.id : undefined };
   await appendLocalData('received_checks', newItem);
-  await addCheckHistory({ checkId: newItem.id, checkType: 'received', status: newItem.status || 'received', date: new Date().toISOString(), desc: 'ثبت اولیه چک دریافتی' });
+  await addCheckAuditLog({ checkId: newItem.id, checkType: 'received', action: 'create', newValues: newItem, userId: 'system' });
   
   if (typeof addSystemLog !== 'undefined') {
     await addSystemLog('ADD_' + 'ReceivedCheck'.toUpperCase(), 'ثبت رکورد جدید در received_checks', 'ReceivedCheck', newItem.id);
@@ -340,6 +358,7 @@ export const updateReceivedCheck = async (id: string, record: any) => {
      const oldChecks = await getReceivedChecks();
      const previous = oldChecks.find((c: any) => String(c.id) === String(id));
      const saved = await updateLocalData('received_checks', id, updatedData);
+     await addCheckAuditLog({ checkId: saved.id, checkType: 'received', action: 'update', oldValues: previous, newValues: saved, userId: 'system' });
      if (typeof addSystemLog !== 'undefined') {
        await addSystemLog('UPDATE_' + 'ReceivedCheck'.toUpperCase(), 'ویرایش رکورد در received_checks', 'ReceivedCheck', saved.id);
      }
@@ -348,16 +367,16 @@ export const updateReceivedCheck = async (id: string, record: any) => {
      }
      return saved;
   } catch (e) {
-     return null;
+     throw e;
   }
 };
 
 export const deleteReceivedCheck = async (id: string) => {
   const data = await getLocalData<any[]>('received_checks', []);
-  const index = data.findIndex((p: any) => String(p.id) === String(id));
+  const index = data.findIndex(c => String(c.id) === String(id));
   if (index !== -1) {
-    const deletedCheck = { ...data[index], isDeleted: true };
-    await updateLocalData('received_checks', id, deletedCheck);
+    data[index].deletedAt = new Date().toISOString();
+    await saveLocalData('received_checks', data);
     try {
       const existingDocs = await getAccountingDocuments();
       for (const d of existingDocs) {

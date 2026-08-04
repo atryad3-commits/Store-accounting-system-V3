@@ -2,6 +2,10 @@ import os from "os";
 import 'dotenv/config';
 import * as Sentry from "@sentry/node";
 import { nodeProfilingIntegration } from "@sentry/profiling-node";
+
+import { db } from './src/db';
+import { checkbooks, issuedChecks, receivedChecks, checkAuditLogs, notifications } from './src/db/schema';
+import { eq, isNull, sql, desc, asc } from 'drizzle-orm';
 import express from 'express';
 import { AsyncLocalStorage } from 'node:async_hooks';
 const storeContext = new AsyncLocalStorage<string>();
@@ -9,6 +13,7 @@ const storeContext = new AsyncLocalStorage<string>();
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { exec } from 'child_process';
+import { startCronJobs } from './src/jobs/checkNotificationsJob';
 import fsPromises from 'fs/promises';
 import { DatabaseSync } from 'node:sqlite';
 import bcrypt from 'bcrypt';
@@ -153,7 +158,7 @@ function isPgActive() {
 
 const DB_CONFIG_FILE = path.join(process.cwd(), 'db_config.json');
 
-const KNOWN_TABLES = [
+const KNOWN_TABLES = ['notifications', 'customers_risk_profile', 'repayment_transactions', 'repayment_schedules', 'loan_accounts', 'collaterals', 'loan_applications', 'loan_types', 
   'users', 'company_profile', 'financial_years', 'person_groups', 'person_roles',
   'payslips', 'debtors_trackings',
   'accounts', 'cashboxes', 'warehouses', 'product_categories', 'products',
@@ -241,7 +246,8 @@ async function innerGetDbData(key: string) {
   if (isPgActive() && getActivePgPool()) {
     if (!KNOWN_TABLES.includes(key)) return null;
     try {
-      const res = await getActivePgPool().query(`SELECT * FROM "${key}"`);
+      const isSoftDeletable = ["checkbooks", "issued_checks", "received_checks"].includes(key);
+      const res = await getActivePgPool().query(`SELECT * FROM "${key}"${isSoftDeletable ? ' WHERE deleted_at IS NULL' : ''}`);
       
       const parseJSONFields = (row: any) => {
          if (!row) return row;
@@ -481,7 +487,8 @@ async function getAllDbData() {
     };
 
     for (const key of KNOWN_TABLES) {
-       const res = await getActivePgPool().query(`SELECT * FROM "${key}"`);
+       const isSoftDeletable = ["checkbooks", "issued_checks", "received_checks"].includes(key);
+       const res = await getActivePgPool().query(`SELECT * FROM "${key}"${isSoftDeletable ? ' WHERE deleted_at IS NULL' : ''}`);
        if (key === 'company_profile') {
          let cval = null;
          try {
@@ -692,6 +699,7 @@ if (process.env.SENTRY_DSN && String(process.env.SENTRY_DSN).startsWith('http'))
 }
 
 async function startServer() {
+  startCronJobs();
   await initDB();
   const app = express();
   const PORT = 3000;
@@ -1402,6 +1410,404 @@ async function startServer() {
       }
   });
 
+  
+  // --- Check Management Drizzle APIs ---
+  app.get('/api/data/checkbooks', async (req, res) => {
+    try {
+      const data = await db.select().from(checkbooks).where(isNull(checkbooks.deletedAt));
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post('/api/data/checkbooks', async (req, res) => {
+    try {
+      // The frontend currently sends the entire array for saving.
+      // But if we want soft delete, we should only update or insert.
+      // Actually, frontend sends array to replace.
+      // If we are migrating to Drizzle, we should handle batch insert/update or just skip generic handling for these.
+      // Let's create an endpoint that handles the frontend's array payload:
+      const data = Array.isArray(req.body) ? req.body : [req.body];
+      // For simplicity, we can upsert
+      for (const item of data) {
+         if (!item.id) item.id = Math.random().toString(36).substring(2, 15);
+         await db.insert(checkbooks).values({
+           id: String(item.id),
+           accountId: item.accountId ? String(item.accountId) : null,
+           bankName: item.bankName || null,
+           startNumber: item.startNumber || null,
+           endNumber: item.endNumber || null,
+           totalLeaves: item.totalLeaves ? parseInt(item.totalLeaves) : null,
+           issuedDate: item.issuedDate ? new Date(item.issuedDate) : null,
+           deletedAt: item.deletedAt ? new Date(item.deletedAt) : null,
+         }).onConflictDoUpdate({
+           target: checkbooks.id,
+           set: {
+             accountId: item.accountId ? String(item.accountId) : null,
+             bankName: item.bankName || null,
+             startNumber: item.startNumber || null,
+             endNumber: item.endNumber || null,
+             totalLeaves: item.totalLeaves ? parseInt(item.totalLeaves) : null,
+             issuedDate: item.issuedDate ? new Date(item.issuedDate) : null,
+           deletedAt: item.deletedAt ? new Date(item.deletedAt) : null,
+             updatedAt: new Date(),
+           }
+         });
+      }
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  
+  
+  
+  let checksSummaryCache = null;
+  let checksSummaryCacheTime = 0;
+  const CACHE_TTL = 30000;
+
+  app.get('/api/checks/summary', async (req, res) => {
+    try {
+      if (checksSummaryCache && Date.now() - checksSummaryCacheTime < CACHE_TTL) {
+        return res.json(checksSummaryCache);
+      }
+      const issuedStats = await db.select({
+        status: issuedChecks.status,
+        totalAmount: sql`sum(${issuedChecks.amount}::numeric)`.mapWith(Number),
+        count: sql`count(*)`.mapWith(Number)
+      }).from(issuedChecks)
+        .where(isNull(issuedChecks.deletedAt))
+        .groupBy(issuedChecks.status);
+
+      const receivedStats = await db.select({
+        status: receivedChecks.status,
+        totalAmount: sql`sum(${receivedChecks.amount}::numeric)`.mapWith(Number),
+        count: sql`count(*)`.mapWith(Number)
+      }).from(receivedChecks)
+        .where(isNull(receivedChecks.deletedAt))
+        .groupBy(receivedChecks.status);
+
+      checksSummaryCache = { issuedStats, receivedStats };
+      checksSummaryCacheTime = Date.now();
+      res.json(checksSummaryCache);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+
+
+  app.post('/api/data/checks/:type/:id/approve', async (req, res) => {
+    try {
+      const { type, id } = req.params;
+      const table = type === 'issued' ? issuedChecks : receivedChecks;
+      const userId = req.user?.id || req.user?.username || 'system';
+      const role = req.user?.role;
+      
+      if (role !== 'admin' && role !== 'manager' && role !== 'financial_manager') {
+         return res.status(403).json({ error: 'عدم دسترسی. فقط مدیر مالی می‌تواند تأیید کند.' });
+      }
+
+      const check = await db.select().from(table).where(eq(table.id, id)).limit(1);
+      if (check.length === 0) return res.status(404).json({ error: 'چک یافت نشد' });
+      
+      if (check[0].creatorId === userId) {
+         return res.status(403).json({ error: 'شما نمی‌توانید چکی که خودتان ثبت کرده‌اید را تأیید کنید.' });
+      }
+      
+      await db.update(table).set({
+         approvalStatus: 'approved',
+         approvedById: userId,
+         approvedAt: new Date()
+      }).where(eq(table.id, id));
+      
+      res.json({ success: true, message: 'چک با موفقیت تأیید شد' });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: 'خطای سرور' });
+    }
+  });
+
+  app.post('/api/data/checks/:type/:id/reject', async (req, res) => {
+    try {
+      const { type, id } = req.params;
+      const table = type === 'issued' ? issuedChecks : receivedChecks;
+      const userId = req.user?.id || req.user?.username || 'system';
+      const role = req.user?.role;
+      
+      if (role !== 'admin' && role !== 'manager' && role !== 'financial_manager') {
+         return res.status(403).json({ error: 'عدم دسترسی' });
+      }
+
+      await db.update(table).set({
+         approvalStatus: 'rejected',
+         approvedById: userId,
+         approvedAt: new Date()
+      }).where(eq(table.id, id));
+      
+      res.json({ success: true, message: 'چک رد شد' });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: 'خطای سرور' });
+    }
+  });
+
+  app.get('/api/data/issued_checks', async (req, res) => {
+    try {
+      const page = parseInt(req.query.page);
+      const pageSize = parseInt(req.query.pageSize);
+      const sortBy = req.query.sortBy;
+      const sortDir = req.query.sortDir;
+
+      let query = db.select().from(issuedChecks).where(isNull(issuedChecks.deletedAt));
+      if (req.query.status !== 'all') {
+         query = query.where(and(isNull(issuedChecks.deletedAt), or(eq(issuedChecks.approvalStatus, 'approved'), isNull(issuedChecks.approvalStatus))));
+      }
+
+      if (sortBy && issuedChecks[sortBy]) {
+         const dir = sortDir === 'asc' ? asc : desc;
+         query = query.orderBy(dir(issuedChecks[sortBy]));
+      } else {
+         query = query.orderBy(desc(issuedChecks.createdAt));
+      }
+
+      if (page && pageSize) {
+         const offset = (page - 1) * pageSize;
+         let countQuery = db.select({ count: sql`count(*)`.mapWith(Number) }).from(issuedChecks).where(isNull(issuedChecks.deletedAt));
+         if (req.query.status !== 'all') {
+            countQuery = db.select({ count: sql`count(*)`.mapWith(Number) }).from(issuedChecks).where(and(isNull(issuedChecks.deletedAt), or(eq(issuedChecks.approvalStatus, 'approved'), isNull(issuedChecks.approvalStatus))));
+         }
+         const countRes = await countQuery;
+         const totalCount = countRes[0].count;
+         
+         query = query.limit(pageSize).offset(offset);
+         const data = await query;
+         return res.json({ data, totalCount, page, pageSize });
+      }
+
+      const data = await query;
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/data/issued_checks', async (req, res) => {
+    checksSummaryCache = null;
+    const validation = validateData('issued_checks', req.body);
+    if (!validation.success) {
+      return res.status(400).json({ error: 'Validation failed', details: validation.error.errors });
+    }
+    
+    // Check threshold
+    const defaultDb = storeContext.run('default', () => getDb());
+    const settingsRes = defaultDb.prepare("SELECT value FROM local_data WHERE key = 'company_profile'").get();
+    let threshold = 0;
+    if (settingsRes && settingsRes.value) {
+        const settings = JSON.parse(settingsRes.value);
+        threshold = settings.checkApprovalThreshold || 0;
+    }
+    
+    const userId = req.user?.id || req.user?.username || 'system';
+
+    try {
+      const data = Array.isArray(req.body) ? req.body : [req.body];
+      for (const item of data) {
+         if (!item.id) item.id = Math.random().toString(36).substring(2, 15);
+         await db.insert(issuedChecks).values({
+           id: String(item.id),
+           checkbookId: item.checkbookId ? String(item.checkbookId) : null,
+           creatorId: item.creatorId || userId,
+           approvalStatus: (threshold > 0 && Number(item.amount) > threshold) ? 'pending_approval' : 'approved',
+           checkNumber: String(item.checkNumber || item.id),
+           sayadId: item.sayadId || '0000000000000000',
+           reason: item.reason || null,
+           amount: String(item.amount || 0),
+           issueDate: item.issueDate ? new Date(item.issueDate) : null,
+           dueDate: item.dueDate ? new Date(item.dueDate) : null,
+           payeeId: item.payeeId ? String(item.payeeId) : null,
+           status: item.status || 'blank',
+           receiptNumber: item.receiptNumber || null,
+           assignedToId: item.assignedToId ? String(item.assignedToId) : null,
+           bankAccountId: item.bankAccountId ? String(item.bankAccountId) : null,
+           description: item.description || null,
+           deletedAt: item.deletedAt ? new Date(item.deletedAt) : null,
+           imageUrl: item.imageUrl || null,
+         }).onConflictDoUpdate({
+           target: issuedChecks.id,
+           set: {
+             checkbookId: item.checkbookId ? String(item.checkbookId) : null,
+             checkNumber: String(item.checkNumber || item.id),
+           sayadId: item.sayadId || '0000000000000000',
+           reason: item.reason || null,
+             amount: String(item.amount || 0),
+             issueDate: item.issueDate ? new Date(item.issueDate) : null,
+             dueDate: item.dueDate ? new Date(item.dueDate) : null,
+             payeeId: item.payeeId ? String(item.payeeId) : null,
+             status: item.status || 'blank',
+             receiptNumber: item.receiptNumber || null,
+             assignedToId: item.assignedToId ? String(item.assignedToId) : null,
+             bankAccountId: item.bankAccountId ? String(item.bankAccountId) : null,
+             description: item.description || null,
+           deletedAt: item.deletedAt ? new Date(item.deletedAt) : null,
+             imageUrl: item.imageUrl || null,
+             updatedAt: new Date(),
+           }
+         });
+      }
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/data/received_checks', async (req, res) => {
+    try {
+      const page = parseInt(req.query.page);
+      const pageSize = parseInt(req.query.pageSize);
+      const sortBy = req.query.sortBy;
+      const sortDir = req.query.sortDir;
+
+      let query = db.select().from(receivedChecks).where(isNull(receivedChecks.deletedAt));
+      if (req.query.status !== 'all') {
+         query = query.where(and(isNull(receivedChecks.deletedAt), or(eq(receivedChecks.approvalStatus, 'approved'), isNull(receivedChecks.approvalStatus))));
+      }
+
+      if (sortBy && receivedChecks[sortBy]) {
+         const dir = sortDir === 'asc' ? asc : desc;
+         query = query.orderBy(dir(receivedChecks[sortBy]));
+      } else {
+         query = query.orderBy(desc(receivedChecks.createdAt));
+      }
+
+      if (page && pageSize) {
+         const offset = (page - 1) * pageSize;
+         let countQuery = db.select({ count: sql`count(*)`.mapWith(Number) }).from(receivedChecks).where(isNull(receivedChecks.deletedAt));
+         if (req.query.status !== 'all') {
+            countQuery = db.select({ count: sql`count(*)`.mapWith(Number) }).from(receivedChecks).where(and(isNull(receivedChecks.deletedAt), or(eq(receivedChecks.approvalStatus, 'approved'), isNull(receivedChecks.approvalStatus))));
+         }
+         const countRes = await countQuery;
+         const totalCount = countRes[0].count;
+         
+         query = query.limit(pageSize).offset(offset);
+         const data = await query;
+         return res.json({ data, totalCount, page, pageSize });
+      }
+
+      const data = await query;
+      res.json(data);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/data/received_checks', async (req, res) => {
+    checksSummaryCache = null;
+    const validation = validateData('received_checks', req.body);
+    if (!validation.success) {
+      return res.status(400).json({ error: 'Validation failed', details: validation.error.errors });
+    }
+    
+    // Check threshold
+    const defaultDb = storeContext.run('default', () => getDb());
+    const settingsRes = defaultDb.prepare("SELECT value FROM local_data WHERE key = 'company_profile'").get();
+    let threshold = 0;
+    if (settingsRes && settingsRes.value) {
+        const settings = JSON.parse(settingsRes.value);
+        threshold = settings.checkApprovalThreshold || 0;
+    }
+    
+    const userId = req.user?.id || req.user?.username || 'system';
+
+    try {
+      const data = Array.isArray(req.body) ? req.body : [req.body];
+      for (const item of data) {
+         if (!item.id) item.id = Math.random().toString(36).substring(2, 15);
+         await db.insert(receivedChecks).values({
+           id: String(item.id),
+           creatorId: item.creatorId || userId,
+           approvalStatus: (threshold > 0 && Number(item.amount) > threshold) ? 'pending_approval' : 'approved',
+           checkNumber: String(item.checkNumber || item.id),
+           sayadId: item.sayadId || '0000000000000000',
+           reason: item.reason || null,
+           bankName: item.bankName || null,
+           branchName: item.branchName || null,
+           amount: String(item.amount || 0),
+           receiveDate: item.receiveDate ? new Date(item.receiveDate) : null,
+           dueDate: item.dueDate ? new Date(item.dueDate) : null,
+           payerId: item.payerId ? String(item.payerId) : null,
+           status: item.status || 'received',
+           receiptNumber: item.receiptNumber || null,
+           assignedToId: item.assignedToId ? String(item.assignedToId) : null,
+           accountId: item.accountId ? String(item.accountId) : null,
+           description: item.description || null,
+           deletedAt: item.deletedAt ? new Date(item.deletedAt) : null,
+         }).onConflictDoUpdate({
+           target: receivedChecks.id,
+           set: {
+             checkNumber: String(item.checkNumber || item.id),
+           sayadId: item.sayadId || '0000000000000000',
+           reason: item.reason || null,
+             bankName: item.bankName || null,
+             branchName: item.branchName || null,
+             amount: String(item.amount || 0),
+             receiveDate: item.receiveDate ? new Date(item.receiveDate) : null,
+             dueDate: item.dueDate ? new Date(item.dueDate) : null,
+             payerId: item.payerId ? String(item.payerId) : null,
+             status: item.status || 'received',
+             receiptNumber: item.receiptNumber || null,
+             assignedToId: item.assignedToId ? String(item.assignedToId) : null,
+             accountId: item.accountId ? String(item.accountId) : null,
+             description: item.description || null,
+           deletedAt: item.deletedAt ? new Date(item.deletedAt) : null,
+             updatedAt: new Date(),
+           }
+         });
+      }
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  
+  app.get('/api/data/check_audit_logs', async (req, res) => {
+    try {
+      const { checkId, checkType } = req.query;
+      // Drizzle doesn't have deletedAt for audit logs because they are immutable
+      const data = await db.select().from(checkAuditLogs);
+      // Wait, we need to import checkAuditLogs
+      res.json(data);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
+  app.post('/api/data/check_audit_logs', async (req, res) => {
+    try {
+      const data = Array.isArray(req.body) ? req.body : [req.body];
+      for (const item of data) {
+         if (!item.id) item.id = Math.random().toString(36).substring(2, 15);
+         await db.insert(checkAuditLogs).values({
+           id: String(item.id),
+           checkId: String(item.checkId),
+           checkType: String(item.checkType),
+           action: item.action || null,
+           oldValues: item.oldValues || null,
+           newValues: item.newValues || null,
+           userId: item.userId ? String(item.userId) : null,
+           createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
+         }); // No onConflictDoUpdate, it's immutable
+      }
+      res.json({ success: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   app.get('/api/data/:key', async (req, res) => {
     const { key } = req.params;
     const { limit, offset } = req.query;
@@ -1615,8 +2021,42 @@ async function startServer() {
          if (index === -1) {
             return res.status(404).json({ error: 'Not found' });
          }
+         
          const oldItem = data[index];
          const newItem = { ...oldItem, ...updatedItem, id }; // ensure id is preserved
+         
+         // State Machine Validation for Checks
+         if (key === 'issued_checks' || key === 'received_checks') {
+             if (updatedItem.status && updatedItem.status !== oldItem.status) {
+                 const type = key === 'issued_checks' ? 'issued' : 'received';
+                 let allowed = [];
+                 if (type === 'issued') {
+                     switch(oldItem.status) {
+                         case 'blank': allowed = ['issued', 'cancelled']; break;
+                         case 'issued': allowed = ['cashed', 'bounced', 'cancelled']; break;
+                         case 'cashed': allowed = []; break; // terminal
+                         case 'bounced': allowed = ['cancelled']; break; // maybe cashed if redeposited, but strictly cancelled or terminal
+                         case 'cancelled': allowed = []; break; // terminal
+                         default: allowed = ['issued', 'cashed', 'bounced', 'cancelled'];
+                     }
+                 } else {
+                     switch(oldItem.status) {
+                         case 'received': allowed = ['deposited', 'assigned', 'returned']; break;
+                         case 'deposited': allowed = ['cashed', 'bounced', 'received']; break; // 'received' if Bank returns it without bouncing
+                         case 'cashed': allowed = []; break; // terminal
+                         case 'assigned': allowed = ['bounced_assigned']; break;
+                         case 'bounced_assigned': allowed = ['returned']; break;
+                         case 'bounced': allowed = ['returned', 'deposited']; break; // can redeposit
+                         case 'returned': allowed = []; break; // terminal
+                         default: allowed = ['received', 'deposited', 'cashed', 'assigned', 'bounced_assigned', 'bounced', 'returned'];
+                     }
+                 }
+                 if (!allowed.includes(updatedItem.status)) {
+                     return res.status(400).json({ error: `تغییر وضعیت غیرمجاز است.` });
+                 }
+             }
+         }
+
          
          let finalItem = { ...newItem };
          let related = null;
@@ -1653,8 +2093,44 @@ async function startServer() {
          if (Array.isArray(data)) {
            const index = data.findIndex((x: any) => String(x.id) === String(id));
            if (index !== -1) {
+             
              const oldItem = data[index];
-             data[index] = { ...oldItem, ...updatedItem };
+             const newItem = { ...oldItem, ...updatedItem };
+             
+             // State Machine Validation for Checks
+             if (key === 'issued_checks' || key === 'received_checks') {
+                 if (updatedItem.status && updatedItem.status !== oldItem.status) {
+                     const type = key === 'issued_checks' ? 'issued' : 'received';
+                     let allowed = [];
+                     if (type === 'issued') {
+                         switch(oldItem.status) {
+                             case 'blank': allowed = ['issued', 'cancelled']; break;
+                             case 'issued': allowed = ['cashed', 'bounced', 'cancelled']; break;
+                             case 'cashed': allowed = []; break;
+                             case 'bounced': allowed = ['cancelled']; break;
+                             case 'cancelled': allowed = []; break;
+                             default: allowed = ['issued', 'cashed', 'bounced', 'cancelled'];
+                         }
+                     } else {
+                         switch(oldItem.status) {
+                             case 'received': allowed = ['deposited', 'assigned', 'returned']; break;
+                             case 'deposited': allowed = ['cashed', 'bounced', 'received']; break;
+                             case 'cashed': allowed = []; break;
+                             case 'assigned': allowed = ['bounced_assigned']; break;
+                             case 'bounced_assigned': allowed = ['returned']; break;
+                             case 'bounced': allowed = ['returned', 'deposited']; break;
+                             case 'returned': allowed = []; break;
+                             default: allowed = ['received', 'deposited', 'cashed', 'assigned', 'bounced_assigned', 'bounced', 'returned'];
+                         }
+                     }
+                     if (!allowed.includes(updatedItem.status)) {
+                         return res.status(400).json({ error: `تغییر وضعیت غیرمجاز است.` });
+                     }
+                 }
+             }
+             
+             data[index] = newItem;
+
              await setDbData(key, data);
            } else {
              return res.status(404).json({ error: 'Not found' });

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Loan, Installment, Person, Account } from '../../types';
 import { Plus, Percent, Edit2, Trash2, Search, CheckCircle, ChevronDown, ChevronUp, AlertCircle, RefreshCw, Layers, Calendar, DollarSign, Wallet, Users, Activity, List, ArrowLeftRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { saveLoans, saveInstallments, addTransaction, checkFinancialYear } from '../../services/dataService';
+import { saveLoans, saveInstallments, addTransaction, checkFinancialYear, addSystemLog } from '../../services/dataService';
 import { formatDateDisplay } from '../../utils/format';
 
 
@@ -20,6 +20,8 @@ interface LoansManagerProps {
   setAccounts: React.Dispatch<React.SetStateAction<Account[]>>;
   transactions: any[];
   setTransactions: React.Dispatch<React.SetStateAction<any[]>>;
+  currentUser?: string;
+  userRole?: string;
 }
 
 export default function LoansManager({
@@ -31,10 +33,14 @@ export default function LoansManager({
   accounts,
   setAccounts,
   transactions,
-  setTransactions, showNotification,
+  setTransactions, 
+  showNotification,
+  currentUser = 'سیستم',
+  userRole = 'viewer'
 }: LoansManagerProps) {
   const [activeTab, setActiveTab] = useState<'list' | 'create'>('list');
   const [expandedLoanId, setExpandedLoanId] = useState<string | number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<{
     personId: string | number;
@@ -111,22 +117,52 @@ export default function LoansManager({
   };
 
   const handleCreateLoan = async () => {
+    if (isSubmitting) return;
+    if (userRole !== 'admin' && userRole !== 'manager' && userRole !== 'accountant') {
+      showNotification('شما دسترسی ثبت وام را ندارید.', 'error');
+      return;
+    }
     if (!formData.personId || formData.amount === '' || formData.totalInstallments === '' || formData.installmentAmount === '' || !formData.accountId) {
       showNotification('لطفا تمام فیلدهای ضروری را پر کنید.', 'error');
       return;
     }
 
+    const amountNum = Number(formData.amount);
+    const instCount = Number(formData.totalInstallments);
+    const instAmount = Number(formData.installmentAmount);
+
+    if (amountNum <= 0) {
+      showNotification('مبلغ وام باید بیشتر از صفر باشد.', 'error');
+      return;
+    }
+    if (instCount <= 0 || !Number.isInteger(instCount)) {
+      showNotification('تعداد اقساط باید یک عدد صحیح و بزرگتر از صفر باشد.', 'error');
+      return;
+    }
+    if (instAmount <= 0) {
+      showNotification('مبلغ قسط باید بیشتر از صفر باشد.', 'error');
+      return;
+    }
+    if (instCount * instAmount < amountNum) {
+      showNotification('مجموع اقساط نمی‌تواند کمتر از اصل وام باشد.', 'error');
+      return;
+    }
+    if (formData.interestRate !== '' && Number(formData.interestRate) < 0) {
+      showNotification('نرخ سود نمی‌تواند منفی باشد.', 'error');
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
       await checkFinancialYear(formData.startDate);
     } catch (err: any) {
       showNotification(err.message || 'تاریخ شروع خارج از سال مالی است.', 'error');
+      setIsSubmitting(false);
       return;
     }
 
     const loanId = Date.now().toString();
-    const amountNum = Number(formData.amount);
-    const instCount = Number(formData.totalInstallments);
-    const instAmount = Number(formData.installmentAmount);
 
     const newLoan: Loan = {
       id: loanId,
@@ -149,13 +185,13 @@ export default function LoansManager({
     }
 
     const newInstallments: Installment[] = [];
+    const stepMonths = formData.frequency === 'yearly' ? 12 : formData.frequency === 'quarterly' ? 3 : 1;
+    
     for (let i = 0; i < instCount; i++) {
-      let instM = initM + i + 1; // each installment 1 month later
-      let instY = initY;
-      while (instM > 12) {
-        instM -= 12;
-        instY += 1;
-      }
+      let totalMonths = initM + ((i + 1) * stepMonths);
+      let instY = initY + Math.floor((totalMonths - 1) / 12);
+      let instM = ((totalMonths - 1) % 12) + 1;
+      
       let finalD = initD;
       if (instM === 12 && finalD > 29) finalD = 29;
       if (instM > 6 && finalD === 31) finalD = 30;
@@ -173,7 +209,8 @@ export default function LoansManager({
 
     const transactionId = `txn-loan-${loanId}`;
     const newTransaction = {
-      type: formData.type === 'given' ? 'payment' : 'receive',
+      id: transactionId,
+      type: formData.type === 'given' ? 'pay' : 'receive',
       amount: amountNum,
       accountId: formData.accountId,
       personId: formData.personId,
@@ -195,8 +232,12 @@ export default function LoansManager({
       setTransactions([...transactions, addedTx]);
       await saveLoans(newLoansList);
       await saveInstallments(newInstsList);
+      if (typeof addSystemLog !== 'undefined') {
+        await addSystemLog('ADD_LOAN', `ثبت وام جدید به مبلغ ${amountNum} برای شخص ${formData.personId}`, 'Loan', loanId);
+      }
     } catch (err: any) {
       showNotification(err.message || 'خطا در ذخیره وام', 'error');
+      setIsSubmitting(false);
       return;
     }
     
@@ -212,18 +253,27 @@ export default function LoansManager({
       accountId: '',
     });
     setActiveTab('list');
+    setIsSubmitting(false);
   };
 
   const handlePayInstallment = async () => {
+    if (isSubmitting) return;
+    if (userRole !== 'admin' && userRole !== 'manager' && userRole !== 'accountant') {
+      showNotification('شما دسترسی ثبت پرداخت قسط را ندارید.', 'error');
+      return;
+    }
     if(!paymentForm.installmentId || paymentForm.amount === '' || !paymentForm.accountId) {
        showNotification('اطلاعات پرداخت ناقص است.', 'error');
        return;
     }
 
+    setIsSubmitting(true);
+
     try {
       await checkFinancialYear(paymentForm.paymentDate);
     } catch (err: any) {
       showNotification(err.message || 'تاریخ خارج از سال مالی است.', 'error');
+      setIsSubmitting(false);
       return;
     }
 
@@ -260,7 +310,8 @@ export default function LoansManager({
     });
 
     const newTransaction = {
-      type: loan.type === 'given' ? 'receive' : 'payment',
+      id: `txn-inst-${paymentForm.installmentId}-${Date.now()}`,
+      type: loan.type === 'given' ? 'receive' : 'pay',
       amount: amountNum,
       accountId: paymentForm.accountId,
       personId: loan.personId,
@@ -279,12 +330,17 @@ export default function LoansManager({
       setTransactions([...transactions, addedTx]);
       await saveLoans(updatedLoans);
       await saveInstallments(updatedInstallments);
+      if (typeof addSystemLog !== 'undefined') {
+        await addSystemLog('PAY_INSTALLMENT', `پرداخت قسط وام ${loan.id} به مبلغ ${amountNum}`, 'Installment', inst.id);
+      }
     } catch (err: any) {
       showNotification(err.message || 'خطا در ثبت پرداخت', 'error');
+      setIsSubmitting(false);
       return;
     }
     
     setPaymentForm({ installmentId: null, amount: '', accountId: '', paymentDate: new Date().toLocaleDateString('fa-IR').replace(/\//g, '-') });
+    setIsSubmitting(false);
   };
 
   const getPersonName = (pid: string | number) => {
@@ -295,6 +351,34 @@ export default function LoansManager({
   const getAccountName = (aid: string | number) => {
     const a = accounts.find(x => x.id === aid);
     return a ? a.bankName : 'نامشخص';
+  };
+
+  const handleDeleteLoan = async (loanId: string | number) => {
+    if (userRole !== 'admin' && userRole !== 'manager') {
+      showNotification('شما دسترسی حذف وام را ندارید.', 'error');
+      return;
+    }
+    
+    if (!window.confirm('آیا از حذف این وام و اقساط آن اطمینان دارید؟')) {
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      const updatedLoans = loans.filter(l => l.id !== loanId);
+      const updatedInstallments = installments.filter(i => i.loanId !== loanId);
+      await saveLoans(updatedLoans);
+      await saveInstallments(updatedInstallments);
+      setLoans(updatedLoans);
+      setInstallments(updatedInstallments);
+      if (typeof addSystemLog !== 'undefined') {
+        await addSystemLog('DELETE_LOAN', `حذف وام ${loanId}`, 'Loan', loanId);
+      }
+      showNotification('وام با موفقیت حذف شد.', 'success');
+    } catch (err: any) {
+      showNotification(err.message || 'خطا در حذف وام', 'error');
+    }
+    setIsSubmitting(false);
   };
 
   return (
@@ -486,43 +570,7 @@ export default function LoansManager({
                 />
              </div>
 
-             <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                   <Percent className="w-4 h-4 text-gray-400" /> درصد سود بانکی
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={formData.interestRate}
-                    onChange={(e) => {
-                       const val = Number(e.target.value);
-                       setFormData({...formData, interestRate: e.target.value === '' ? '' : val});
-                    }}
-                    className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-black font-mono text-left pr-10"
-                    dir="ltr"
-                    min="0"
-                    max="100"
-                  />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold select-none text-sm pointer-events-none">%</div>
-                </div>
-             </div>
 
-             <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                   <Calendar className="w-4 h-4 text-gray-400" /> فاصله اقساط (ماه)
-                </label>
-                <input
-                  type="number"
-                  value={formData.intervalMonths_IGNORED}
-                  onChange={(e) => {
-                     const val = Number(e.target.value);
-                     setFormData({...formData, intervalMonths_IGNORED: val > 0 ? val : 1});
-                  }}
-                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-black font-mono text-left"
-                  dir="ltr"
-                  min="1"
-                />
-             </div>
 
              <div className="space-y-2">
                 <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
@@ -615,8 +663,9 @@ export default function LoansManager({
 
           <div className="flex justify-end border-t border-gray-100 pt-6">
              <button
+               disabled={isSubmitting}
                onClick={handleCreateLoan}
-               className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3.5 rounded-xl font-bold flex items-center gap-2 transition-all transform hover:-translate-y-0.5"
+               className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3.5 rounded-xl font-bold flex items-center gap-2 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
              >
                 <Plus className="w-5 h-5"/>
                 ثبت وام و ایجاد سررسید
@@ -730,6 +779,7 @@ export default function LoansManager({
                                                </select>
                                                <div className="flex flex-wrap items-center gap-1 w-full md:w-auto">
                                                  <button
+                                                   disabled={isSubmitting}
                                                    onClick={() => {
                                                       if(paymentForm.installmentId !== inst.id || !paymentForm.accountId) {
                                                          showNotification('لطفا حساب پرداخت/دریافت را انتخاب کنید', 'error');
@@ -738,7 +788,7 @@ export default function LoansManager({
                                                       }
                                                       handlePayInstallment();
                                                    }}
-                                                   className="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap"
+                                                   className="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                                                  >
                                                     ثبت پرداخت
                                                  </button>

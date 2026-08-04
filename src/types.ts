@@ -78,6 +78,8 @@ export type IssuedCheck = {
   id: string | number;
   checkbookId: string | number;
   checkNumber: string;
+  sayadId: string;
+  reason?: string;
   amount: number;
   issueDate: string;
   dueDate: string;
@@ -98,6 +100,8 @@ export type IssuedCheck = {
 export type ReceivedCheck = {
   id: string | number;
   checkNumber: string;
+  sayadId: string;
+  reason?: string;
   bankName: string;
   branchName?: string;
   amount: number;
@@ -294,6 +298,7 @@ export type User = {
   isProfileRequired?: boolean;
 }; 
 export type CompanySettings = {
+  checkApprovalThreshold?: number;
   invoicePrintFormat?: "standard" | "minimal" | "official" | "compact" | "thermal";
   companyName: string;
   phone: string;

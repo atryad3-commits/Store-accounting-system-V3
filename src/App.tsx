@@ -937,8 +937,8 @@ export default function App() {
                         setLoans={setLoans}
                         installments={installments}
                         setInstallments={setInstallments}
-                       
-                       
+                        currentUser={user?.name || "کاربر سیستم"}
+                        userRole={user?.role}
                         setAccounts={setAccounts}
                         transactions={transactions}
                         setTransactions={setTransactions} />} />
@@ -2078,6 +2078,7 @@ return (
                           </span>
                         )}
                       </button>
+                      {/* NotificationBell */}
                       <button
                         onClick={() => setIsCalculatorOpen(true)}
                         className="p-2 border rounded-xl transition-all cursor-pointer shadow-3xs active:scale-95 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 bg-white border-slate-200"

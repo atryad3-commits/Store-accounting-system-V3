@@ -108,13 +108,50 @@ const getChannelIcon = (type: ChannelType) => {
 export default function MessagingLogsView({ showNotification }: { showNotification?: (msg: string, type: string) => void }) {
   const [activeTab, setActiveTab] = useState<'overview' | 'all' | 'delivered' | 'failed' | 'pending' | 'scheduled'>('overview');
   const [searchTerm, setSearchTerm] = useState("");
+  const [logs, setLogs] = useState<MessageLog[]>([]);
+  
+  React.useEffect(() => {
+     fetchLogs();
+  }, []);
+  
+  const fetchLogs = async () => {
+    try {
+      const res = await fetch('/api/data/sms_messages');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+         setLogs(data.map(d => {
+            let status = d.status;
+            if (status === 'sent') status = 'delivered';
+            if (status === 'success') status = 'delivered';
+            if (status === 'error') status = 'failed';
+            return {
+              id: d.id,
+              recipient: { 
+                 name: d.recipientName || 'نامشخص', 
+                 contact: d.recipientNumber || 'نامشخص'
+              },
+              sender: 'سیستم',
+              content: d.messageBody || '',
+              status: status as any,
+              channelType: 'sms' as any,
+              channelName: d.recipientType === 'manual' ? 'ارسال دستی' : 'مخاطبین',
+              createdAt: d.createdAt || new Date().toISOString(),
+              error: d.status === 'failed' ? 'خطا در ارسال پیام' : undefined
+            };
+         }).sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      }
+    } catch (err) {
+      console.error(err);
+      setLogs(mockLogs as any[]);
+    }
+  };
   const [selectedLog, setSelectedLog] = useState<MessageLog | null>(null);
   const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
   // Derived state
   const filteredLogs = useMemo(() => {
-    return mockLogs.filter(log => {
+    return logs.filter(log => {
       // Tab filter
       if (activeTab !== 'overview' && activeTab !== 'all' && log.status !== activeTab) return false;
       // Search filter
@@ -133,10 +170,10 @@ export default function MessagingLogsView({ showNotification }: { showNotificati
 
   // Analytics calculations (based on all mockLogs for overview, ignoring tab filter but respecting global date filters if implemented)
   const stats = useMemo(() => {
-    const total = mockLogs.length;
-    const delivered = mockLogs.filter(l => l.status === 'delivered').length;
-    const failed = mockLogs.filter(l => l.status === 'failed').length;
-    const pending = mockLogs.filter(l => l.status === 'pending' || l.status === 'queued').length;
+    const total = logs.length;
+    const delivered = logs.filter(l => (l.status as any) === 'success' || l.status === 'delivered').length;
+    const failed = logs.filter(l => l.status === 'failed').length;
+    const pending = logs.filter(l => l.status === 'pending' || l.status === 'queued').length;
     return {
       total,
       deliveredRate: Math.round((delivered / total) * 100),
@@ -261,10 +298,10 @@ export default function MessagingLogsView({ showNotification }: { showNotificati
         {[
           { id: 'overview', label: 'Overview', icon: BarChart3, count: null },
           { id: 'all', label: 'All Logs', icon: List, count: stats.total },
-          { id: 'delivered', label: 'Delivered', icon: CheckCircle2, count: mockLogs.filter(l=>l.status==='delivered').length },
+          { id: 'delivered', label: 'Delivered', icon: CheckCircle2, count: logs.filter(l=>l.status==='delivered').length },
           { id: 'failed', label: 'Failed', icon: XCircle, count: stats.failed },
           { id: 'pending', label: 'Pending', icon: Clock, count: stats.pending },
-          { id: 'scheduled', label: 'Scheduled', icon: CalendarIcon, count: mockLogs.filter(l=>l.status==='scheduled').length },
+          { id: 'scheduled', label: 'Scheduled', icon: CalendarIcon, count: logs.filter(l=>l.status==='scheduled').length },
         ].map((tab) => (
           <button
             key={tab.id}

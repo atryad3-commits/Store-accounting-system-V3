@@ -1,0 +1,13 @@
+                          setViewingCheck={setViewingCheck} />
+                      </motion.div>} />
+<Route path="/loans" element={<LoansManager showNotification={showNotification} persons={persons} accounts={accounts}
+                        loans={loans}
+                        setLoans={setLoans}
+                        installments={installments}
+                        setInstallments={setInstallments}
+                        currentUser={user?.name || "کاربر سیستم"}
+                        userRole={user?.role}
+                        setAccounts={setAccounts}
+                        transactions={transactions}
+                        setTransactions={setTransactions} />} />
+<Route path="/system_info" element={<SystemInfo />} />

@@ -96,20 +96,70 @@ const mockLogs = [
 ];
 
 export default function MessagingChannelsView({ showNotification }: { showNotification?: (msg: string, type: string) => void }) {
-  const [channels, setChannels] = useState<ChannelConfig[]>(mockChannels.sort((a,b) => a.priority - b.priority));
+  const [channels, setChannels] = useState<ChannelConfig[]>([]);
+
+  React.useEffect(() => {
+    fetchChannels();
+  }, []);
+
+  const fetchChannels = async () => {
+    try {
+      const res = await fetch('/api/data/sms_providers');
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        setChannels(data.map(d => ({
+          id: d.id,
+          name: d.name,
+          type: d.channelType || 'sms_panel',
+          isEnabled: d.isActive ?? true,
+          priority: d.priority || 1,
+          status: 'connected' as any,
+          lastUsed: 'نامشخص',
+          config: { apiKey: d.apiKey, apiEndpoint: d.apiEndpoint, apiSecret: d.apiSecret, lineNumber: d.senderNumber },
+          dailyRateLimit: d.dailyLimit || 10000,
+          activeHours: { start: "00:00", end: "23:59" },
+          defaultSenderId: d.senderNumber || ""
+        })).sort((a: any, b: any) => a.priority - b.priority));
+      } else {
+         setChannels(mockChannels.sort((a,b) => a.priority - b.priority));
+      }
+    } catch (err) {
+      console.error(err);
+      setChannels(mockChannels.sort((a,b) => a.priority - b.priority));
+    }
+  };
   const [editingChannel, setEditingChannel] = useState<ChannelConfig | null>(null);
   const [isLogsOpen, setIsLogsOpen] = useState(false);
   const [showKey, setShowKey] = useState(false);
   
   // Reorder logic
-  const handleReorder = (newOrder: ChannelConfig[]) => {
-    // Update priorities based on new order
+  const handleReorder = async (newOrder: ChannelConfig[]) => {
     const updatedChannels = newOrder.map((ch, index) => ({
       ...ch,
       priority: index + 1
     }));
     setChannels(updatedChannels);
-    if (showNotification) showNotification("اولویت کانال‌ها بروزرسانی شد", "success");
+    
+    try {
+      const operations = updatedChannels.map(ch => ({
+         key: 'sms_providers',
+         type: 'append',
+         data: {
+           id: ch.id,
+           priority: ch.priority
+         }
+      }));
+      
+      await fetch('/api/data/batch', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ operations })
+      });
+      if (showNotification) showNotification("اولویت کانال‌ها بروزرسانی شد", "success");
+    } catch (err) {
+      console.error(err);
+      if (showNotification) showNotification("خطا در بروزرسانی اولویت‌ها", "error");
+    }
   };
 
   const getIconFixed = (type: string) => {
@@ -133,13 +183,37 @@ export default function MessagingChannelsView({ showNotification }: { showNotifi
     if (showNotification) showNotification("وضعیت کانال تغییر کرد", "success");
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editingChannel) {
-      // Fake confirmation for critical changes
       if (confirm("آیا از ذخیره این تغییرات حیاتی اطمینان دارید؟ (نیاز به تایید مدیر)")) {
-        setChannels(channels.map(ch => ch.id === editingChannel.id ? editingChannel : ch));
-        setEditingChannel(null);
-        if (showNotification) showNotification("تنظیمات کانال با موفقیت ذخیره شد", "success");
+        try {
+           const payload = {
+              id: editingChannel.id,
+              name: editingChannel.name,
+              slug: editingChannel.id,
+              channelType: editingChannel.type,
+              apiEndpoint: editingChannel.config?.apiEndpoint,
+              apiKey: editingChannel.config?.apiKey,
+              apiSecret: editingChannel.config?.apiSecret,
+              senderNumber: editingChannel.config?.lineNumber || editingChannel.defaultSenderId,
+              priority: editingChannel.priority,
+              isActive: editingChannel.isEnabled,
+              dailyLimit: editingChannel.dailyRateLimit
+           };
+           
+           await fetch('/api/data/sms_providers/append', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify(payload)
+           });
+
+           setChannels(channels.map(ch => ch.id === editingChannel.id ? editingChannel : ch));
+           setEditingChannel(null);
+           if (showNotification) showNotification("تنظیمات کانال با موفقیت ذخیره شد", "success");
+        } catch (err) {
+           console.error(err);
+           if (showNotification) showNotification("خطا در ذخیره تنظیمات کانال", "error");
+        }
       }
     }
   };

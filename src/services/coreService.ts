@@ -157,7 +157,12 @@ export const updateLocalData = async <T>(key: string, id: string | number, data:
   });
   if (!res.ok) {
     if (res.status === 401) return data as T;
-    throw new Error('Network response was not ok');
+    let errText = 'Network response was not ok';
+    try {
+       const err = await res.json();
+       if (err && err.error) errText = err.error;
+    } catch(e) {}
+    throw new Error(errText);
   }
   invalidateCache(key);
   const result = await res.json();
