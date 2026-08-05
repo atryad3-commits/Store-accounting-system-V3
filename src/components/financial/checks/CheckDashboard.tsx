@@ -9,6 +9,7 @@ import DatePickerModule, { Calendar as RMCalendar } from "react-multi-date-picke
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 
+import { CashFlowForecast } from './CashFlowForecast';
 export function CheckDashboard({ totalIssuedAmount, cashedIssuedAmount, pendingIssuedAmount, bouncedIssuedAmount, totalReceivedAmount, cashedReceivedAmount, inHandReceivedAmount, bouncedReceivedAmount }) {
   return (
     <>
@@ -93,11 +94,9 @@ export function CheckDashboard({ totalIssuedAmount, cashedIssuedAmount, pendingI
                   <div className="flex-1 flex w-full items-center justify-center min-h-[300px] text-gray-400 font-medium text-sm">آماری جهت نمایش در دسترس نیست</div>
                 )}
               </div>
-
             </div>
+          <CashFlowForecast />
           </div>
-
-      
-    </>
+          </>
   );
 }

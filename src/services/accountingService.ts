@@ -161,9 +161,9 @@ export const deleteCashbox = async (id: string) => {
 };
 
 export const getCheckbooks = async () => {
-  const data = await getLocalData<any[]>('checkbooks', []);
-  if (data && data.data) return data; // Server-side paginated response
-  return data.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const data = await getLocalData<any>('checkbooks', []);
+  if (data && (data as any).data) return data; // Server-side paginated response
+  return (Array.isArray(data) ? data : []).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 export const addCheckbook = async (record: any) => {

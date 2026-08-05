@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Loan, Installment, Person, Account } from '../../types';
 import { Plus, Percent, Edit2, Trash2, Search, CheckCircle, ChevronDown, ChevronUp, AlertCircle, RefreshCw, Layers, Calendar, DollarSign, Wallet, Users, Activity, List, ArrowLeftRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { saveLoans, saveInstallments, addTransaction, checkFinancialYear, addSystemLog } from '../../services/dataService';
+import { saveLoans, saveInstallments, addTransaction, deleteTransaction, checkFinancialYear, addSystemLog } from '../../services/dataService';
 import { formatDateDisplay } from '../../utils/format';
 
 
@@ -266,6 +266,10 @@ export default function LoansManager({
        showNotification('اطلاعات پرداخت ناقص است.', 'error');
        return;
     }
+    if (amountNum <= 0) {
+       showNotification('مبلغ پرداخت باید بیشتر از صفر باشد.', 'error');
+       return;
+    }
 
     setIsSubmitting(true);
 
@@ -343,6 +347,64 @@ export default function LoansManager({
     setIsSubmitting(false);
   };
 
+  const handleRevertInstallment = async (loanId: string | number, instId: string | number) => {
+    if (userRole !== 'admin' && userRole !== 'manager') {
+      showNotification('شما دسترسی بازگشت قسط را ندارید.', 'error');
+      return;
+    }
+    if (!window.confirm('آیا از بازگشت این قسط به حالت پرداخت‌نشده اطمینان دارید؟')) return;
+    
+    setIsSubmitting(true);
+    try {
+       // Delete corresponding transaction
+       const txsToDelete = transactions.filter(t => t.id.toString().startsWith(`txn-inst-${instId}`));
+       for (const tx of txsToDelete) {
+           await deleteTransaction(tx.id);
+       }
+       setTransactions(transactions.filter(t => !txsToDelete.includes(t)));
+
+       const updatedInstallments = installments.map(i => {
+         if (i.id === instId) {
+           return { ...i, status: 'pending', paidDate: undefined, paidAmount: undefined };
+         }
+         return i;
+       });
+       const loanInstallments = updatedInstallments.filter(i => i.loanId === loanId);
+       const allPaid = loanInstallments.every(i => i.status === 'paid');
+       
+       const updatedLoans = loans.map(l => {
+         if (l.id === loanId) {
+           return { ...l, status: allPaid ? 'completed' : 'active' };
+         }
+         return l;
+       });
+
+       await saveInstallments(updatedInstallments);
+       await saveLoans(updatedLoans);
+       setInstallments(updatedInstallments);
+       setLoans(updatedLoans);
+       
+       if (typeof addSystemLog !== 'undefined') {
+          await addSystemLog('REVERT_INSTALLMENT', `ابطال پرداخت قسط ${instId}`, 'Installment', instId);
+       }
+       showNotification('وضعیت قسط به پرداخت‌نشده تغییر یافت.', 'success');
+    } catch(err: any) {
+       showNotification(err.message || 'خطا در عملیات', 'error');
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleMarkOverdue = async (instId: string | number) => {
+    if (userRole !== 'admin' && userRole !== 'manager') {
+      showNotification('شما دسترسی تغییر وضعیت قسط را ندارید.', 'error');
+      return;
+    }
+    const updatedInstallments = installments.map(i => i.id === instId ? { ...i, status: 'overdue' as 'overdue' } : i);
+    setInstallments(updatedInstallments);
+    await saveInstallments(updatedInstallments);
+    showNotification('قسط معوقه شد', 'warning');
+  };
+
   const getPersonName = (pid: string | number) => {
     const p = persons.find(x => x.id === pid);
     return p ? p.name : 'نامشخص';
@@ -365,12 +427,31 @@ export default function LoansManager({
     
     setIsSubmitting(true);
     try {
+      const loanInsts = installments.filter(i => i.loanId === loanId);
+      const instIds = loanInsts.map(i => i.id.toString());
+      
+      const txsToDelete = transactions.filter(t => {
+          const tId = t.id.toString();
+          if (tId === `txn-loan-${loanId}`) return true;
+          if (tId.startsWith('txn-inst-')) {
+               return instIds.some(instId => tId.startsWith(`txn-inst-${instId}`));
+          }
+          return false;
+      });
+      
+      for (const tx of txsToDelete) {
+          await deleteTransaction(tx.id);
+      }
+
       const updatedLoans = loans.filter(l => l.id !== loanId);
       const updatedInstallments = installments.filter(i => i.loanId !== loanId);
       await saveLoans(updatedLoans);
       await saveInstallments(updatedInstallments);
+      
+      setTransactions(transactions.filter(t => !txsToDelete.includes(t)));
       setLoans(updatedLoans);
       setInstallments(updatedInstallments);
+      
       if (typeof addSystemLog !== 'undefined') {
         await addSystemLog('DELETE_LOAN', `حذف وام ${loanId}`, 'Loan', loanId);
       }
@@ -728,10 +809,17 @@ export default function LoansManager({
                                   <div className="h-full bg-emerald-500 rounded-full" style={{width: `${(paidInsts/totalInsts)*100}%`}}></div>
                                </div>
                             </div>
+                            {(userRole === 'admin' || userRole === 'manager') && (
+                               <button
+                                 onClick={(e) => { e.stopPropagation(); handleDeleteLoan(loan.id); }}
+                                 className="mt-2 text-rose-500 hover:text-rose-700 flex items-center gap-1 text-xs font-bold transition-colors"
+                               >
+                                  <Trash2 className="w-4 h-4" />
+                                  حذف وام
+                               </button>
+                             )}
                          </div>
-
                        </div>
-
                        <div className="text-gray-300">
                           {isExpanded ? <ChevronUp /> : <ChevronDown />}
                        </div>
@@ -794,8 +882,9 @@ export default function LoansManager({
                                                  </button>
                                                  {inst.status !== 'overdue' && (
                                                    <button
-                                                     onClick={() => (() => {})(inst.id)}
-                                                     className="bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white px-3 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap"
+                                                     onClick={() => handleMarkOverdue(inst.id)}
+                                                     disabled={isSubmitting}
+                                                     className="bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white px-3 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap disabled:opacity-50"
                                                    >
                                                       معوقه
                                                    </button>

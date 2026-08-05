@@ -1,6 +1,6 @@
 import { checkFinancialYear, getStoreSettings } from './settingsService';
 import { mapTransactionTypeToTable, mapInvoiceTypeToTable } from './coreService';
-import { getLedgerAccounts, addAccountingDocument, getAccountingDocuments, updateAccountingDocument } from './accountingService';
+import { getLedgerAccounts, addLedgerAccount, addAccountingDocument, getAccountingDocuments, updateAccountingDocument } from './accountingService';
 import { syncProductLatestPrices } from './productService';
 import { recalculateAllWarehouseStocks } from './inventoryService';
 
@@ -185,6 +185,26 @@ export const addTransaction = async (transaction: any) => {
               if (acc) personLedgerId = acc.id;
            }
         }
+     }
+     
+     // Override personLedgerId for Loan transactions to proper Loan Accounts
+     const getAccountForCode = async (code: string, title: string, parentCode: string, nature: 'debit' | 'credit') => {
+        let acc = ledgerAccounts.find(a => a.code === code);
+        if (acc) return acc.id;
+        const parentAcc = ledgerAccounts.find(a => a.code === parentCode);
+        if (parentAcc) {
+            const newAcc = { id: generateId(), code, title, type: 'subsidiary', nature, parentId: parentAcc.id };
+                        await addLedgerAccount(newAcc);
+            ledgerAccounts.push(newAcc);
+            return newAcc.id;
+        }
+        return defaultLedger;
+     };
+
+     if (transaction.categoryId === 'loan_given' || transaction.categoryId === 'loan_installment_received') {
+        personLedgerId = await getAccountForCode('1601', 'وام‌های پرداختی', '16', 'debit');
+     } else if (transaction.categoryId === 'loan_received' || transaction.categoryId === 'loan_installment_paid') {
+        personLedgerId = await getAccountForCode('2201', 'وام‌های دریافتی', '22', 'credit');
      }
 
      // Find Bank/Cashbox Resource Ledger Account
@@ -378,6 +398,25 @@ export const updateTransaction = async (id: string | number, updated: any) => {
                   if (acc) personLedgerId = acc.id;
                }
             }
+         }
+         
+         const getAccountForCode2 = async (code: string, title: string, parentCode: string, nature: 'debit' | 'credit') => {
+            let acc = ledgerAccounts.find(a => a.code === code);
+            if (acc) return acc.id;
+            const parentAcc = ledgerAccounts.find(a => a.code === parentCode);
+            if (parentAcc) {
+                const newAcc = { id: generateId(), code, title, type: 'subsidiary', nature, parentId: parentAcc.id };
+                                await addLedgerAccount(newAcc);
+                ledgerAccounts.push(newAcc);
+                return newAcc.id;
+            }
+            return defaultLedger;
+         };
+
+         if (updated.categoryId === 'loan_given' || updated.categoryId === 'loan_installment_received') {
+            personLedgerId = await getAccountForCode2('1601', 'وام‌های پرداختی', '16', 'debit');
+         } else if (updated.categoryId === 'loan_received' || updated.categoryId === 'loan_installment_paid') {
+            personLedgerId = await getAccountForCode2('2201', 'وام‌های دریافتی', '22', 'credit');
          }
 
          // Find Bank/Cashbox Resource Ledger Account

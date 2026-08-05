@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'motion/react';
 import { useChecks } from './checks/useChecks';
@@ -137,22 +137,39 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
   };
 
 
-  const summaryData = { issuedStats: { totalCount: 0, totalAmount: 0, pendingCount: 0, pendingAmount: 0, passedCount: 0, bouncedCount: 0 }, receivedStats: { totalCount: 0, totalAmount: 0, pendingCount: 0, pendingAmount: 0, passedCount: 0, bouncedCount: 0 } };
+  // Issued check totals
+  const totalIssuedAmount = useMemo(() => {
+    return (issuedChecks || []).reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+  }, [issuedChecks]);
 
-  const getSum = (stats, statuses) => {
-    if (!stats) return 0;
-    return stats.filter(s => statuses.includes(s.status)).reduce((sum, s) => sum + s.totalAmount, 0);
-  };
+  const cashedIssuedAmount = useMemo(() => {
+    return (issuedChecks || []).filter(c => c.status === 'cashed').reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+  }, [issuedChecks]);
 
-  const totalIssuedAmount = summaryData?.issuedStats ? summaryData.issuedStats.reduce((sum, s) => sum + s.totalAmount, 0) : 0;
-  const cashedIssuedAmount = getSum(summaryData?.issuedStats, ['cashed']);
-  const pendingIssuedAmount = getSum(summaryData?.issuedStats, ['issued']);
-  const bouncedIssuedAmount = getSum(summaryData?.issuedStats, ['bounced']);
+  const pendingIssuedAmount = useMemo(() => {
+    return (issuedChecks || []).filter(c => c.status === 'issued' || c.status === 'blank').reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+  }, [issuedChecks]);
 
-  const totalReceivedAmount = summaryData?.receivedStats ? summaryData.receivedStats.reduce((sum, s) => sum + s.totalAmount, 0) : 0;
-  const cashedReceivedAmount = getSum(summaryData?.receivedStats, ['cashed']);
-  const inHandReceivedAmount = getSum(summaryData?.receivedStats, ['received']);
-  const bouncedReceivedAmount = getSum(summaryData?.receivedStats, ['bounced', 'bounced_assigned']);
+  const bouncedIssuedAmount = useMemo(() => {
+    return (issuedChecks || []).filter(c => c.status === 'bounced').reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+  }, [issuedChecks]);
+
+  // Received check totals
+  const totalReceivedAmount = useMemo(() => {
+    return (receivedChecks || []).reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+  }, [receivedChecks]);
+
+  const cashedReceivedAmount = useMemo(() => {
+    return (receivedChecks || []).filter(c => c.status === 'cashed').reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+  }, [receivedChecks]);
+
+  const inHandReceivedAmount = useMemo(() => {
+    return (receivedChecks || []).filter(c => c.status === 'received' || c.status === 'deposited').reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+  }, [receivedChecks]);
+
+  const bouncedReceivedAmount = useMemo(() => {
+    return (receivedChecks || []).filter(c => c.status === 'bounced' || c.status === 'bounced_assigned').reduce((sum, c) => sum + (Number(c.amount) || 0), 0);
+  }, [receivedChecks]);
 
 
   return (
