@@ -255,6 +255,8 @@ import {
   deleteAccountingDocument,
   getLedgerAccounts,
   addSystemLog,
+  getLoans,
+  getInstallments,
 } from "../services/dataService";
 import ModuleSelector from "../components/ui/ModuleSelector";
 import DatabaseReconciliation from "../components/admin/DatabaseReconciliation";
@@ -2852,12 +2854,7 @@ description: receiptDescription,
 
       await Promise.all([
         fetchTransactions(),
-        import("../services/dataService").then(({ getLoans, getInstallments }) =>
-          Promise.all([
-            getLoans().then(setLoans),
-            getInstallments().then(setInstallments),
-          ]),
-        ),
+        fetchLoansAndInstallments(),
         fetchInvoices(),
         fetchAccountingDocuments(),
         fetchPersons(),
@@ -3713,7 +3710,18 @@ const fetchSmsMessages = async () => {
     }
   };
 
-const fetchDataSilent = async () => {
+
+  const fetchLoansAndInstallments = async () => {
+    try {
+      const [lData, iData] = await Promise.all([getLoans(), getInstallments()]);
+      setLoans(lData);
+      setInstallments(iData);
+    } catch (e) {
+      console.error("Error fetching loans and installments", e);
+    }
+  };
+
+  const fetchDataSilent = async () => {
     try {
       await Promise.all([
         fetchPersonRoles(),
@@ -3730,6 +3738,7 @@ const fetchDataSilent = async () => {
         fetchChecks(),
         fetchSmsMessages(),
         fetchFinancialYearInfo(),
+        fetchLoansAndInstallments(),
       ]);
       await fetchInvoices();
     } catch (error) {
@@ -3755,6 +3764,7 @@ const fetchData = async () => {
         fetchChecks(),
         fetchSmsMessages(),
         fetchFinancialYearInfo(),
+        fetchLoansAndInstallments(),
       ]);
       await fetchDataSilent();
     } catch (error) {

@@ -5,6 +5,10 @@ import { Plus, Percent, Edit2, Trash2, Search, CheckCircle, ChevronDown, Chevron
 import { motion, AnimatePresence } from 'motion/react';
 import { saveLoans, saveInstallments, addTransaction, deleteTransaction, checkFinancialYear, addSystemLog } from '../../services/dataService';
 import { formatDateDisplay } from '../../utils/format';
+import LoansDashboard from './LoansDashboard';
+import LoansArrears from './LoansArrears';
+import LoansReports from './LoansReports';
+import LoansSettings from './LoansSettings';
 
 
 
@@ -38,7 +42,7 @@ export default function LoansManager({
   currentUser = 'سیستم',
   userRole = 'viewer'
 }: LoansManagerProps) {
-  const [activeTab, setActiveTab] = useState<'list' | 'create'>('list');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'list' | 'create' | 'arrears' | 'reports' | 'settings'>('dashboard');
   const [expandedLoanId, setExpandedLoanId] = useState<string | number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -208,14 +212,16 @@ export default function LoansManager({
     }
 
     const transactionId = `txn-loan-${loanId}`;
+    const interestAmt = (instCount * instAmount) - amountNum;
     const newTransaction = {
+      interestAmount: interestAmt > 0 ? interestAmt : 0,
       id: transactionId,
       type: formData.type === 'given' ? 'pay' : 'receive',
       amount: amountNum,
       accountId: formData.accountId,
       personId: formData.personId,
       categoryId: formData.type === 'given' ? 'loan_given' : 'loan_received',
-      description: `ثبت اولیه وام ${formData.type === 'given' ? 'پرداختی' : 'دریافتی'}`,
+      description: formData.type === 'given' ? `اعطای وام پرداختی شماره ${loanId}` : `اخذ وام دریافتی شماره ${loanId}`,
       date: formData.startDate,
       time: new Date().toLocaleTimeString('fa-IR', { hour12: false }),
       isSystem: true,
@@ -320,7 +326,7 @@ export default function LoansManager({
       accountId: paymentForm.accountId,
       personId: loan.personId,
       categoryId: loan.type === 'given' ? 'loan_installment_received' : 'loan_installment_paid',
-      description: `پرداخت قسط وام`,
+      description: loan.type === 'given' ? `دریافت قسط وام شماره ${loan.id}` : `پرداخت قسط وام شماره ${loan.id}`,
       date: paymentForm.paymentDate,
       time: new Date().toLocaleTimeString('fa-IR', { hour12: false }),
       isSystem: true,
@@ -472,6 +478,16 @@ export default function LoansManager({
         
         <div className="flex bg-gray-100 p-1.5 rounded-2xl w-full md:w-auto">
           <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
+              activeTab === 'dashboard' 
+                ? 'bg-white text-emerald-600 shadow-sm' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            داشبورد
+          </button>
+          <button
             onClick={() => setActiveTab('list')}
             className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
               activeTab === 'list' 
@@ -479,7 +495,7 @@ export default function LoansManager({
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            لیست وام‌ها
+            فهرست وام‌ها
           </button>
           <button
             onClick={() => setActiveTab('create')}
@@ -490,6 +506,36 @@ export default function LoansManager({
             }`}
           >
             ثبت وام جدید
+          </button>
+          <button
+            onClick={() => setActiveTab('arrears')}
+            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
+              activeTab === 'arrears' 
+                ? 'bg-white text-emerald-600 shadow-sm' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            معوقات
+          </button>
+          <button
+            onClick={() => setActiveTab('reports')}
+            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
+              activeTab === 'reports' 
+                ? 'bg-white text-emerald-600 shadow-sm' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            گزارشات
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
+              activeTab === 'settings' 
+                ? 'bg-white text-emerald-600 shadow-sm' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            تنظیمات
           </button>
         </div>
       </div>
@@ -755,7 +801,23 @@ export default function LoansManager({
         </motion.div>
       )}
 
-      {activeTab === 'list' && (
+      {activeTab === 'dashboard' && (
+           <LoansDashboard loans={loans} installments={installments} persons={persons} />
+        )}
+        
+        {activeTab === 'arrears' && (
+           <LoansArrears loans={loans} installments={installments} persons={persons} />
+        )}
+
+        {activeTab === 'reports' && (
+           <LoansReports loans={loans} installments={installments} persons={persons} />
+        )}
+
+        {activeTab === 'settings' && (
+           <LoansSettings showNotification={showNotification} userRole={userRole} />
+        )}
+
+        {activeTab === 'list' && (
         <motion.div
            initial={{ opacity: 0 }}
            animate={{ opacity: 1 }}
