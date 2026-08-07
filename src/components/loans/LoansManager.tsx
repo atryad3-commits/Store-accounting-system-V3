@@ -63,6 +63,7 @@ export default function LoansManager({
   transactions,
   setTransactions, 
   showNotification,
+  formatCurrency = (val: number) => val.toLocaleString('fa-IR'),
   currentUser = 'سیستم',
   userRole = 'viewer'
 }: LoansManagerProps) {
