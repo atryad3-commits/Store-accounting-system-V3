@@ -551,7 +551,15 @@ export default function LoansManager({
     setIsSubmitting(false);
   };
 
+
+  const filteredLoans = loans.filter(loan => {
+    const matchesSearch = getPersonName(loan.personId).toLowerCase().includes(searchQuery.toLowerCase()) || loan.id.toString().includes(searchQuery);
+    const matchesStatus = statusFilter === 'all' || loan.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   return (
+
     <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto hide-scrollbar" dir="rtl">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
