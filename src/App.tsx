@@ -928,6 +928,7 @@ export default function App() {
                           onEditReceiptByCheck={handleEditReceiptByCheck}
                           showNotification={showNotification}
                           currentUser={user?.name || "کاربر سیستم"}
+                        formatCurrency={formatCurrency}
                           sendNotification={sendNotification}
                           storeSettings={storeSettings}
                           setViewingCheck={setViewingCheck} />

@@ -5,12 +5,16 @@ import { AlertCircle, Clock, Search, Phone, MessageCircle, CheckCircle } from 'l
 import { motion } from 'motion/react';
 
 interface LoansArrearsProps {
+  formatCurrency?: (val: number) => string;
   loans: Loan[];
   installments: Installment[];
   persons: Person[];
 }
 
-export default function LoansArrears({ loans, installments, persons }: LoansArrearsProps) {
+export default function LoansArrears({ 
+  formatCurrency = (val: number) => Number(val).toLocaleString("fa-IR") + " تومان",
+  loans, installments, persons
+}: LoansArrearsProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const today = new Date().toLocaleDateString('fa-IR').replace(/\//g, '-');
 
@@ -63,7 +67,7 @@ export default function LoansArrears({ loans, installments, persons }: LoansArre
         </div>
         <div className="bg-rose-50 px-6 py-4 rounded-xl border border-rose-100 text-center min-w-[200px]">
            <p className="text-sm text-rose-600 font-bold mb-1">جمع کل معوقات</p>
-           <p className="text-2xl font-black text-rose-700 font-mono" dir="ltr">{addCommas(totalOverdueAmount)} <span className="text-sm font-normal">تومان</span></p>
+           <p className="text-2xl font-black text-rose-700 font-mono" dir="ltr">{formatCurrency(totalOverdueAmount)}</p>
         </div>
       </div>
 
@@ -92,7 +96,7 @@ export default function LoansArrears({ loans, installments, persons }: LoansArre
                 <th className="px-6 py-4">شماره وام / قسط</th>
                 <th className="px-6 py-4">سررسید</th>
                 <th className="px-6 py-4">تأخیر (روز)</th>
-                <th className="px-6 py-4">مبلغ معوق (تومان)</th>
+                <th className="px-6 py-4">مبلغ معوق (واحد پول)</th>
                 <th className="px-6 py-4">عملیات پیگیری</th>
               </tr>
             </thead>

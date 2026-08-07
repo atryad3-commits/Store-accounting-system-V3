@@ -8,6 +8,7 @@ import { checkbooks, issuedChecks, receivedChecks, checkAuditLogs, notifications
 import { eq, isNull, sql, desc, asc, inArray, and } from 'drizzle-orm';
 import express from 'express';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { DatabaseSync } from 'node:sqlite';
 const storeContext = new AsyncLocalStorage<string>();
 
 import path from 'path';
@@ -15,7 +16,7 @@ import { createServer as createViteServer } from 'vite';
 import { exec } from 'child_process';
 import { startCronJobs } from './src/jobs/checkNotificationsJob';
 import fsPromises from 'fs/promises';
-import { DatabaseSync } from 'node:sqlite';
+import { syncManager } from './src/services/syncManager';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { z } from "zod";
@@ -32,28 +33,9 @@ function getDb() {
   const storeId = storeContext.getStore() || 'default';
   if (!dbs[storeId]) {
     const dbFile = storeId === 'default' ? SQLITE_FILE : path.join(process.cwd(), `database_${storeId}.sqlite`);
+    // NOTE: This is strictly for one-time migration purposes.
+    
     dbs[storeId] = new DatabaseSync(dbFile);
-    dbs[storeId].exec(`
-      CREATE TABLE IF NOT EXISTS store (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL
-      )
-    `);
-    if (storeId === 'default') {
-      dbs[storeId].exec(`
-        CREATE TABLE IF NOT EXISTS businesses (
-          id TEXT PRIMARY KEY,
-          name TEXT NOT NULL,
-          db_type TEXT DEFAULT 'sqlite',
-          db_host TEXT,
-          db_port TEXT,
-          db_name TEXT,
-          db_user TEXT,
-          db_password TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-    }
   }
   return dbs[storeId];
 }
@@ -245,64 +227,54 @@ async function connectPgDb(connectionString: string) {
 async function innerGetDbData(key: string) {
   if (isPgActive() && getActivePgPool()) {
     if (!KNOWN_TABLES.includes(key)) return null;
-    try {
-      const isSoftDeletable = ["checkbooks", "issued_checks", "received_checks"].includes(key);
-      const res = await getActivePgPool().query(`SELECT * FROM "${key}"${isSoftDeletable ? ' WHERE deleted_at IS NULL' : ''}`);
-      
-      const parseJSONFields = (row: any) => {
+    const isSoftDeletable = ["checkbooks", "issued_checks", "received_checks"].includes(key);
+    const parseJSONFields = (row: any) => {
          if (!row) return row;
          for (const k in row) {
             if (typeof row[k] === 'string' && (row[k].startsWith('{') || row[k].startsWith('['))) {
-               try {
-                  row[k] = JSON.parse(row[k]);
-               } catch(e) { /* ignore non-JSON string */ }
+               try { row[k] = JSON.parse(row[k]); } catch(e) { }
             }
          }
          return row;
-      };
+    };
+    try {
+      const res = await getActivePgPool().query(`SELECT * FROM "${key}"${isSoftDeletable ? ' WHERE deleted_at IS NULL' : ''}`);
 
       if (key === 'company_profile') {
         try {
-           await getActivePgPool().query(`CREATE TABLE IF NOT EXISTS system_settings (setting_key VARCHAR PRIMARY KEY, setting_value TEXT)`);
-           const cres = await getActivePgPool().query(`SELECT * FROM system_settings`);
-           if (cres.rows.length === 0) return null;
-           const obj = { id: 'singleton' };
-           for (const r of cres.rows) {
-              try { obj[r.setting_key] = JSON.parse(r.setting_value); }
-              catch(e) { obj[r.setting_key] = r.setting_value; }
-           }
-           return obj;
+            const r = await getActivePgPool().query("SELECT * FROM system_settings");
+            if (r.rows.length === 0) {
+               const r2 = await getActivePgPool().query("SELECT value FROM store WHERE key = 'company_profile'");
+               if (r2.rows.length > 0) return JSON.parse(r2.rows[0].value);
+               return null;
+            }
+            const obj = { id: 'singleton' };
+            for (const row of r.rows) {
+                try { obj[row.setting_key] = JSON.parse(row.setting_value); } catch(e) { obj[row.setting_key] = row.setting_value; }
+            }
+            return obj;
         } catch(e) { return null; }
-      }
-      if (key === 'backupConfig') {
-        return res.rows.length > 0 ? parseJSONFields(res.rows[0]) : null;
       }
       return res.rows.map(parseJSONFields);
     } catch (e: any) {
       if (e.code === '42P01') { // table does not exist
         return (key === 'company_profile' || key === 'backupConfig') ? null : [];
       }
+      if (e.code === '42703' && isSoftDeletable) {
+        // Fallback if deleted_at column doesn't exist
+        try {
+          const fallbackRes = await getActivePgPool().query(`SELECT * FROM "${key}"`);
+          return fallbackRes.rows.map(parseJSONFields);
+        } catch (fallbackError) {
+          throw fallbackError;
+        }
+      }
+      console.error('innerGetDbData error:', e.message, 'for key:', key);
       throw e;
     }
   } else {
-    if (key === 'company_profile') {
-        try {
-            getDb().prepare('CREATE TABLE IF NOT EXISTS system_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT)').run();
-            const rows = getDb().prepare('SELECT setting_key, setting_value FROM system_settings').all();
-            if (rows.length === 0) {
-               const oldRow = getDb().prepare('SELECT value FROM store WHERE key = ?').get('company_profile') as any;
-               return oldRow ? JSON.parse(oldRow.value) : null;
-            }
-            const obj = { id: 'singleton' };
-            for (const r of rows) {
-                try { obj[r.setting_key] = JSON.parse(r.setting_value); }
-                catch(e) { obj[r.setting_key] = r.setting_value; }
-            }
-            return obj;
-        } catch(e) { return null; }
-    }
-    const row = getDb().prepare('SELECT value FROM store WHERE key = ?').get(key) as any;
-    return row ? JSON.parse(row.value) : null;
+      // PG is not active. SQLite cannot be used for reads as per architecture rules.
+      return null;
   }
 }
 
@@ -909,20 +881,13 @@ async function startServer() {
       if (usePgMap['default'] && activePgPools['default']) {
           const r = await activePgPools['default'].query("SELECT * FROM businesses WHERE id = $1", [id]);
           if (r.rows.length > 0) existing = r.rows[0];
-      } else {
-          const defaultDb = storeContext.run('default', () => getDb());
-          const checkStmt = defaultDb.prepare("SELECT * FROM businesses WHERE id = ?");
-          existing = checkStmt.get(id);
-      }
+      } else { existing = null; }
 
       if (existing || id === 'default') {
         if (!existing) {
            if (usePgMap['default'] && activePgPools['default']) {
                await activePgPools['default'].query('INSERT INTO businesses (id, name, db_type) VALUES ($1, $2, $3)', [id, name, db_type || 'sqlite']);
-           } else {
-               const defaultDb = storeContext.run('default', () => getDb());
-               defaultDb.prepare('INSERT INTO businesses (id, name, db_type) VALUES (?, ?, ?)').run(id, name, db_type || 'sqlite');
-           }
+           } else { throw new Error("PostgreSQL required to create businesses"); }
         } else {
         if (usePgMap['default'] && activePgPools['default']) {
             await activePgPools['default'].query(`
@@ -936,21 +901,7 @@ async function startServer() {
                 db_password = COALESCE($7, db_password) 
               WHERE id = $8
             `, [name, db_type, db_host, db_port, db_name, db_user, db_password, id]);
-        } else {
-            const defaultDb = storeContext.run('default', () => getDb());
-            const stmt = defaultDb.prepare(`
-              UPDATE businesses SET 
-                name = ?, 
-                db_type = COALESCE(?, db_type), 
-                db_host = COALESCE(?, db_host), 
-                db_port = COALESCE(?, db_port), 
-                db_name = COALESCE(?, db_name), 
-                db_user = COALESCE(?, db_user), 
-                db_password = COALESCE(?, db_password) 
-              WHERE id = ?
-            `);
-            stmt.run(name, db_type, db_host, db_port, db_name, db_user, db_password, id);
-        }
+        } else { throw new Error("PostgreSQL required to update businesses"); }
         }
         res.json({ success: true, database: { id, name, db_type: db_type || (existing && existing.db_type) || 'sqlite', db_host, db_port, db_name, db_user, db_password } });
       } else {
@@ -2560,3 +2511,12 @@ async function startServer() {
 }
 
 startServer();
+
+// Start sync worker
+setInterval(() => {
+    try {
+        syncManager.processQueue((storeId) => activePgPools[storeId]);
+    } catch(e) {
+        console.error("Sync worker error:", e);
+    }
+}, 10000); // run every 10s

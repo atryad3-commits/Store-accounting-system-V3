@@ -4,12 +4,16 @@ import { addCommas } from '../../utils/format';
 import { FileText, Download, Filter, FileSpreadsheet } from 'lucide-react';
 
 interface LoansReportsProps {
+  formatCurrency?: (val: number) => string;
   loans: Loan[];
   installments: Installment[];
   persons: Person[];
 }
 
-export default function LoansReports({ loans, installments, persons }: LoansReportsProps) {
+export default function LoansReports({ 
+  formatCurrency = (val: number) => Number(val).toLocaleString("fa-IR") + " تومان",
+  loans, installments, persons
+}: LoansReportsProps) {
   const [reportType, setReportType] = useState<'active' | 'settled' | 'cashflow'>('active');
 
   const reportData = useMemo(() => {
@@ -116,15 +120,15 @@ export default function LoansReports({ loans, installments, persons }: LoansRepo
                   <th className="px-6 py-4">شماره وام</th>
                   <th className="px-6 py-4">وام‌گیرنده</th>
                   <th className="px-6 py-4">تاریخ شروع</th>
-                  <th className="px-6 py-4">مبلغ اصل (تومان)</th>
-                  <th className="px-6 py-4">کل پرداختی (تومان)</th>
-                  <th className="px-6 py-4">مانده (تومان)</th>
+                  <th className="px-6 py-4">مبلغ اصل (واحد پول)</th>
+                  <th className="px-6 py-4">کل پرداختی (واحد پول)</th>
+                  <th className="px-6 py-4">مانده (واحد پول)</th>
                 </tr>
               ) : (
                 <tr>
                   <th className="px-6 py-4">ماه سررسید</th>
                   <th className="px-6 py-4">تعداد اقساط</th>
-                  <th className="px-6 py-4">مبلغ پیش‌بینی شده (تومان)</th>
+                  <th className="px-6 py-4">مبلغ پیش‌بینی شده (واحد پول)</th>
                 </tr>
               )}
             </thead>

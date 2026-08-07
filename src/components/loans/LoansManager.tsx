@@ -3,12 +3,15 @@ import React, { useState } from 'react';
 import { Loan, Installment, Person, Account } from '../../types';
 import { Plus, Percent, Edit2, Trash2, Search, CheckCircle, ChevronDown, ChevronUp, AlertCircle, RefreshCw, Layers, Calendar, DollarSign, Wallet, Users, Activity, List, ArrowLeftRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { startAppProcessing, stopAppProcessing } from '../../utils/processingHelper';
 import { saveLoans, saveInstallments, addTransaction, deleteTransaction, checkFinancialYear, addSystemLog } from '../../services/dataService';
 import { formatDateDisplay } from '../../utils/format';
 import LoansDashboard from './LoansDashboard';
 import LoansArrears from './LoansArrears';
 import LoansReports from './LoansReports';
 import LoansSettings from './LoansSettings';
+import InstallmentBookletPrint from './InstallmentBookletPrint';
+import { Printer } from 'lucide-react';
 
 
 
@@ -24,9 +27,30 @@ interface LoansManagerProps {
   setAccounts: React.Dispatch<React.SetStateAction<Account[]>>;
   transactions: any[];
   setTransactions: React.Dispatch<React.SetStateAction<any[]>>;
+  formatCurrency?: (val: number) => string;
   currentUser?: string;
   userRole?: string;
 }
+
+
+const LOAN_STATUS_LABELS: Record<string, string> = {
+  requested: 'درخواست',
+  incomplete: 'نقص پرونده',
+  completed_dossier: 'تکمیل پرونده',
+  approved: 'تایید شده',
+  active: 'پرداخت شده',
+  completed: 'تسویه شده',
+  overdue: 'معوق'
+};
+const LOAN_STATUS_COLORS: Record<string, string> = {
+  requested: 'bg-slate-100 text-slate-700',
+  incomplete: 'bg-rose-100 text-rose-700',
+  completed_dossier: 'bg-sky-100 text-sky-700',
+  approved: 'bg-purple-100 text-purple-700',
+  active: 'bg-emerald-100 text-emerald-700',
+  completed: 'bg-slate-200 text-slate-800',
+  overdue: 'bg-red-100 text-red-800'
+};
 
 export default function LoansManager({
   loans,
@@ -44,7 +68,10 @@ export default function LoansManager({
 }: LoansManagerProps) {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'list' | 'create' | 'arrears' | 'reports' | 'settings'>('dashboard');
   const [expandedLoanId, setExpandedLoanId] = useState<string | number | null>(null);
+  const [printingLoanId, setPrintingLoanId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const [formData, setFormData] = useState<{
     personId: string | number;
@@ -157,12 +184,13 @@ export default function LoansManager({
     }
 
     setIsSubmitting(true);
-
+    startAppProcessing('شروع فرآیند ثبت وام...');
     try {
       await checkFinancialYear(formData.startDate);
     } catch (err: any) {
       showNotification(err.message || 'تاریخ شروع خارج از سال مالی است.', 'error');
       setIsSubmitting(false);
+      stopAppProcessing();
       return;
     }
 
@@ -178,8 +206,9 @@ export default function LoansManager({
       totalInstallments: instCount,
       installmentAmount: instAmount,
       description: formData.description,
-      status: 'active',
+      status: 'requested', // Initial status
       type: formData.type,
+      accountId: formData.accountId,
     };
 
         
@@ -211,31 +240,12 @@ export default function LoansManager({
       });
     }
 
-    const transactionId = `txn-loan-${loanId}`;
-    const interestAmt = (instCount * instAmount) - amountNum;
-    const newTransaction = {
-      interestAmount: interestAmt > 0 ? interestAmt : 0,
-      id: transactionId,
-      type: formData.type === 'given' ? 'pay' : 'receive',
-      amount: amountNum,
-      accountId: formData.accountId,
-      personId: formData.personId,
-      categoryId: formData.type === 'given' ? 'loan_given' : 'loan_received',
-      description: formData.type === 'given' ? `اعطای وام پرداختی شماره ${loanId}` : `اخذ وام دریافتی شماره ${loanId}`,
-      date: formData.startDate,
-      time: new Date().toLocaleTimeString('fa-IR', { hour12: false }),
-      isSystem: true,
-    };
-
-    const newLoansList = [...loans, newLoan];
     const newInstsList = [...installments, ...newInstallments];
     
     setLoans(newLoansList);
     setInstallments(newInstsList);
     
     try {
-      const addedTx = await addTransaction(newTransaction as any);
-      setTransactions([...transactions, addedTx]);
       await saveLoans(newLoansList);
       await saveInstallments(newInstsList);
       if (typeof addSystemLog !== 'undefined') {
@@ -244,6 +254,7 @@ export default function LoansManager({
     } catch (err: any) {
       showNotification(err.message || 'خطا در ذخیره وام', 'error');
       setIsSubmitting(false);
+      stopAppProcessing();
       return;
     }
     
@@ -260,6 +271,77 @@ export default function LoansManager({
     });
     setActiveTab('list');
     setIsSubmitting(false);
+    stopAppProcessing();
+  };
+
+
+  const handleUpdateLoanStatus = async (loanId: string | number, newStatus: string) => {
+    if (userRole !== 'admin' && userRole !== 'manager') {
+      showNotification('شما دسترسی تغییر وضعیت وام را ندارید.', 'error');
+      return;
+    }
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+    if (loan.status === newStatus) return;
+
+    startAppProcessing('شروع فرآیند تغییر وضعیت وام...');
+    setIsSubmitting(true);
+
+    let txCreated = false;
+    let newTransactionsList = [...transactions];
+
+    if (newStatus === 'active' && loan.status !== 'active') {
+        // Generate transaction
+        const transactionId = `txn-loan-${loan.id}`;
+        
+        // check if transaction already exists
+        if (!transactions.find(tx => tx.id === transactionId)) {
+            const interestAmt = (loan.totalInstallments * loan.installmentAmount) - loan.amount;
+            const newTransaction = {
+                interestAmount: interestAmt > 0 ? interestAmt : 0,
+                id: transactionId,
+                type: loan.type === 'given' ? 'pay' : 'receive',
+                amount: loan.amount,
+                accountId: loan.accountId || '', // Fallback if missing
+                personId: loan.personId,
+                categoryId: loan.type === 'given' ? 'loan_given' : 'loan_received',
+                description: loan.type === 'given' ? `اعطای وام پرداختی شماره ${loan.id}` : `اخذ وام دریافتی شماره ${loan.id}`,
+                date: new Date().toLocaleDateString('fa-IR').replace(/\//g, '-'),
+                time: new Date().toLocaleTimeString('fa-IR', { hour12: false }),
+                isSystem: true,
+            };
+
+            try {
+                const addedTx = await addTransaction(newTransaction as any);
+                newTransactionsList = [...transactions, addedTx];
+                txCreated = true;
+            } catch (err: any) {
+                showNotification(err.message || 'خطا در ثبت سند حسابداری', 'error');
+                setIsSubmitting(false);
+                stopAppProcessing();
+                return;
+            }
+        }
+    }
+
+    const updatedLoansList = loans.map(l => l.id === loanId ? { ...l, status: newStatus as any } : l);
+    
+    try {
+        await saveLoans(updatedLoansList);
+        setLoans(updatedLoansList);
+        if (txCreated) {
+            setTransactions(newTransactionsList);
+        }
+        if (typeof addSystemLog !== 'undefined') {
+            await addSystemLog('UPDATE_LOAN_STATUS', `تغییر وضعیت وام ${loan.id} به ${newStatus}`, 'Loan', loan.id);
+        }
+        showNotification('وضعیت وام با موفقیت تغییر کرد.', 'success');
+    } catch (err: any) {
+        showNotification(err.message || 'خطا در تغییر وضعیت وام', 'error');
+    }
+    
+    setIsSubmitting(false);
+    stopAppProcessing();
   };
 
   const handlePayInstallment = async () => {
@@ -591,7 +673,7 @@ export default function LoansManager({
                    <motion.div initial={{opacity:0, y:-5}} animate={{opacity:1, y:0}} className="pt-2">
                       <div className={`text-xs font-bold p-3 rounded-xl border ${selectedPersonBalance.bg} ${selectedPersonBalance.color} flex flex-col gap-2`}>
                          <div className="flex items-center justify-between">
-                            <span>مانده این شخص: {addCommas(selectedPersonBalance.amount)} تومان ({selectedPersonBalance.status})</span>
+                            <span>مانده این شخص: {formatCurrency(selectedPersonBalance.amount)} ({selectedPersonBalance.status})</span>
                          </div>
                          <button 
                             onClick={() => {
@@ -802,15 +884,15 @@ export default function LoansManager({
       )}
 
       {activeTab === 'dashboard' && (
-           <LoansDashboard loans={loans} installments={installments} persons={persons} />
+           <LoansDashboard formatCurrency={formatCurrency} loans={loans} installments={installments} persons={persons} />
         )}
         
         {activeTab === 'arrears' && (
-           <LoansArrears loans={loans} installments={installments} persons={persons} />
+           <LoansArrears formatCurrency={formatCurrency} loans={loans} installments={installments} persons={persons} />
         )}
 
         {activeTab === 'reports' && (
-           <LoansReports loans={loans} installments={installments} persons={persons} />
+           <LoansReports formatCurrency={formatCurrency} loans={loans} installments={installments} persons={persons} />
         )}
 
         {activeTab === 'settings' && (
@@ -818,12 +900,44 @@ export default function LoansManager({
         )}
 
         {activeTab === 'list' && (
-        <motion.div
-           initial={{ opacity: 0 }}
-           animate={{ opacity: 1 }}
+        <motion.div 
+           initial={{ opacity: 0 }} 
+           animate={{ opacity: 1 }} 
            className="space-y-6"
         >
-          {loans.length === 0 ? (
+          
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+             <div className="relative flex-1">
+               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                 <Search className="h-5 w-5 text-gray-400" />
+               </div>
+               <input
+                 type="text"
+                 className="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                 placeholder="جستجو در وام‌ها (نام شخص یا شماره وام)..."
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+               />
+             </div>
+             <div className="w-full sm:w-48">
+               <select
+                 className="block w-full pl-3 pr-3 py-2 border border-gray-300 rounded-xl leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                 value={statusFilter}
+                 onChange={(e) => setStatusFilter(e.target.value)}
+               >
+                 <option value="all">همه وضعیت‌ها</option>
+                 <option value="requested">درخواست</option>
+                 <option value="incomplete">نقص پرونده</option>
+                 <option value="completed_dossier">تکمیل پرونده</option>
+                 <option value="approved">تایید شده</option>
+                 <option value="active">پرداخت شده / در جریان</option>
+                 <option value="completed">تسویه شده</option>
+                 <option value="overdue">معوق</option>
+               </select>
+             </div>
+          </div>
+
+          {filteredLoans.length === 0 ? (
              <div className="bg-white rounded-3xl p-12 text-center border-2 border-dashed border-gray-200">
                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
                  <Wallet className="w-10 h-10 text-gray-300"/>
@@ -832,7 +946,7 @@ export default function LoansManager({
                <p className="text-gray-400 font-medium">برای ثبت وام جدید از تب «ثبت وام جدید» استفاده کنید.</p>
              </div>
           ) : (
-            loans.map(loan => {
+            filteredLoans.map(loan => {
                const loanInsts = (installments || []).filter(i => i.loanId === loan.id);
                const paidInsts = loanInsts.filter(i => i.status === 'paid').length;
                const totalInsts = loanInsts.length;
@@ -854,7 +968,7 @@ export default function LoansManager({
                                <span className={`px-2.5 py-1 rounded-lg text-xs font-black ${loan.type === 'given' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}`}>
                                   {loan.type === 'given' ? 'پرداختی' : 'دریافتی'}
                                </span>
-                               {loan.status === 'completed' && <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg text-xs font-black">تسویه شده</span>}
+                               <span className={`px-2.5 py-1 rounded-lg text-xs font-black ${LOAN_STATUS_COLORS[loan.status] || 'bg-gray-100 text-gray-600'}`}>{LOAN_STATUS_LABELS[loan.status] || 'نامشخص'}</span>
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-500">
                                <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4"/> تاریخ: {formatDateDisplay(loan.startDate.replace(/-/g, '/'))}</span>
@@ -864,22 +978,31 @@ export default function LoansManager({
                          </div>
 
                          <div className="flex flex-col md:items-end gap-1">
-                            <span className="text-xl font-black font-mono text-gray-900 tracking-tight" dir="ltr">{addCommas(loan.amount)} تومان</span>
+                            <span className="text-xl font-black font-mono text-gray-900 tracking-tight" dir="ltr">{formatCurrency(loan.amount)}</span>
                             <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
                                <span>پرداخت شده: {paidInsts} از {totalInsts}</span>
                                <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
                                   <div className="h-full bg-emerald-500 rounded-full" style={{width: `${(paidInsts/totalInsts)*100}%`}}></div>
                                </div>
                             </div>
-                            {(userRole === 'admin' || userRole === 'manager') && (
+                            <div className="flex items-center gap-3 mt-2">
+                              <button
+                                 onClick={(e) => { e.stopPropagation(); setPrintingLoanId(loan.id as string); }}
+                                 className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 text-xs font-bold transition-colors"
+                               >
+                                  <Printer className="w-4 h-4" />
+                                  چاپ دفترچه
+                               </button>
+                              {(userRole === 'admin' || userRole === 'manager') && (
                                <button
                                  onClick={(e) => { e.stopPropagation(); handleDeleteLoan(loan.id); }}
-                                 className="mt-2 text-rose-500 hover:text-rose-700 flex items-center gap-1 text-xs font-bold transition-colors"
+                                 className="text-rose-500 hover:text-rose-700 flex items-center gap-1 text-xs font-bold transition-colors"
                                >
                                   <Trash2 className="w-4 h-4" />
                                   حذف وام
                                </button>
                              )}
+                            </div>
                          </div>
                        </div>
                        <div className="text-gray-300">
@@ -897,7 +1020,34 @@ export default function LoansManager({
                             className="bg-gray-50/50 border-t border-gray-100"
                           >
                              <div className="p-6">
+                                
+                                <div className="mb-6 bg-white p-4 rounded-xl border border-gray-200">
+                                  <h4 className="text-sm font-black text-gray-800 mb-3 flex items-center gap-2">
+                                    <Activity className="w-4 h-4 text-gray-400"/>
+                                    وضعیت وام
+                                  </h4>
+                                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                                    <select
+                                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none w-full sm:w-64 font-medium"
+                                      value={loan.status}
+                                      onChange={(e) => handleUpdateLoanStatus(loan.id, e.target.value)}
+                                      disabled={isSubmitting || (userRole !== 'admin' && userRole !== 'manager')}
+                                    >
+                                      <option value="requested">درخواست</option>
+                                      <option value="incomplete">نقص پرونده</option>
+                                      <option value="completed_dossier">تکمیل پرونده</option>
+                                      <option value="approved">تایید شده</option>
+                                      <option value="active">پرداخت شده / در جریان</option>
+                                      <option value="completed">تسویه شده</option>
+                                      <option value="overdue">معوق</option>
+                                    </select>
+                                    <span className="text-xs text-gray-500 font-medium">
+                                      {loan.status === 'active' ? 'در این مرحله، سند حسابداری و رسید بابت پرداخت/دریافت ثبت شده است.' : 'با تغییر وضعیت به «پرداخت شده»، سند حسابداری و رسید ثبت خواهد شد.'}
+                                    </span>
+                                  </div>
+                                </div>
                                 <h4 className="text-sm font-black text-gray-800 mb-4 flex items-center gap-2">
+
                                   <List className="w-4 h-4 text-gray-400"/>
                                   لیست اقساط
                                 </h4>
@@ -914,7 +1064,7 @@ export default function LoansManager({
                                          </div>
 
                                          <div className="text-left font-black font-mono text-gray-800" dir="ltr">
-                                           {addCommas(inst.amount)} تومان
+                                           {formatCurrency(inst.amount)}
                                          </div>
 
                                          {(inst.status === 'pending' || inst.status === 'overdue') && loan.status === 'active' && (
@@ -955,7 +1105,7 @@ export default function LoansManager({
                                             </div>
                                          )}
                                          {inst.status === 'paid' && (
-                                            <div className="bg-emerald-50 text-emerald-60/ px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+                                            <div className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
                                               <CheckCircle className="w-4 h-4"/> پرداخت شده
                                            </div>
                                         )}

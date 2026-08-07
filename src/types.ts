@@ -424,7 +424,7 @@ export type AccountingDocument = {
   fiscalYearId?: string | number;
 };
 
-export type Loan = { id: string | number; personId: string | number; amount: number; interestRate?: number; frequency?: 'monthly' | 'quarterly' | 'yearly'; startDate: string; totalInstallments: number; installmentAmount: number; description?: string; status: 'active' | 'completed' | 'overdue'; type: 'given' | 'received'; };
+export type Loan = { id: string | number; personId: string | number; amount: number; interestRate?: number; frequency?: 'monthly' | 'quarterly' | 'yearly'; startDate: string; totalInstallments: number; installmentAmount: number; description?: string; status: 'requested' | 'incomplete' | 'completed_dossier' | 'approved' | 'active' | 'completed' | 'overdue'; type: 'given' | 'received'; accountId?: string | number; };
 
 export type Installment = { id: string | number; loanId: string | number; dueDate: string; amount: number; status: 'pending' | 'paid' | 'overdue'; paidDate?: string; paidAmount?: number; description?: string; };
 

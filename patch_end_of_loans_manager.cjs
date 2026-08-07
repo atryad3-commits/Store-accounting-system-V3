@@ -1,8 +1,11 @@
 const fs = require('fs');
 let code = fs.readFileSync('src/components/loans/LoansManager.tsx', 'utf8');
 
-// Find the erroneous block in the middle
-const errorBlock = `                                                       {printingLoanId && (
+if (!code.includes('<InstallmentBookletPrint')) {
+    code = code.replace(
+        /<\/div>\s*<\/div>\s*\)\s*\}\s*$/m,
+        `
+        {printingLoanId && (
           <InstallmentBookletPrint
             loan={loans.find(l => l.id === printingLoanId)!}
             installments={installments.filter(i => i.loanId === printingLoanId)}
@@ -14,8 +17,8 @@ const errorBlock = `                                                       {prin
       </div>
     </div>
   );
-}`;
-
-code = code.replace(errorBlock, "");
+}`
+    );
+}
 
 fs.writeFileSync('src/components/loans/LoansManager.tsx', code);

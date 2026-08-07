@@ -5,12 +5,16 @@ import { Activity, AlertCircle, Calendar, CheckCircle, TrendingUp, Users } from 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface LoansDashboardProps {
+  formatCurrency?: (val: number) => string;
   loans: Loan[];
   installments: Installment[];
   persons: Person[];
 }
 
-export default function LoansDashboard({ loans, installments, persons }: LoansDashboardProps) {
+export default function LoansDashboard({ 
+  formatCurrency = (val: number) => Number(val).toLocaleString("fa-IR") + " تومان",
+  loans, installments, persons
+}: LoansDashboardProps) {
   const today = new Date().toLocaleDateString('fa-IR').replace(/\//g, '-');
 
   const kpis = useMemo(() => {
@@ -81,7 +85,7 @@ export default function LoansDashboard({ loans, installments, persons }: LoansDa
              <TrendingUp className="w-6 h-6" />
            </div>
            <div>
-             <p className="text-sm text-gray-500 font-medium">مانده مطالبات (تومان)</p>
+             <p className="text-sm text-gray-500 font-medium">مانده مطالبات (واحد پول)</p>
              <p className="text-xl font-black text-gray-900 mt-1 font-mono">{addCommas(kpis.totalOutstanding)}</p>
            </div>
         </div>
@@ -91,7 +95,7 @@ export default function LoansDashboard({ loans, installments, persons }: LoansDa
              <AlertCircle className="w-6 h-6" />
            </div>
            <div>
-             <p className="text-sm text-red-500 font-medium">مجموع معوقات (تومان)</p>
+             <p className="text-sm text-red-500 font-medium">مجموع معوقات (واحد پول)</p>
              <p className="text-xl font-black text-red-700 mt-1 font-mono">{addCommas(kpis.totalArrears)}</p>
              <p className="text-xs text-red-500 mt-1">{kpis.overdueCount} قسط معوق</p>
            </div>
@@ -121,7 +125,7 @@ export default function LoansDashboard({ loans, installments, persons }: LoansDa
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 12}} />
                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#6B7280', fontSize: 12}} width={80} tickFormatter={(value) => addCommas(value)} />
                 <Tooltip 
-                   formatter={(value: number) => [addCommas(value) + ' تومان', '']}
+                   formatter={(value: number) => [formatCurrency(value), '']}
                    contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
                 />
                 <Legend iconType="circle" />
