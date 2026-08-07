@@ -242,6 +242,7 @@ export default function LoansManager({
     }
 
     const newInstsList = [...installments, ...newInstallments];
+    const newLoansList = [...loans, newLoan];
     
     setLoans(newLoansList);
     setInstallments(newInstsList);
