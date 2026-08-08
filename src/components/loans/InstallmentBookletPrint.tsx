@@ -16,7 +16,7 @@ export default function InstallmentBookletPrint({ loan, installments, person, on
   const componentRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
+    contentRef: componentRef,
     documentTitle: `دفترچه_اقساط_وام_${loan.id}`,
   });
 

@@ -675,6 +675,7 @@ async function startServer() {
   await initDB();
   const app = express();
   const PORT = 3000;
+  app.get("/api/health", (req, res) => res.json({ status: "ok" }));
   
   app.use(express.json({ limit: '50mb' }));
   app.use(express.text({ limit: '500mb', type: ['text/*', 'application/sql', 'application/json'] }));

@@ -718,7 +718,7 @@ export default function App() {
 <Route path="/bulk_barcode_generator" element={<BulkBarcodeGenerator showNotification={showNotification} products={products} categories={productCategories} toPersianDigits={toPersianDigits} updateProduct={updateProduct} fetchProducts={fetchProducts} storeSettings={storeSettings} />} />
 <Route path="/products" element={<ProductsTab
                         {...appState}
-                        formatCurrency={formatCurrency}
+                        
                         toPersianDigits={toPersianDigits}
                         numToPersianWords={numToPersianWords}
                         DatePicker={DatePicker}
@@ -736,7 +736,7 @@ export default function App() {
                     
                         customAlert={customAlert}
                         showNotification={showNotification}
-                        formatCurrency={formatCurrency}
+                        
                         toPersianDigits={toPersianDigits}
                         numToPersianWords={numToPersianWords}
                         DatePicker={DatePicker}
@@ -833,7 +833,7 @@ export default function App() {
                         fetchData={fetchData}
                         getDefaultExchangeRate={getDefaultExchangeRate}
                         currentUser={user} />} />
-<Route path="/person_profile" element={<PersonProfileView 
+<Route path="/person_profile" element={<PersonProfileView formatCurrency={formatCurrency} 
 
                         personId={profilePersonId}
                         persons={persons}
@@ -875,7 +875,7 @@ export default function App() {
                         getPersonDisplayName={getPersonDisplayName}
                         getRoleName={getRoleName}
                         getRoleBadgeClasses={getRoleBadgeClasses}
-                        formatCurrency={formatCurrency}
+                        
                         toPersianDigits={toPersianDigits}
                         formatDateDisplay={formatDateDisplay} />} />
 <Route path="/person_ledger" element={<PersonLedger 
@@ -886,7 +886,7 @@ export default function App() {
                     
                         customAlert={customAlert}
                         showNotification={showNotification}
-                        formatCurrency={formatCurrency}
+                        
                         toPersianDigits={toPersianDigits}
                         numToPersianWords={numToPersianWords}
                         DatePicker={DatePicker}
@@ -906,9 +906,9 @@ export default function App() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                       >
-                        <InvoiceAllocation
+                        <InvoiceAllocation formatCurrency={formatCurrency}
                           customAlert={customAlert}
-                          formatCurrency={formatCurrency}
+                          
                           getDefaultExchangeRate={getDefaultExchangeRate} />
                       </motion.div>} />
 <Route path="/quick_refund" element={<QuickRefund
@@ -928,7 +928,7 @@ export default function App() {
                           onEditReceiptByCheck={handleEditReceiptByCheck}
                           showNotification={showNotification}
                           currentUser={user?.name || "کاربر سیستم"}
-                        formatCurrency={formatCurrency}
+                        
                           sendNotification={sendNotification}
                           storeSettings={storeSettings}
                           setViewingCheck={setViewingCheck} />
@@ -979,10 +979,10 @@ export default function App() {
                         Check={Check}
                         X={X} />} />
 <Route path="/inventory_report" element={<InventoryReport showNotification={showNotification} categories={productCategories} />} />
-<Route path="/order_list" element={<OrderList 
+<Route path="/order_list" element={<OrderList formatCurrency={formatCurrency} 
                         products={products}
                         categories={productCategories}
-                        formatCurrency={formatCurrency}
+                        
                         toPersianDigits={toPersianDigits} />} />
 <Route path="/kardex" element={<KardexReport />} />
 <Route path="/crm_dashboard" element={<CRMDashboard persons={persons} showNotification={showNotification} confirmAction={confirmAction} />} />

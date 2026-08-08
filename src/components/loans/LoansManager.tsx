@@ -10,6 +10,7 @@ import LoansDashboard from './LoansDashboard';
 import LoansArrears from './LoansArrears';
 import LoansReports from './LoansReports';
 import LoansSettings from './LoansSettings';
+import LoansPayment from './LoansPayment';
 import InstallmentBookletPrint from './InstallmentBookletPrint';
 import { Printer } from 'lucide-react';
 
@@ -196,9 +197,11 @@ export default function LoansManager({
     }
 
     const loanId = Date.now().toString();
+    const loanNumber = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a random 6-digit number
 
     const newLoan: Loan = {
       id: loanId,
+      loanNumber,
       personId: formData.personId,
       amount: amountNum,
       interestRate: formData.interestRate === '' ? undefined : Number(formData.interestRate),
@@ -234,6 +237,7 @@ export default function LoansManager({
 
       newInstallments.push({
         id: 'inst-' + loanId + '-' + i,
+        installmentNumber: i + 1,
         loanId: loanId,
         dueDate: dueDateStr,
         amount: instAmount,
@@ -600,6 +604,16 @@ export default function LoansManager({
             ثبت وام جدید
           </button>
           <button
+            onClick={() => setActiveTab('payment')}
+            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
+              activeTab === 'payment' 
+                ? 'bg-white text-emerald-600 shadow-sm' 
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            پرداخت اقساط
+          </button>
+          <button
             onClick={() => setActiveTab('arrears')}
             className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
               activeTab === 'arrears' 
@@ -907,6 +921,18 @@ export default function LoansManager({
 
         {activeTab === 'settings' && (
            <LoansSettings showNotification={showNotification} userRole={userRole} />
+        )}
+        {activeTab === 'payment' && (
+           <LoansPayment
+             loans={loans}
+             installments={installments}
+             persons={persons}
+             formatCurrency={formatCurrency}
+             setInstallments={setInstallments}
+             showNotification={showNotification}
+             saveInstallments={saveInstallments}
+             addSystemLog={addSystemLog}
+           />
         )}
 
         {activeTab === 'list' && (

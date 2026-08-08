@@ -1,19 +1,7 @@
 const fs = require('fs');
-let lines = fs.readFileSync('src/App.tsx', 'utf8').split('\n');
+let code = fs.readFileSync('src/App.tsx', 'utf8');
 
-let inRoutes = false;
-for (let i = 0; i < lines.length; i++) {
-    let line = lines[i];
-    if (line.includes('<Routes>')) inRoutes = true;
-    if (line.includes('</Routes>')) inRoutes = false;
+code = code.replace('<InvoiceAllocation', '<InvoiceAllocation formatCurrency={formatCurrency}');
+code = code.replace('<CalculatorModal formatCurrency={formatCurrency} ', '<CalculatorModal ');
 
-    if (inRoutes) {
-        // Strip out all the garbage we added
-        line = line.replace(/\} \/>/g, ''); // strip all '} />'
-        line = line.replace(/\/>/g, ''); // strip all '/>'
-        line = line.replace(/}} />/g, ''); // strip garbage
-        line = line.replace(/} \/>}/g, ''); 
-        lines[i] = line;
-    }
-}
-fs.writeFileSync('src/App.tsx.stripped', lines.join('\n'));
+fs.writeFileSync('src/App.tsx', code);
