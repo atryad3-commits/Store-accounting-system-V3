@@ -1,4 +1,5 @@
-
+const fs = require('fs');
+const content = `
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, CheckCircle, Printer, FileText, User, X, CreditCard, Building2, Calendar as CalendarIcon, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -12,15 +13,14 @@ interface Props {
   persons: any[];
   formatCurrency: (val: number) => string;
   setInstallments: (insts: Installment[]) => void;
-  showNotification: (msg: string, type?: 'success'|'error'|'info'|'warning') => void;
+  showNotification: (msg: string, type: 'success'|'error') => void;
   saveInstallments: (insts: Installment[]) => Promise<void>;
   addSystemLog: (action: string, details: string, entity: string, id: string | number) => Promise<void>;
   addTransaction?: (tx: any) => Promise<any>;
   storeSettings?: any;
-  initialLoanId?: string;
 }
 
-export default function LoansPayment({ loans, installments, persons, formatCurrency, setInstallments, showNotification, saveInstallments, addSystemLog, addTransaction, storeSettings, initialLoanId }: Props) {
+export default function LoansPayment({ loans, installments, persons, formatCurrency, setInstallments, showNotification, saveInstallments, addSystemLog, addTransaction, storeSettings }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   
@@ -31,17 +31,6 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
   
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [cashboxes, setCashboxes] = useState<Cashbox[]>([]);
-
-  
-  useEffect(() => {
-    if (initialLoanId) {
-      const loan = loans.find(l => l.id.toString() === initialLoanId);
-      if (loan) {
-        setSelectedLoan(loan);
-        setSearchQuery(loan.loanNumber || loan.id.toString());
-      }
-    }
-  }, [initialLoanId, loans]);
 
   useEffect(() => {
     const fetchMethods = async () => {
@@ -76,7 +65,7 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
     if (matchedLoans.length === 1) {
       setSelectedLoan(matchedLoans[0]);
     } else if (matchedLoans.length > 1) {
-      showNotification('چند وام یافت شد، لطفا دقیق‌تر جستجو کنید.', 'error');
+      showNotification('چند وام یافت شد، لطفا دقیق‌تر جستجو کنید.', 'warning');
     } else {
       showNotification('وامی یافت نشد.', 'error');
     }
@@ -108,7 +97,7 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
     }
 
     try {
-      const today = new Date().toLocaleDateString('fa-IR').replace(/\//g, '-');
+      const today = new Date().toLocaleDateString('fa-IR').replace(/\\//g, '-');
       const updatedInsts = installments.map(i => {
         if (i.id === selectedInst.id) {
           return { ...i, status: 'paid', paidDate: today, paidAmount: i.amount } as Installment;
@@ -117,7 +106,7 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
       });
       setInstallments(updatedInsts);
       await saveInstallments(updatedInsts);
-      await addSystemLog('PAY_INSTALLMENT', `پرداخت قسط ${selectedInst.installmentNumber || ''} وام ${selectedLoan.loanNumber || selectedLoan.id}`, 'Installment', selectedInst.id);
+      await addSystemLog('PAY_INSTALLMENT', \`پرداخت قسط \${selectedInst.installmentNumber || ''} وام \${selectedLoan.loanNumber || selectedLoan.id}\`, 'Installment', selectedInst.id);
       
       if (addTransaction) {
         const txType = selectedLoan.type === 'given' ? 'receive' : 'pay';
@@ -127,7 +116,7 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
           accountId: paymentMethodId,
           personId: selectedLoan.personId,
           categoryId: selectedLoan.type === 'given' ? 'loan_installment_receive' : 'loan_installment_pay',
-          description: selectedLoan.type === 'given' ? `دریافت قسط ${selectedInst.installmentNumber || ''} وام ${selectedLoan.loanNumber || selectedLoan.id}` : `پرداخت قسط ${selectedInst.installmentNumber || ''} وام ${selectedLoan.loanNumber || selectedLoan.id}`,
+          description: selectedLoan.type === 'given' ? \`دریافت قسط \${selectedInst.installmentNumber || ''} وام \${selectedLoan.loanNumber || selectedLoan.id}\` : \`پرداخت قسط \${selectedInst.installmentNumber || ''} وام \${selectedLoan.loanNumber || selectedLoan.id}\`,
           date: today,
           time: new Date().toLocaleTimeString('fa-IR', { hour12: false }),
           isSystem: true,
@@ -144,7 +133,7 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
   const bookletRef = useRef<HTMLDivElement>(null);
   const handlePrint = useReactToPrint({
     contentRef: bookletRef,
-    documentTitle: `دفترچه_اقساط_وام_${selectedLoan?.loanNumber || selectedLoan?.id}`,
+    documentTitle: \`دفترچه_اقساط_وام_\${selectedLoan?.loanNumber || selectedLoan?.id}\`,
   });
 
   const currencyStr = storeSettings?.currency || 'تومان';
@@ -199,7 +188,7 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
               }
 
               return (
-                <div key={inst.id} className={`p-4 rounded-2xl border-2 ${inst.status === 'paid' ? 'border-emerald-100 bg-emerald-50' : inst.status === 'overdue' ? 'border-red-100 bg-red-50' : 'border-gray-100 bg-white'}`}>
+                <div key={inst.id} className={\`p-4 rounded-2xl border-2 \${inst.status === 'paid' ? 'border-emerald-100 bg-emerald-50' : inst.status === 'overdue' ? 'border-red-100 bg-red-50' : 'border-gray-100 bg-white'}\`}>
                   <div className="flex justify-between items-center mb-3">
                     <span className="font-bold text-gray-700 bg-gray-100/50 px-3 py-1 rounded-lg text-sm">
                       قسط {inst.installmentNumber || (idx + 1)}
@@ -222,11 +211,11 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
                     <button 
                       onClick={() => handleOpenModal(inst, idx)} 
                       disabled={isPrevUnpaid}
-                      className={`w-full font-bold py-2 rounded-xl text-sm transition-all flex justify-center items-center gap-1 ${
+                      className={\`w-full font-bold py-2 rounded-xl text-sm transition-all flex justify-center items-center gap-1 \${
                         isPrevUnpaid 
                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
                           : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                      }`}
+                      }\`}
                     >
                       <CheckCircle className="w-4 h-4" />
                       ثبت پرداخت
@@ -245,12 +234,12 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
           <div className="hidden">
             <div ref={bookletRef} className="p-8 font-sans print:w-[148mm] print:h-[210mm] mx-auto print:p-6" dir="rtl" style={{ width: '100%', maxWidth: '210mm' }}>
               <style>
-                {`
+                {\`
                   @media print {
                     @page { size: A5; margin: 10mm; }
                     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                   }
-                `}
+                \`}
               </style>
               <div className="text-center mb-8 pb-4 border-b-2 border-gray-800">
                 <h1 className="text-2xl font-black mb-2">دفترچه اقساط</h1>
@@ -337,11 +326,11 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
                         setPaymentMethodType('account');
                         setPaymentMethodId(accounts.length > 0 ? accounts[0].id.toString() : '');
                       }}
-                      className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${
+                      className={\`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all \${
                         paymentMethodType === 'account'
                           ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                           : 'border-gray-200 hover:border-emerald-200 text-gray-600'
-                      }`}
+                      }\`}
                     >
                       <Building2 className="w-6 h-6" />
                       <span className="font-bold">حساب بانکی</span>
@@ -352,11 +341,11 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
                         setPaymentMethodType('cashbox');
                         setPaymentMethodId(cashboxes.length > 0 ? cashboxes[0].id.toString() : '');
                       }}
-                      className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${
+                      className={\`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all \${
                         paymentMethodType === 'cashbox'
                           ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                           : 'border-gray-200 hover:border-emerald-200 text-gray-600'
-                      }`}
+                      }\`}
                     >
                       <CreditCard className="w-6 h-6" />
                       <span className="font-bold">صندوق</span>
@@ -425,3 +414,5 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
     </motion.div>
   );
 }
+`
+fs.writeFileSync('src/components/loans/LoansPayment.tsx', content);

@@ -1,14 +1,4 @@
 const fs = require('fs');
-let code = fs.readFileSync('src/components/loans/LoansManager.tsx', 'utf8');
-
-const strToFind = `                                  حذف وام
-                               </button>
-                            )}`;
-
-const replacement = `                                  حذف وام
-                               </button>
-                            )}
-                         </div>`;
-
-code = code.replace(strToFind, replacement);
-fs.writeFileSync('src/components/loans/LoansManager.tsx', code);
+let content = fs.readFileSync('src/components/loans/LoansManager.tsx', 'utf-8');
+content = content.replace(/             <\/div>\n                <label className="text-sm font-bold text-gray-700 flex items-center gap-2">\n                   <DollarSign/g, '             </div>\n             <div className="space-y-2">\n                <label className="text-sm font-bold text-gray-700 flex items-center gap-2">\n                   <DollarSign');
+fs.writeFileSync('src/components/loans/LoansManager.tsx', content);

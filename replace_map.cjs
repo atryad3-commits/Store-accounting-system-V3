@@ -1,26 +1,8 @@
 const fs = require('fs');
-let content = fs.readFileSync('src/components/loans/LoansManager.tsx', 'utf-8');
+const content = fs.readFileSync('src/components/loans/LoansManager.tsx', 'utf-8');
+const lines = content.split('\n');
 
-// The messed up part looks like:
-//                              })
-//           )}
-//                            </div>
-//                         </div>
-
-// Actually it's probably better to just fix the whole map block by regex from `filteredLoans.length === 0` to `</motion.div>`
-
-const blockToReplaceRegex = /\{\s*filteredLoans\.length === 0 \? \([\s\S]*?<\/motion\.div>/;
-
-const cleanBlock = `{filteredLoans.length === 0 ? (
-             <div className="bg-white rounded-3xl p-12 text-center border-2 border-dashed border-gray-200">
-               <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                 <Wallet className="w-10 h-10 text-gray-300"/>
-               </div>
-               <h3 className="text-xl font-black text-gray-800 mb-2">هیچ وامی ثبت نشده است</h3>
-               <p className="text-gray-400 font-medium">برای ثبت وام جدید از تب «ثبت وام جدید» استفاده کنید.</p>
-             </div>
-          ) : (
-            filteredLoans.map(loan => {
+const newMapStr = `            filteredLoans.map(loan => {
                const loanInsts = (installments || []).filter(i => i.loanId === loan.id);
                const paidInsts = loanInsts.filter(i => i.status === 'paid').length;
                const totalInsts = loanInsts.length;
@@ -88,10 +70,7 @@ const cleanBlock = `{filteredLoans.length === 0 ? (
                     </div>
                  </div>
                );
-            })
-          )}
-        </motion.div>`;
+            })`;
 
-content = content.replace(blockToReplaceRegex, cleanBlock);
-fs.writeFileSync('src/components/loans/LoansManager.tsx', content);
-
+lines.splice(994, 1168 - 994 + 1, newMapStr);
+fs.writeFileSync('src/components/loans/LoansManager.tsx', lines.join('\n'));

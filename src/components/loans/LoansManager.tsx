@@ -12,6 +12,7 @@ import LoansReports from './LoansReports';
 import LoansSettings from './LoansSettings';
 import LoansPayment from './LoansPayment';
 import InstallmentBookletPrint from './InstallmentBookletPrint';
+import LoanStatusModal from './LoanStatusModal';
 import { Printer } from 'lucide-react';
 
 
@@ -70,7 +71,9 @@ export default function LoansManager({
   currentUser = 'سیستم',
   userRole = 'viewer'
 }: LoansManagerProps) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'list' | 'create' | 'arrears' | 'reports' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'list' | 'create' | 'payment' | 'arrears' | 'reports' | 'settings'>('dashboard');
+  const [selectedLoanForPayment, setSelectedLoanForPayment] = useState<string>('');
+  const [statusModalLoanId, setStatusModalLoanId] = useState<string | null>(null);
   const [expandedLoanId, setExpandedLoanId] = useState<string | number | null>(null);
   const [printingLoanId, setPrintingLoanId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -565,6 +568,8 @@ export default function LoansManager({
     return matchesSearch && matchesStatus;
   });
 
+  const finalApprovedLoans = loans.filter(l => ['approved', 'active', 'completed', 'overdue'].includes(l.status));
+
   return (
 
     <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto hide-scrollbar" dir="rtl">
@@ -701,7 +706,8 @@ export default function LoansManager({
                          <div className="flex items-center justify-between">
                             <span>مانده این شخص: {formatCurrency(selectedPersonBalance.amount)} ({selectedPersonBalance.status})</span>
                          </div>
-                         <button 
+                         <button
+                            type="button"
                             onClick={() => {
                                const useBal = !useBalanceAsAmount;
                                setUseBalanceAsAmount(useBal);
@@ -910,15 +916,16 @@ export default function LoansManager({
       )}
 
       {activeTab === 'dashboard' && (
-           <LoansDashboard formatCurrency={formatCurrency} loans={loans} installments={installments} persons={persons} storeSettings={storeSettings} />
+           <LoansDashboard formatCurrency={formatCurrency} loans={finalApprovedLoans} installments={installments} persons={persons} storeSettings={storeSettings}
+             initialLoanId={selectedLoanForPayment} />
         )}
         
         {activeTab === 'arrears' && (
-           <LoansArrears formatCurrency={formatCurrency} loans={loans} installments={installments} persons={persons} />
+           <LoansArrears formatCurrency={formatCurrency} loans={finalApprovedLoans} installments={installments} persons={persons} />
         )}
 
         {activeTab === 'reports' && (
-           <LoansReports formatCurrency={formatCurrency} loans={loans} installments={installments} persons={persons} />
+           <LoansReports formatCurrency={formatCurrency} loans={finalApprovedLoans} installments={installments} persons={persons} />
         )}
 
         {activeTab === 'settings' && (
@@ -990,11 +997,10 @@ export default function LoansManager({
                const loanInsts = (installments || []).filter(i => i.loanId === loan.id);
                const paidInsts = loanInsts.filter(i => i.status === 'paid').length;
                const totalInsts = loanInsts.length;
-               const isExpanded = expandedLoanId === loan.id;
 
                return (
-                 <div key={loan.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all hover:border-gray-200">
-                    <div className="p-6 flex flex-col lg:flex-row items-center gap-6 cursor-pointer" onClick={() => setExpandedLoanId(isExpanded ? null : loan.id)}>
+                 <div key={loan.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all hover:border-gray-200 hover:shadow-md cursor-pointer" onClick={() => { setSelectedLoanForPayment(loan.id as string); setActiveTab('payment'); }}>
+                    <div className="p-6 flex flex-col lg:flex-row items-center gap-6">
                        
                        <div className="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center" style={{backgroundColor: loan.type === 'given' ? '#eff6ff' : '#ecfdf5'}}>
                           <Wallet className={`w-7 h-7 ${loan.type === 'given' ? 'text-blue-500' : 'text-emerald-500'}`}/>
@@ -1027,8 +1033,15 @@ export default function LoansManager({
                             </div>
                             <div className="flex items-center gap-3 mt-2">
                               <button
-                                 onClick={(e) => { e.stopPropagation(); setPrintingLoanId(loan.id as string); }}
+                                 onClick={(e) => { e.stopPropagation(); setStatusModalLoanId(loan.id as string); }}
                                  className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 text-xs font-bold transition-colors"
+                               >
+                                  <Activity className="w-4 h-4" />
+                                  تغییر وضعیت
+                               </button>
+                              <button
+                                 onClick={(e) => { e.stopPropagation(); setPrintingLoanId(loan.id as string); }}
+                                 className="text-gray-600 hover:text-gray-800 flex items-center gap-1 text-xs font-bold transition-colors"
                                >
                                   <Printer className="w-4 h-4" />
                                   چاپ دفترچه
@@ -1045,123 +1058,33 @@ export default function LoansManager({
                             </div>
                          </div>
                        </div>
-                       <div className="text-gray-300">
-                          {isExpanded ? <ChevronUp /> : <ChevronDown />}
-                       </div>
                     </div>
-
-                    <AnimatePresence>
-                       {isExpanded && (
-                          <motion.div
-                            key="expanded-loan-details"
-                            initial={{height: 0, opacity: 0}}
-                            animate={{height: 'auto', opacity: 1}}
-                            exit={{height: 0, opacity: 0}}
-                            className="bg-gray-50/50 border-t border-gray-100"
-                          >
-                             <div className="p-6">
-                                
-                                <div className="mb-6 bg-white p-4 rounded-xl border border-gray-200">
-                                  <h4 className="text-sm font-black text-gray-800 mb-3 flex items-center gap-2">
-                                    <Activity className="w-4 h-4 text-gray-400"/>
-                                    وضعیت وام
-                                  </h4>
-                                  <div className="flex flex-col sm:flex-row items-center gap-4">
-                                    <select
-                                      className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none w-full sm:w-64 font-medium"
-                                      value={loan.status}
-                                      onChange={(e) => handleUpdateLoanStatus(loan.id, e.target.value)}
-                                      disabled={isSubmitting || (userRole !== 'admin' && userRole !== 'manager')}
-                                    >
-                                      <option value="requested">درخواست</option>
-                                      <option value="incomplete">نقص پرونده</option>
-                                      <option value="completed_dossier">تکمیل پرونده</option>
-                                      <option value="approved">تایید شده</option>
-                                      <option value="active">پرداخت شده / در جریان</option>
-                                      <option value="completed">تسویه شده</option>
-                                      <option value="overdue">معوق</option>
-                                    </select>
-                                    <span className="text-xs text-gray-500 font-medium">
-                                      {loan.status === 'active' ? 'در این مرحله، سند حسابداری و رسید بابت پرداخت/دریافت ثبت شده است.' : 'با تغییر وضعیت به «پرداخت شده»، سند حسابداری و رسید ثبت خواهد شد.'}
-                                    </span>
-                                  </div>
-                                </div>
-                                <h4 className="text-sm font-black text-gray-800 mb-4 flex items-center gap-2">
-
-                                  <List className="w-4 h-4 text-gray-400"/>
-                                  لیست اقساط
-                                </h4>
-                                <div className="space-y-3">
-                                   {loanInsts.map(inst => (
-                                     <div key={inst.id} className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`w-3 h-3 rounded-full ${inst.status === 'paid' ? 'bg-emerald-500' : inst.status === 'overdue' ? 'bg-rose-500' : 'bg-amber-400'}`}></div>
-                                            <div>
-                                              <div className="font-bold text-gray-800 text-sm mb-1">{formatDateDisplay(inst.dueDate.replace(/-/g, '/'))}</div>
-                                              {inst.status === 'paid' && <div className="text-xs font-bold text-gray-500">تاریخ پرداخت: {formatDateDisplay(inst.paidDate?.replace(/-/g, '/'))}</div>}
-                                              {inst.status === 'overdue' && <div className="text-xs font-bold text-rose-500">معوقه</div>}
-                                            </div>
-                                         </div>
-
-                                         <div className="text-left font-black font-mono text-gray-800" dir="ltr">
-                                           {formatCurrency(inst.amount)}
-                                         </div>
-
-                                         {(inst.status === 'pending' || inst.status === 'overdue') && loan.status === 'active' && (
-                                            <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto mt-4 md:mt-0">
-                                               <select
-                                                 value={paymentForm.installmentId === inst.id ? paymentForm.accountId : ''}
-                                                 onChange={(e) => setPaymentForm({installmentId: inst.id, amount: inst.amount, accountId: e.target.value, paymentDate: paymentForm.paymentDate})}
-                                                 className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none w-full md:w-40 font-medium"
-                                               >
-                                                 <option value="">انتخاب حساب</option>
-                                                 {(accounts || []).map(a => <option key={a.id} value={a.id}>{a.bankName}</option>)}
-                                               </select>
-                                               <div className="flex flex-wrap items-center gap-1 w-full md:w-auto">
-                                                 <button
-                                                   disabled={isSubmitting}
-                                                   onClick={() => {
-                                                      if(paymentForm.installmentId !== inst.id || !paymentForm.accountId) {
-                                                         showNotification('لطفا حساب پرداخت/دریافت را انتخاب کنید', 'error');
-                                                         setPaymentForm({...paymentForm, installmentId: inst.id, amount: inst.amount});
-                                                         return;
-                                                      }
-                                                      handlePayInstallment();
-                                                   }}
-                                                   className="bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                                                 >
-                                                    ثبت پرداخت
-                                                 </button>
-                                                 {inst.status !== 'overdue' && (
-                                                   <button
-                                                     onClick={() => handleMarkOverdue(inst.id)}
-                                                     disabled={isSubmitting}
-                                                     className="bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white px-3 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap disabled:opacity-50"
-                                                   >
-                                                      معوقه
-                                                   </button>
-                                                 )}
-                                               </div>
-                                            </div>
-                                         )}
-                                         {inst.status === 'paid' && (
-                                            <div className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
-                                              <CheckCircle className="w-4 h-4"/> پرداخت شده
-                                           </div>
-                                        )}
-                                     </div>
-                                   ))}
-                                </div>
-                             </div>
-                          </motion.div>
-                       )}
-                    </AnimatePresence>
-
                  </div>
-               )
+               );
             })
           )}
         </motion.div>
+      )}
+
+      {statusModalLoanId && (
+        <LoanStatusModal
+          isOpen={true}
+          onClose={() => setStatusModalLoanId(null)}
+          loan={loans.find(l => l.id === statusModalLoanId) as Loan}
+          onUpdateStatus={async (id, newStatus) => {
+             await handleUpdateLoanStatus(id, newStatus);
+             setStatusModalLoanId(null);
+          }}
+        />
+      )}
+      {printingLoanId && (
+         <InstallmentBookletPrint
+           loan={loans.find(l => l.id === printingLoanId) as Loan}
+           installments={(installments || []).filter(i => i.loanId === printingLoanId)}
+           person={persons.find(p => p.id === loans.find(l => l.id === printingLoanId)?.personId)}
+           onClose={() => setPrintingLoanId(null)}
+           formatCurrency={formatCurrency}
+         />
       )}
     </div>
   );
