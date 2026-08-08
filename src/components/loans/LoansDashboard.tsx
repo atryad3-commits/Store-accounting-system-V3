@@ -9,11 +9,12 @@ interface LoansDashboardProps {
   loans: Loan[];
   installments: Installment[];
   persons: Person[];
+  storeSettings?: any;
 }
 
 export default function LoansDashboard({ 
   formatCurrency = (val: number) => Number(val).toLocaleString("fa-IR") + " تومان",
-  loans, installments, persons
+  loans, installments, persons, storeSettings
 }: LoansDashboardProps) {
   const today = new Date().toLocaleDateString('fa-IR').replace(/\//g, '-');
 
@@ -85,7 +86,7 @@ export default function LoansDashboard({
              <TrendingUp className="w-6 h-6" />
            </div>
            <div>
-             <p className="text-sm text-gray-500 font-medium">مانده مطالبات (واحد پول)</p>
+             <p className="text-sm text-gray-500 font-medium">مانده مطالبات ({storeSettings?.currency || "تومان"})</p>
              <p className="text-xl font-black text-gray-900 mt-1 font-mono">{addCommas(kpis.totalOutstanding)}</p>
            </div>
         </div>
@@ -95,7 +96,7 @@ export default function LoansDashboard({
              <AlertCircle className="w-6 h-6" />
            </div>
            <div>
-             <p className="text-sm text-red-500 font-medium">مجموع معوقات (واحد پول)</p>
+             <p className="text-sm text-red-500 font-medium">مجموع معوقات ({storeSettings?.currency || "تومان"})</p>
              <p className="text-xl font-black text-red-700 mt-1 font-mono">{addCommas(kpis.totalArrears)}</p>
              <p className="text-xs text-red-500 mt-1">{kpis.overdueCount} قسط معوق</p>
            </div>

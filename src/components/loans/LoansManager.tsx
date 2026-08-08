@@ -28,6 +28,7 @@ interface LoansManagerProps {
   setAccounts: React.Dispatch<React.SetStateAction<Account[]>>;
   transactions: any[];
   setTransactions: React.Dispatch<React.SetStateAction<any[]>>;
+  storeSettings?: any;
   formatCurrency?: (val: number) => string;
   currentUser?: string;
   userRole?: string;
@@ -54,6 +55,7 @@ const LOAN_STATUS_COLORS: Record<string, string> = {
 };
 
 export default function LoansManager({
+  storeSettings,
   loans,
   setLoans,
   installments,
@@ -908,7 +910,7 @@ export default function LoansManager({
       )}
 
       {activeTab === 'dashboard' && (
-           <LoansDashboard formatCurrency={formatCurrency} loans={loans} installments={installments} persons={persons} />
+           <LoansDashboard formatCurrency={formatCurrency} loans={loans} installments={installments} persons={persons} storeSettings={storeSettings} />
         )}
         
         {activeTab === 'arrears' && (
@@ -932,6 +934,8 @@ export default function LoansManager({
              showNotification={showNotification}
              saveInstallments={saveInstallments}
              addSystemLog={addSystemLog}
+             addTransaction={addTransaction}
+             storeSettings={storeSettings}
            />
         )}
 

@@ -8,11 +8,12 @@ interface LoansReportsProps {
   loans: Loan[];
   installments: Installment[];
   persons: Person[];
+  storeSettings?: any;
 }
 
 export default function LoansReports({ 
   formatCurrency = (val: number) => Number(val).toLocaleString("fa-IR") + " تومان",
-  loans, installments, persons
+  loans, installments, persons, storeSettings
 }: LoansReportsProps) {
   const [reportType, setReportType] = useState<'active' | 'settled' | 'cashflow'>('active');
 
@@ -120,15 +121,15 @@ export default function LoansReports({
                   <th className="px-6 py-4">شماره وام</th>
                   <th className="px-6 py-4">وام‌گیرنده</th>
                   <th className="px-6 py-4">تاریخ شروع</th>
-                  <th className="px-6 py-4">مبلغ اصل (واحد پول)</th>
-                  <th className="px-6 py-4">کل پرداختی (واحد پول)</th>
-                  <th className="px-6 py-4">مانده (واحد پول)</th>
+                  <th className="px-6 py-4">مبلغ اصل ({storeSettings?.currency || "تومان"})</th>
+                  <th className="px-6 py-4">کل پرداختی ({storeSettings?.currency || "تومان"})</th>
+                  <th className="px-6 py-4">مانده ({storeSettings?.currency || "تومان"})</th>
                 </tr>
               ) : (
                 <tr>
                   <th className="px-6 py-4">ماه سررسید</th>
                   <th className="px-6 py-4">تعداد اقساط</th>
-                  <th className="px-6 py-4">مبلغ پیش‌بینی شده (واحد پول)</th>
+                  <th className="px-6 py-4">مبلغ پیش‌بینی شده ({storeSettings?.currency || "تومان"})</th>
                 </tr>
               )}
             </thead>

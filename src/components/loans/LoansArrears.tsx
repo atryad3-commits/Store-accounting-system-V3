@@ -9,11 +9,12 @@ interface LoansArrearsProps {
   loans: Loan[];
   installments: Installment[];
   persons: Person[];
+  storeSettings?: any;
 }
 
 export default function LoansArrears({ 
   formatCurrency = (val: number) => Number(val).toLocaleString("fa-IR") + " تومان",
-  loans, installments, persons
+  loans, installments, persons, storeSettings
 }: LoansArrearsProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const today = new Date().toLocaleDateString('fa-IR').replace(/\//g, '-');
@@ -96,7 +97,7 @@ export default function LoansArrears({
                 <th className="px-6 py-4">شماره وام / قسط</th>
                 <th className="px-6 py-4">سررسید</th>
                 <th className="px-6 py-4">تأخیر (روز)</th>
-                <th className="px-6 py-4">مبلغ معوق (واحد پول)</th>
+                <th className="px-6 py-4">مبلغ معوق ({storeSettings?.currency || "تومان"})</th>
                 <th className="px-6 py-4">عملیات پیگیری</th>
               </tr>
             </thead>

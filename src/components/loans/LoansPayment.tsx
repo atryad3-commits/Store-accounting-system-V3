@@ -5,6 +5,8 @@ import { Loan, Installment } from '../../types';
 import { useReactToPrint } from 'react-to-print';
 
 interface Props {
+  addTransaction?: (tx: any) => Promise<any>;
+  storeSettings?: any;
   loans: Loan[];
   installments: Installment[];
   persons: any[];
@@ -15,7 +17,7 @@ interface Props {
   addSystemLog: (action: string, details: string, entity: string, id: string | number) => Promise<void>;
 }
 
-export default function LoansPayment({ loans, installments, persons, formatCurrency, setInstallments, showNotification, saveInstallments, addSystemLog }: Props) {
+export default function LoansPayment({ loans, installments, persons, formatCurrency, setInstallments, showNotification, saveInstallments, addSystemLog, addTransaction, storeSettings }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
 
@@ -49,7 +51,7 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
 
   const loanInstallments = selectedLoan ? installments.filter(i => i.loanId === selectedLoan.id).sort((a,b) => (a.installmentNumber || 0) - (b.installmentNumber || 0)) : [];
   
-  const handlePay = async (inst: Installment) => {
+    const handlePay = async (inst: Installment) => {
     try {
       const updatedInsts = installments.map(i => {
         if (i.id === inst.id) {
@@ -60,6 +62,22 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
       setInstallments(updatedInsts);
       await saveInstallments(updatedInsts);
       await addSystemLog('PAY_INSTALLMENT', `پرداخت قسط ${inst.installmentNumber || ''} وام ${selectedLoan?.loanNumber || selectedLoan?.id}`, 'Installment', inst.id);
+      
+      if (addTransaction && selectedLoan) {
+        const txType = selectedLoan.type === 'given' ? 'receive' : 'pay';
+        await addTransaction({
+          type: txType,
+          amount: inst.amount,
+          accountId: selectedLoan.accountId || '',
+          personId: selectedLoan.personId,
+          categoryId: selectedLoan.type === 'given' ? 'loan_installment_receive' : 'loan_installment_pay',
+          description: `دریافت قسط ${inst.installmentNumber || ''} وام ${selectedLoan.loanNumber || selectedLoan.id}`,
+          date: new Date().toLocaleDateString('fa-IR').replace(/\//g, '-'),
+          time: new Date().toLocaleTimeString('fa-IR', { hour12: false }),
+          isSystem: true,
+        });
+      }
+
       showNotification('قسط با موفقیت پرداخت شد.', 'success');
     } catch(err) {
       showNotification('خطا در پرداخت قسط', 'error');

@@ -942,7 +942,8 @@ export default function App() {
                         userRole={user?.role}
                         setAccounts={setAccounts}
                         transactions={transactions}
-                        setTransactions={setTransactions} />} />
+                        setTransactions={setTransactions}
+                        storeSettings={storeSettings} />} />
 <Route path="/system_info" element={<SystemInfo />} />
 <Route path="/system_diagnostics" element={<SystemDiagnostics persons={persons} products={products}
                        
