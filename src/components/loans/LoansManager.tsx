@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Loan, Installment, Person, Account } from '../../types';
 import { Plus, Percent, Edit2, Trash2, Search, CheckCircle, ChevronDown, ChevronUp, AlertCircle, RefreshCw, Layers, Calendar, DollarSign, Wallet, Users, Activity, List, ArrowLeftRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import SearchableSelect from '../ui/SearchableSelect';
 import { useNavigate } from 'react-router-dom';
 import { startAppProcessing, stopAppProcessing } from '../../utils/processingHelper';
 import { saveLoans, saveInstallments, addTransaction, deleteTransaction, checkFinancialYear, addSystemLog } from '../../services/dataService';
@@ -14,7 +15,7 @@ import LoansSettings from './LoansSettings';
 import LoansPayment from './LoansPayment';
 import InstallmentBookletPrint from './InstallmentBookletPrint';
 import LoanStatusModal from './LoanStatusModal';
-import { Printer } from 'lucide-react';
+import { Printer, X } from 'lucide-react';
 
 
 
@@ -80,6 +81,7 @@ export default function LoansManager({
   const [expandedLoanId, setExpandedLoanId] = useState<string | number | null>(null);
   const [printingLoanId, setPrintingLoanId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewData, setPreviewData] = useState<{loan: Loan, installments: Installment[]} | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -167,11 +169,9 @@ export default function LoansManager({
       showNotification('لطفا تمام فیلدهای ضروری را پر کنید.', 'error');
       return;
     }
-
     const amountNum = Number(formData.amount);
     const instCount = Number(formData.totalInstallments);
     const instAmount = Number(formData.installmentAmount);
-
     if (amountNum <= 0) {
       showNotification('مبلغ وام باید بیشتر از صفر باشد.', 'error');
       return;
@@ -192,21 +192,19 @@ export default function LoansManager({
       showNotification('نرخ سود نمی‌تواند منفی باشد.', 'error');
       return;
     }
-
     setIsSubmitting(true);
-    startAppProcessing('شروع فرآیند ثبت وام...');
+    startAppProcessing('اعتبارسنجی وام...');
     try {
       await checkFinancialYear(formData.startDate);
     } catch (err: any) {
-      showNotification(err.message || 'تاریخ شروع خارج از سال مالی است.', 'error');
+      showNotification(err.message || 'تاریخ خارج از سال مالی فعال است.', 'error');
       setIsSubmitting(false);
       stopAppProcessing();
       return;
     }
 
-    const loanId = Date.now().toString();
-    const loanNumber = Math.floor(100000 + Math.random() * 900000).toString(); // Generate a random 6-digit number
-
+    const loanId = 'loan_' + Date.now();
+    const loanNumber = Math.floor(10000 + Math.random() * 90000).toString();
     const newLoan: Loan = {
       id: loanId,
       loanNumber,
@@ -222,8 +220,16 @@ export default function LoansManager({
       type: formData.type,
       accountId: formData.accountId,
     };
+    
+    // To english numbers
+    const toEnglishNumbers = (str: string) => {
+      const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+      return str.split('').map(c => {
+        const index = persianNumbers.indexOf(c);
+        return index !== -1 ? index : c;
+      }).join('');
+    };
 
-        
     let [initY, initM, initD] = toEnglishNumbers(formData.startDate).replace(/\//g, '-').split('-').map(Number);
     if (isNaN(initY) || isNaN(initM) || isNaN(initD)) {
         initY = 1403; initM = 1; initD = 1; // fallback
@@ -240,9 +246,7 @@ export default function LoansManager({
       let finalD = initD;
       if (instM === 12 && finalD > 29) finalD = 29;
       if (instM > 6 && finalD === 31) finalD = 30;
-
       let dueDateStr = instY + '-' + instM.toString().padStart(2, '0') + '-' + finalD.toString().padStart(2, '0');
-
       newInstallments.push({
         id: 'inst-' + loanId + '-' + i,
         installmentNumber: i + 1,
@@ -253,8 +257,17 @@ export default function LoansManager({
       });
     }
 
-    const newInstsList = [...installments, ...newInstallments];
-    const newLoansList = [...loans, newLoan];
+    setPreviewData({ loan: newLoan, installments: newInstallments });
+    setIsSubmitting(false);
+    stopAppProcessing();
+  };
+
+  const handleFinalSubmitLoan = async () => {
+    if (!previewData) return;
+    setIsSubmitting(true);
+    startAppProcessing('در حال ثبت نهایی وام...');
+    const newInstsList = [...installments, ...previewData.installments];
+    const newLoansList = [...loans, previewData.loan];
     
     setLoans(newLoansList);
     setInstallments(newInstsList);
@@ -263,8 +276,9 @@ export default function LoansManager({
       await saveLoans(newLoansList);
       await saveInstallments(newInstsList);
       if (typeof addSystemLog !== 'undefined') {
-        await addSystemLog('ADD_LOAN', `ثبت وام جدید به مبلغ ${amountNum} برای شخص ${formData.personId}`, 'Loan', loanId);
+        await addSystemLog('ADD_LOAN', `ثبت وام جدید به مبلغ ${previewData.loan.amount} برای شخص ${previewData.loan.personId}`, 'Loan', previewData.loan.id);
       }
+      showNotification('وام با موفقیت ثبت شد.', 'success');
     } catch (err: any) {
       showNotification(err.message || 'خطا در ذخیره وام', 'error');
       setIsSubmitting(false);
@@ -283,6 +297,7 @@ export default function LoansManager({
       type: 'given',
       accountId: '',
     });
+    setPreviewData(null);
     navigate('/loans_list');
     setIsSubmitting(false);
     stopAppProcessing();
@@ -618,19 +633,16 @@ export default function LoansManager({
                 <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
                    <Users className="w-4 h-4 text-gray-400" /> طرف حساب
                 </label>
-                <select
+                <SearchableSelect
                   value={formData.personId}
-                  onChange={(e) => {
-                    setFormData({...formData, personId: e.target.value});
+                  onChange={(val) => {
+                    setFormData({...formData, personId: val});
                     setUseBalanceAsAmount(false);
                   }}
-                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-medium"
-                >
-                  <option value="">انتخاب شخص...</option>
-                  {(persons || []).filter(p => p.isActive !== false).map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
+                  options={(persons || []).filter(p => p.isActive !== false).map(p => ({ value: p.id, label: p.name }))}
+                  placeholder="انتخاب شخص..."
+                  searchPlaceholder="جستجوی شخص..."
+                />
                 {selectedPersonBalance && selectedPersonBalance.value !== 0 && (
                    <motion.div initial={{opacity:0, y:-5}} animate={{opacity:1, y:0}} className="pt-2">
                       <div className={`text-xs font-bold p-3 rounded-xl border ${selectedPersonBalance.bg} ${selectedPersonBalance.color} flex flex-col gap-2`}>
@@ -663,6 +675,7 @@ export default function LoansManager({
                 <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
                    <DollarSign className="w-4 h-4 text-gray-400" /> مبلغ کل وام
                 </label>
+                <div className="relative">
                 <input
                   type="text"
                   disabled={useBalanceAsAmount}
@@ -688,9 +701,11 @@ export default function LoansManager({
                         setFormData({...formData, amount: amt, installmentAmount: instAmt});
                      }
                   }}
-                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-black text-left font-mono disabled:opacity-50"
+                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl pr-4 pl-14 py-3 outline-none transition-all font-black text-left font-mono disabled:opacity-50"
                   dir="ltr"
                 />
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span>
+                </div>
              </div>
              
              {!useBalanceAsAmount && (
@@ -701,7 +716,7 @@ export default function LoansManager({
                   <select
                     value={formData.accountId}
                     onChange={(e) => setFormData({...formData, accountId: e.target.value})}
-                    className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-medium"
+                    className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl pr-4 pl-14 py-3 outline-none transition-all font-medium"
                   >
                     <option value="">انتخاب حساب...</option>
                     {(accounts || []).map(a => (
@@ -737,7 +752,7 @@ export default function LoansManager({
                      }
                      setFormData({...formData, interestRate: rate, installmentAmount: instAmt});
                   }}
-                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-black text-left font-mono disabled:opacity-50"
+                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl pr-4 pl-14 py-3 outline-none transition-all font-black text-left font-mono disabled:opacity-50"
                   dir="ltr"
                 />
              </div>
@@ -769,7 +784,7 @@ export default function LoansManager({
                      
                      setFormData({...formData, frequency: freq, installmentAmount: instAmt});
                   }}
-                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-medium text-slate-800"
+                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl pr-4 pl-14 py-3 outline-none transition-all font-medium text-slate-800"
                 >
                   <option value="monthly">ماهانه</option>
                   <option value="quarterly">سه ماهه (فصلی)</option>
@@ -801,7 +816,7 @@ export default function LoansManager({
                      }
                      setFormData({...formData, totalInstallments: val, installmentAmount: instAmt});
                   }}
-                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-black font-mono text-left"
+                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl pr-4 pl-14 py-3 outline-none transition-all font-black font-mono text-left"
                   dir="ltr"
                 />
              </div>
@@ -817,7 +832,7 @@ export default function LoansManager({
                      if(v === '') { setFormData({...formData, installmentAmount: ''}); return; }
                      if(!isNaN(Number(v))) setFormData({...formData, installmentAmount: Number(v)});
                   }}
-                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-black text-left font-mono"
+                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl pr-4 pl-14 py-3 outline-none transition-all font-black text-left font-mono"
                   dir="ltr"
                 />
              </div>
@@ -828,7 +843,7 @@ export default function LoansManager({
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-medium resize-none min-h-[100px]"
+                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl pr-4 pl-14 py-3 outline-none transition-all font-medium resize-none min-h-[100px]"
                 />
              </div>
           </div>
@@ -965,14 +980,14 @@ export default function LoansManager({
                             <div className="flex items-center gap-3 mt-2">
                               <button
                                  onClick={(e) => { e.stopPropagation(); setStatusModalLoanId(loan.id as string); }}
-                                 className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 text-xs font-bold transition-colors"
+                                 className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-black transition-colors"
                                >
                                   <Activity className="w-4 h-4" />
                                   تغییر وضعیت
                                </button>
                               <button
                                  onClick={(e) => { e.stopPropagation(); setPrintingLoanId(loan.id as string); }}
-                                 className="text-gray-600 hover:text-gray-800 flex items-center gap-1 text-xs font-bold transition-colors"
+                                 className="bg-gray-100 text-gray-600 hover:bg-gray-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-black transition-colors"
                                >
                                   <Printer className="w-4 h-4" />
                                   چاپ دفترچه
@@ -989,7 +1004,60 @@ export default function LoansManager({
                             </div>
                          </div>
                        </div>
-                    </div>
+                                        </div>
+                    
+                    <AnimatePresence>
+                      {expandedLoanId === loan.id && (
+                         <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="border-t border-gray-100 bg-gray-50/50"
+                         >
+                            <div className="p-6">
+                               <div className="flex justify-between items-center mb-4">
+                                  <h4 className="font-black text-gray-800 flex items-center gap-2">
+                                     <List className="w-4 h-4 text-emerald-500" />
+                                     گزارش اقساط
+                                  </h4>
+                                  <button
+                                     onClick={(e) => { e.stopPropagation(); setSelectedLoanForPayment(loan.id as string); navigate('/loans_payment'); }}
+                                     className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors"
+                                  >
+                                     <CheckCircle className="w-4 h-4" />
+                                     ثبت پرداختی قسط
+                                  </button>
+                               </div>
+                               <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                                  <table className="w-full text-sm text-right">
+                                     <thead className="bg-gray-100 text-gray-600 font-bold border-b border-gray-200">
+                                        <tr>
+                                           <th className="p-3">ردیف</th>
+                                           <th className="p-3">سررسید</th>
+                                           <th className="p-3">مبلغ قسط</th>
+                                           <th className="p-3">وضعیت</th>
+                                        </tr>
+                                     </thead>
+                                     <tbody className="divide-y divide-gray-100">
+                                        {loanInsts.map((inst, idx) => (
+                                           <tr key={inst.id} className="hover:bg-gray-50 transition-colors">
+                                              <td className="p-3 font-bold text-gray-600">{idx + 1}</td>
+                                              <td className="p-3 font-mono font-medium">{formatDateDisplay(inst.dueDate.replace(/-/g, '/'))}</td>
+                                              <td className="p-3 font-black text-gray-900">{formatCurrency(inst.amount)}</td>
+                                              <td className="p-3">
+                                                 <span className={`px-2 py-1 rounded-lg text-xs font-bold ${inst.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : inst.status === 'overdue' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                    {inst.status === 'paid' ? 'پرداخت شده' : inst.status === 'overdue' ? 'معوق' : 'سررسید نشده'}
+                                                 </span>
+                                              </td>
+                                           </tr>
+                                        ))}
+                                     </tbody>
+                                  </table>
+                               </div>
+                            </div>
+                         </motion.div>
+                      )}
+                    </AnimatePresence>
                  </div>
                );
             })
@@ -1008,14 +1076,100 @@ export default function LoansManager({
           }}
         />
       )}
+      {previewData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]"
+          >
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
+              <h2 className="text-xl font-black text-gray-800">پیش‌نمایش اقساط وام</h2>
+              <button onClick={() => setPreviewData(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                 <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-white">
+               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                     <span className="text-xs text-gray-500 font-bold block mb-1">مبلغ وام</span>
+                     <span className="text-lg font-black text-gray-800">{formatCurrency(previewData.loan.amount)} {storeSettings?.currency || 'تومان'}</span>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                     <span className="text-xs text-gray-500 font-bold block mb-1">مبلغ هر قسط</span>
+                     <span className="text-lg font-black text-gray-800">{formatCurrency(previewData.loan.installmentAmount)} {storeSettings?.currency || 'تومان'}</span>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                     <span className="text-xs text-gray-500 font-bold block mb-1">تعداد اقساط</span>
+                     <span className="text-lg font-black text-gray-800">{previewData.loan.totalInstallments} قسط</span>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                     <span className="text-xs text-gray-500 font-bold block mb-1">شخص</span>
+                     <span className="text-base font-black text-gray-800">{persons.find(p => p.id === previewData.loan.personId)?.name || 'نامشخص'}</span>
+                  </div>
+               </div>
+
+               <h3 className="text-sm font-black text-gray-800 mb-3 flex items-center gap-2">
+                 <List className="w-4 h-4 text-emerald-500" /> لیست اقساط
+               </h3>
+               
+               <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+                  <table className="w-full text-sm text-right">
+                     <thead className="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
+                        <tr>
+                           <th className="p-3">ردیف</th>
+                           <th className="p-3">سررسید</th>
+                           <th className="p-3">مبلغ قسط</th>
+                        </tr>
+                     </thead>
+                     <tbody className="divide-y divide-gray-100">
+                        {previewData.installments.map((inst, idx) => (
+                           <tr key={inst.id} className="hover:bg-gray-50/50 transition-colors">
+                              <td className="p-3 font-bold text-gray-600">{idx + 1}</td>
+                              <td className="p-3 font-mono font-medium">{formatDateDisplay(inst.dueDate.replace(/-/g, '/'))}</td>
+                              <td className="p-3 font-black text-gray-900">{formatCurrency(inst.amount)}</td>
+                           </tr>
+                        ))}
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex flex-wrap justify-between items-center gap-4">
+              <button
+                 onClick={() => setPrintingLoanId('preview')}
+                 className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-sm"
+              >
+                 <Printer className="w-4 h-4" />
+                 چاپ پیش‌نمایش
+              </button>
+              <div className="flex items-center gap-3">
+                 <button
+                    onClick={() => setPreviewData(null)}
+                    className="px-6 py-2.5 rounded-xl font-bold text-gray-500 hover:bg-gray-200 transition-all"
+                 >
+                    انصراف
+                 </button>
+                 <button
+                    disabled={isSubmitting}
+                    onClick={handleFinalSubmitLoan}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50"
+                 >
+                    <CheckCircle className="w-5 h-5" />
+                    تایید و ثبت نهایی
+                 </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
       {printingLoanId && (
-         <InstallmentBookletPrint
-           loan={loans.find(l => l.id === printingLoanId) as Loan}
-           installments={(installments || []).filter(i => i.loanId === printingLoanId)}
-           person={persons.find(p => p.id === loans.find(l => l.id === printingLoanId)?.personId)}
-           onClose={() => setPrintingLoanId(null)}
-           formatCurrency={formatCurrency}
-         />
+        <InstallmentBookletPrint 
+          loan={printingLoanId === 'preview' && previewData ? previewData.loan : loans.find(l => l.id === printingLoanId) as Loan} 
+          installments={printingLoanId === 'preview' && previewData ? previewData.installments : (installments || []).filter(i => i.loanId === printingLoanId)} 
+          person={persons.find(p => p.id === (printingLoanId === 'preview' && previewData ? previewData.loan.personId : loans.find(l => l.id === printingLoanId)?.personId))} 
+          onClose={() => setPrintingLoanId(null)} 
+          formatCurrency={formatCurrency} 
+        />
       )}
     </div>
   );
