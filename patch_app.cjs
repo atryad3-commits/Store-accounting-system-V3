@@ -1,25 +1,19 @@
 const fs = require('fs');
-let content = fs.readFileSync('src/App.tsx', 'utf8');
+let content = fs.readFileSync('src/App.tsx', 'utf-8');
 
-const newImports = `
-const SendMessageView = React.lazy(() => import('./components/messaging/SendMessageView'));
-const MessagingChannelsView = React.lazy(() => import('./components/messaging/MessagingChannelsView'));
-const MessagingLogsView = React.lazy(() => import('./components/messaging/MessagingLogsView'));
+const oldLoansRouteRegex = /<Route path="\/loans" element=\{<LoansManager showNotification=\{showNotification\} persons=\{persons\} accounts=\{accounts\}\s*loans=\{loans\}\s*setLoans=\{setLoans\}\s*installments=\{installments\}\s*setInstallments=\{setInstallments\}\s*currentUser=\{user\?.name \|\| "کاربر سیستم"\}\s*userRole=\{user\?.role \|\| "viewer"\}\s*\/>\} \/>/;
+
+const loansProps = `showNotification={showNotification} persons={persons} accounts={accounts} loans={loans} setLoans={setLoans} installments={installments} setInstallments={setInstallments} currentUser={user?.name || "کاربر سیستم"} userRole={user?.role || "viewer"}`;
+
+const newLoansRoutes = `
+<Route path="/loans_dashboard" element={<LoansManager activeTab="dashboard" ${loansProps} />} />
+<Route path="/loans_list" element={<LoansManager activeTab="list" ${loansProps} />} />
+<Route path="/loans_create" element={<LoansManager activeTab="create" ${loansProps} />} />
+<Route path="/loans_payment" element={<LoansManager activeTab="payment" ${loansProps} />} />
+<Route path="/loans_arrears" element={<LoansManager activeTab="arrears" ${loansProps} />} />
+<Route path="/loans_reports" element={<LoansManager activeTab="reports" ${loansProps} />} />
+<Route path="/loans_settings" element={<LoansManager activeTab="settings" ${loansProps} />} />
 `;
 
-if (content.includes('const SmsPanel = React.lazy(() => import(\'./components/admin/SmsPanel\'));')) {
-    content = content.replace('const SmsPanel = React.lazy(() => import(\'./components/admin/SmsPanel\'));', newImports);
-}
-
-const newRoutes = `
-  <Route path="/send_message" element={<SendMessageView showNotification={showNotification} />} />
-  <Route path="/messaging_channels" element={<MessagingChannelsView showNotification={showNotification} />} />
-  <Route path="/messaging_logs" element={<MessagingLogsView showNotification={showNotification} />} />
-`;
-
-if (content.includes('<Route path="/sms_panel"')) {
-    // Find the exact line
-    content = content.replace(/<Route path="\/sms_panel".*?\/>/, newRoutes);
-}
-
+content = content.replace(oldLoansRouteRegex, newLoansRoutes);
 fs.writeFileSync('src/App.tsx', content);

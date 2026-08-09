@@ -933,17 +933,15 @@ export default function App() {
                           storeSettings={storeSettings}
                           setViewingCheck={setViewingCheck} />
                       </motion.div>} />
-<Route path="/loans" element={<LoansManager showNotification={showNotification} persons={persons} accounts={accounts}
-                        loans={loans}
-                        setLoans={setLoans}
-                        installments={installments}
-                        setInstallments={setInstallments}
-                        currentUser={user?.name || "کاربر سیستم"}
-                        userRole={user?.role}
-                        setAccounts={setAccounts}
-                        transactions={transactions}
-                        setTransactions={setTransactions}
-                        storeSettings={storeSettings} />} />
+
+<Route path="/loans_dashboard" element={<LoansManager activeTab="dashboard" showNotification={showNotification} persons={persons} accounts={accounts} loans={loans} setLoans={setLoans} installments={installments} setInstallments={setInstallments} currentUser={user?.name || "کاربر سیستم"} userRole={user?.role} setAccounts={setAccounts} transactions={transactions} setTransactions={setTransactions} storeSettings={storeSettings} />} />
+<Route path="/loans_list" element={<LoansManager activeTab="list" showNotification={showNotification} persons={persons} accounts={accounts} loans={loans} setLoans={setLoans} installments={installments} setInstallments={setInstallments} currentUser={user?.name || "کاربر سیستم"} userRole={user?.role} setAccounts={setAccounts} transactions={transactions} setTransactions={setTransactions} storeSettings={storeSettings} />} />
+<Route path="/loans_create" element={<LoansManager activeTab="create" showNotification={showNotification} persons={persons} accounts={accounts} loans={loans} setLoans={setLoans} installments={installments} setInstallments={setInstallments} currentUser={user?.name || "کاربر سیستم"} userRole={user?.role} setAccounts={setAccounts} transactions={transactions} setTransactions={setTransactions} storeSettings={storeSettings} />} />
+<Route path="/loans_payment" element={<LoansManager activeTab="payment" showNotification={showNotification} persons={persons} accounts={accounts} loans={loans} setLoans={setLoans} installments={installments} setInstallments={setInstallments} currentUser={user?.name || "کاربر سیستم"} userRole={user?.role} setAccounts={setAccounts} transactions={transactions} setTransactions={setTransactions} storeSettings={storeSettings} />} />
+<Route path="/loans_arrears" element={<LoansManager activeTab="arrears" showNotification={showNotification} persons={persons} accounts={accounts} loans={loans} setLoans={setLoans} installments={installments} setInstallments={setInstallments} currentUser={user?.name || "کاربر سیستم"} userRole={user?.role} setAccounts={setAccounts} transactions={transactions} setTransactions={setTransactions} storeSettings={storeSettings} />} />
+<Route path="/loans_reports" element={<LoansManager activeTab="reports" showNotification={showNotification} persons={persons} accounts={accounts} loans={loans} setLoans={setLoans} installments={installments} setInstallments={setInstallments} currentUser={user?.name || "کاربر سیستم"} userRole={user?.role} setAccounts={setAccounts} transactions={transactions} setTransactions={setTransactions} storeSettings={storeSettings} />} />
+<Route path="/loans_settings" element={<LoansManager activeTab="settings" showNotification={showNotification} persons={persons} accounts={accounts} loans={loans} setLoans={setLoans} installments={installments} setInstallments={setInstallments} currentUser={user?.name || "کاربر سیستم"} userRole={user?.role} setAccounts={setAccounts} transactions={transactions} setTransactions={setTransactions} storeSettings={storeSettings} />} />
+
 <Route path="/system_info" element={<SystemInfo />} />
 <Route path="/system_diagnostics" element={<SystemDiagnostics persons={persons} products={products}
                        

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Loan, Installment, Person, Account } from '../../types';
 import { Plus, Percent, Edit2, Trash2, Search, CheckCircle, ChevronDown, ChevronUp, AlertCircle, RefreshCw, Layers, Calendar, DollarSign, Wallet, Users, Activity, List, ArrowLeftRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import { startAppProcessing, stopAppProcessing } from '../../utils/processingHelper';
 import { saveLoans, saveInstallments, addTransaction, deleteTransaction, checkFinancialYear, addSystemLog } from '../../services/dataService';
 import { formatDateDisplay } from '../../utils/format';
@@ -33,6 +34,7 @@ interface LoansManagerProps {
   formatCurrency?: (val: number) => string;
   currentUser?: string;
   userRole?: string;
+  activeTab?: 'dashboard' | 'list' | 'create' | 'payment' | 'arrears' | 'reports' | 'settings';
 }
 
 
@@ -69,9 +71,10 @@ export default function LoansManager({
   showNotification,
   formatCurrency = (val: number) => val.toLocaleString('fa-IR'),
   currentUser = 'سیستم',
-  userRole = 'viewer'
+  userRole = 'viewer',
+  activeTab = 'dashboard'
 }: LoansManagerProps) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'list' | 'create' | 'payment' | 'arrears' | 'reports' | 'settings'>('dashboard');
+  const navigate = useNavigate();
   const [selectedLoanForPayment, setSelectedLoanForPayment] = useState<string>('');
   const [statusModalLoanId, setStatusModalLoanId] = useState<string | null>(null);
   const [expandedLoanId, setExpandedLoanId] = useState<string | number | null>(null);
@@ -280,7 +283,7 @@ export default function LoansManager({
       type: 'given',
       accountId: '',
     });
-    setActiveTab('list');
+    navigate('/loans_list');
     setIsSubmitting(false);
     stopAppProcessing();
   };
@@ -579,79 +582,7 @@ export default function LoansManager({
           <p className="text-gray-500 font-medium tracking-tight">وام‌های پرداختی، دریافتی و زمان‌بندی اقساط</p>
         </div>
         
-        <div className="flex bg-gray-100 p-1.5 rounded-2xl w-full md:w-auto">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
-              activeTab === 'dashboard' 
-                ? 'bg-white text-emerald-600 shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            داشبورد
-          </button>
-          <button
-            onClick={() => setActiveTab('list')}
-            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
-              activeTab === 'list' 
-                ? 'bg-white text-emerald-600 shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            فهرست وام‌ها
-          </button>
-          <button
-            onClick={() => setActiveTab('create')}
-            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
-              activeTab === 'create' 
-                ? 'bg-white text-emerald-600 shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            ثبت وام جدید
-          </button>
-          <button
-            onClick={() => setActiveTab('payment')}
-            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
-              activeTab === 'payment' 
-                ? 'bg-white text-emerald-600 shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            پرداخت اقساط
-          </button>
-          <button
-            onClick={() => setActiveTab('arrears')}
-            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
-              activeTab === 'arrears' 
-                ? 'bg-white text-emerald-600 shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            معوقات
-          </button>
-          <button
-            onClick={() => setActiveTab('reports')}
-            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
-              activeTab === 'reports' 
-                ? 'bg-white text-emerald-600 shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            گزارشات
-          </button>
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
-              activeTab === 'settings' 
-                ? 'bg-white text-emerald-600 shadow-sm' 
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            تنظیمات
-          </button>
-        </div>
-      </div>
+              </div>
 
       {activeTab === 'create' && (
         <motion.div
@@ -999,7 +930,7 @@ export default function LoansManager({
                const totalInsts = loanInsts.length;
 
                return (
-                 <div key={loan.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all hover:border-gray-200 hover:shadow-md cursor-pointer" onClick={() => { setSelectedLoanForPayment(loan.id as string); setActiveTab('payment'); }}>
+                 <div key={loan.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden transition-all hover:border-gray-200 hover:shadow-md cursor-pointer" onClick={() => { setSelectedLoanForPayment(loan.id as string); navigate('/loans_payment'); }}>
                     <div className="p-6 flex flex-col lg:flex-row items-center gap-6">
                        
                        <div className="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center" style={{backgroundColor: loan.type === 'given' ? '#eff6ff' : '#ecfdf5'}}>
