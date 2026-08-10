@@ -10,7 +10,8 @@ export const backfillInstallmentCodes = async () => {
         
         let updatedCount = 0;
         const newInstallments = installments.map(inst => {
-            if (!inst.installmentCode) {
+            // Force update all to 7 digits
+            if (!inst.installmentCode || inst.installmentCode.startsWith('LN-')) {
                 const loan = loans.find(l => l.id.toString() === inst.loanId.toString());
                 const idx = (inst.installmentNumber || 1) - 1;
                 const code = generateInstallmentCode(inst.loanId, loan?.loanNumber, idx, inst.dueDate);

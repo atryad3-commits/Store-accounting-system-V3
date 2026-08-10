@@ -82,8 +82,15 @@ const queryClient = new QueryClient({
   },
 });
 
+import { backfillInstallmentCodes } from "./migrations/backfillInstallmentCodes";
+
 const Root = () => {
   const [setupComplete, setSetupComplete] = useState(false);
+  useEffect(() => {
+    if (setupComplete) {
+       backfillInstallmentCodes().catch(console.error);
+    }
+  }, [setupComplete]);
 
   return (
     <>

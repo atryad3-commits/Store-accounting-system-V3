@@ -1,4 +1,5 @@
-import { getLocalData, saveInstallments, addTransaction, getLoans, saveLoans, addSystemLog, getAccounts } from './dataService';
+import { getLocalData, getLoans, addTransaction, addSystemLog } from './dataService';
+import { saveInstallments } from './accountingService';
 import { getPersons } from './personService';
 import { Installment, Loan, Account, Cashbox } from '../types';
 import { applyTransition } from './loanStateMachine';
@@ -29,12 +30,24 @@ export const lookupInstallmentByCode = async (code: string) => {
         throw new Error('وام مربوط به این قسط یافت نشد');
     }
     
-    if (loan.status === 'completed' || loan.status === 'cancelled' as any) {
-         throw new Error(`این وام در وضعیت ${loan.status === 'completed' ? 'تسویه شده' : 'لغو شده'} است`);
+    if (loan.status !== 'active' && loan.status !== 'overdue') {
+         throw new Error(`این وام در وضعیت فعال یا معوق نیست (وضعیت فعلی: ${loan.status})`);
     }
 
     if (inst.status === 'paid') {
         throw new Error('این قسط قبلاً پرداخت شده است');
+    }
+    
+    // Ensure previous installments are paid
+    const loanInstallments = installments
+        .filter(i => i.loanId.toString() === loan.id.toString())
+        .sort((a, b) => (a.installmentNumber || 0) - (b.installmentNumber || 0));
+        
+    for (const i of loanInstallments) {
+        if (i.id === inst.id) break;
+        if (i.status !== 'paid') {
+            throw new Error(`نمیتوانید این قسط را پرداخت کنید زیرا قسط شماره ${i.installmentNumber} هنوز پرداخت نشده است`);
+        }
     }
     
     const persons = await getPersons();
@@ -54,9 +67,7 @@ export const calculatePaymentPreview = async (
 ): Promise<PaymentPreview> => {
     const { installment, loan, amountRemaining } = await lookupInstallmentByCode(installmentCode);
     
-    // Check penalty (Delay) - let's assume 1% per day for delay as an example, but here we can just do 0 if no clear policy is set. The user said "در صورت جریمه دیرکرد (اگر امروز از سررسید گذشته)، مبلغ جریمه را جداگانه محاسبه". Let's use 0 for now unless requested. Or let's just make it simple: 0 penalty for now.
-    const today = new Date().toLocaleDateString('fa-IR').replace(/\//g, '-');
-    let penaltyAmount = 0; // Can be enhanced later
+    const penaltyAmount = 0; // Can be enhanced later
     
     const totalDueForThisInst = amountRemaining + penaltyAmount;
     

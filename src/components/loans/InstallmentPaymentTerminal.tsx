@@ -174,7 +174,7 @@ export default function InstallmentPaymentTerminal({ showNotification, formatCur
                                     type="text"
                                     value={searchCode}
                                     onChange={(e) => setSearchCode(e.target.value.toUpperCase())}
-                                    placeholder="مثال: LN-2026-A1B2C-03"
+                                    placeholder="مثال: 1234567"
                                     className="w-full text-center text-2xl font-black tracking-widest py-4 px-6 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all uppercase placeholder:text-gray-300 placeholder:text-lg placeholder:font-normal placeholder:tracking-normal"
                                     dir="ltr"
                                     disabled={isSearching}

@@ -108,6 +108,10 @@ export default function InstallmentBookletPrint({ loan, installments, person, on
                   </div>
                   <div className="flex-1 space-y-4 mt-2">
                     <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                      <span className="text-sm font-semibold text-slate-600">کد قسط:</span>
+                      <span className="font-black text-slate-900 tracking-widest font-mono">{inst.installmentCode || '-'}</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                       <span className="text-sm font-semibold text-slate-600">تاریخ سررسید:</span>
                       <span className="font-black text-slate-900">{inst.dueDate}</span>
                     </div>
