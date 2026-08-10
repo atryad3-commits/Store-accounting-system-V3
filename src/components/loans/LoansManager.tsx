@@ -12,7 +12,7 @@ import LoansDashboard from './LoansDashboard';
 import LoansArrears from './LoansArrears';
 import LoansReports from './LoansReports';
 import LoansSettings from './LoansSettings';
-import LoansPayment from './LoansPayment';
+import InstallmentPaymentTerminal from './InstallmentPaymentTerminal';
 import InstallmentBookletPrint from './InstallmentBookletPrint';
 import LoanCardModal from './LoanCardModal';
 import LoanTransitionModal from './LoanTransitionModal';
@@ -282,6 +282,7 @@ export default function LoansManager({
         dueDate: dueDateStr,
         amount: currentInstAmount,
         status: 'pending',
+        installmentCode: generateInstallmentCode(loanId, newLoan.loanNumber, i, dueDateStr),
       });
     }
 
@@ -356,7 +357,8 @@ export default function LoansManager({
 
        const updatedInstallments = installments.map(i => {
          if (i.id === instId) {
-           return { ...i, status: 'pending', paidDate: undefined, paidAmount: undefined };
+           return { ...i, status: 'pending',
+        installmentCode: generateInstallmentCode(loanId, newLoan.loanNumber, i, dueDateStr), paidDate: undefined, paidAmount: undefined };
          }
          return i;
        });
@@ -790,17 +792,11 @@ export default function LoansManager({
       )}
       
       {activeTab === 'payment' && (
-         <LoansPayment
-             loans={loans}
-             installments={installments}
-             persons={persons}
-             formatCurrency={formatCurrency}
-             setInstallments={setInstallments}
+         <InstallmentPaymentTerminal
              showNotification={showNotification}
-             saveInstallments={saveInstallments}
-             addSystemLog={addSystemLog}
-             addTransaction={addTransaction}
-             storeSettings={storeSettings}
+             formatCurrency={formatCurrency}
+             onBack={() => navigate("/loans_list")}
+             userId={currentUser}
            />
         )}
 
