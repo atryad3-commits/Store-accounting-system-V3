@@ -4,8 +4,9 @@ import { Loan, Installment, Person, Account } from '../../types';
 import { generateInstallmentCode } from '../../utils/installmentUtils';
 import { Plus, Percent, Edit2, Trash2, Search, CheckCircle, ChevronDown, ChevronUp, AlertCircle, RefreshCw, Layers, Calendar, DollarSign, Wallet, Users, Activity, List, ArrowLeftRight, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import SearchableSelect from '../ui/SearchableSelect';
 import { useNavigate } from 'react-router-dom';
+import SearchableSelect from '../ui/SearchableSelect';
+import CustomDatePicker from '../ui/CustomDatePicker';
 import { startAppProcessing, stopAppProcessing } from '../../utils/processingHelper';
 import { saveLoans, saveInstallments, addTransaction, deleteTransaction, checkFinancialYear, addSystemLog } from '../../services/dataService';
 import { formatDateDisplay } from '../../utils/format';
@@ -463,6 +464,7 @@ export default function LoansManager({
     return matchesSearch && matchesStatus;
   });
 
+  const currencyUnit = storeSettings?.currency || 'تومان';
   const finalApprovedLoans = loans.filter(l => ['approved', 'active', 'completed', 'overdue'].includes(l.status));
 
   return (
@@ -524,7 +526,7 @@ export default function LoansManager({
                    <motion.div initial={{opacity:0, y:-5}} animate={{opacity:1, y:0}} className="pt-2">
                       <div className={`text-xs font-bold p-3 rounded-xl border ${selectedPersonBalance.bg} ${selectedPersonBalance.color} flex flex-col gap-2`}>
                          <div className="flex items-center justify-between">
-                            <span>مانده این شخص: {formatCurrency(selectedPersonBalance.amount)} ({selectedPersonBalance.status})</span>
+                            <span>مانده این شخص: {formatCurrency(selectedPersonBalance.amount)} {currencyUnit} ({selectedPersonBalance.status})</span>
                          </div>
                          <button
                             type="button"
@@ -585,7 +587,6 @@ export default function LoansManager({
                 </div>
              </div>
              
-             {!useBalanceAsAmount && (
                <div className="space-y-2">
                   <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
                     <Wallet className="w-4 h-4 text-gray-400" /> حساب بانکی / صندوق
@@ -601,7 +602,17 @@ export default function LoansManager({
                     ))}
                   </select>
                </div>
-             )}
+
+
+             <div className="space-y-2">
+                 <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-gray-400" /> تاریخ شروع قسط‌بندی
+                 </label>
+                 <CustomDatePicker
+                   value={formData.startDate}
+                   onChange={(val: string) => setFormData({...formData, startDate: val})}
+                 />
+              </div>
 
              <div className="space-y-2">
                 <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
@@ -754,28 +765,7 @@ export default function LoansManager({
         {activeTab === 'settings' && (
            <LoansSettings showNotification={showNotification} userRole={userRole} />
         )}
-        {expandedLoanId !== null && (
-              <LoanDetailsView
-        isOpen={expandedLoanId !== null}
-        onClose={() => setExpandedLoanId(null)}
-        loan={loans.find(l => l.id === expandedLoanId) || null}
-        installments={installments}
-        formatCurrency={formatCurrency}
-        getPersonName={getPersonName}
-        userRole={userRole}
-        handleUpdateLoanStatus={handleUpdateLoanStatus}
-        handleDeleteLoan={handleDeleteLoan}
-        setPrintingLoanId={setPrintingLoanId}
-        onPayInstallment={(loanId) => {
-           setExpandedLoanId(null);
-           setSelectedLoanForPayment(loanId);
-           navigate('/loans_payment');
-        }}
-        LOAN_STATUS_LABELS={LOAN_STATUS_LABELS}
-        LOAN_STATUS_COLORS={LOAN_STATUS_COLORS}
-        isSubmitting={isSubmitting}
-      />
-        )}
+        
       
             {transitionState && (
         <LoanTransitionModal
@@ -803,7 +793,7 @@ export default function LoansManager({
            />
         )}
 
-        {activeTab === 'list' && expandedLoanId === null && (
+        {activeTab === 'list'  && (
         <motion.div 
            initial={{ opacity: 0 }} 
            animate={{ opacity: 1 }} 
@@ -858,7 +848,7 @@ export default function LoansManager({
 
                return (
                  <div key={loan.id} className={`bg-white rounded-2xl border ${isExpanded ? 'border-indigo-200 shadow-md ring-4 ring-indigo-50' : 'border-gray-100 shadow-sm'} overflow-hidden transition-all hover:border-gray-200 hover:shadow-md`}>
-                    <div className="p-6 flex flex-col lg:flex-row items-center gap-6 cursor-pointer" onClick={() => setExpandedLoanId(isExpanded ? null : loan.id)}>
+                    <div className="p-6 flex flex-col lg:flex-row items-center gap-6 cursor-pointer" onClick={() => navigate('/loan/' + loan.id)}>
                        
                        <div className="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center" style={{backgroundColor: loan.type === 'given' ? '#eff6ff' : '#ecfdf5'}}>
                           <Wallet className={`w-7 h-7 ${loan.type === 'given' ? 'text-blue-500' : 'text-emerald-500'}`}/>
@@ -885,7 +875,7 @@ export default function LoansManager({
                          </div>
 
                          <div className="flex flex-col md:items-end gap-1">
-                            <span className="text-xl font-black font-mono text-gray-900 tracking-tight" dir="ltr">{formatCurrency(loan.amount)}</span>
+                            <span className="text-xl font-black font-mono text-gray-900 tracking-tight" dir="ltr">{formatCurrency(loan.amount)} {currencyUnit}</span>
                             <div className="flex items-center gap-2 text-sm font-medium text-gray-500">
                                <span>پرداخت شده: {paidInsts} از {totalInsts}</span>
                                <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -894,7 +884,7 @@ export default function LoansManager({
                             </div>
                             <div className="flex items-center gap-2 mt-2">
                                <button 
-                                  onClick={(e) => { e.stopPropagation(); setExpandedLoanId(loan.id); }}
+                                  onClick={(e) => { e.stopPropagation(); navigate('/loan/' + loan.id); }}
                                   className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all bg-indigo-50 text-indigo-700 hover:bg-indigo-100`}
                                >
                                   کارت وام (جزئیات و عملیات)
@@ -963,7 +953,7 @@ export default function LoansManager({
                            <tr key={inst.id} className="hover:bg-gray-50/50 transition-colors">
                               <td className="p-3 font-bold text-gray-600">{idx + 1}</td>
                               <td className="p-3 font-mono font-medium">{formatDateDisplay(inst.dueDate.replace(/-/g, '/'))}</td>
-                              <td className="p-3 font-black text-gray-900">{formatCurrency(inst.amount)}</td>
+                              <td className="p-3 font-black text-gray-900">{formatCurrency(inst.amount)} {currencyUnit}</td>
                            </tr>
                         ))}
                      </tbody>

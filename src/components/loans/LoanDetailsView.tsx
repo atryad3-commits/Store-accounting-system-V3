@@ -5,6 +5,7 @@ import { Loan, Installment } from '../../types';
 import { formatDateDisplay } from '../../utils/format';
 
 interface Props {
+  storeSettings?: any;
   isOpen: boolean;
   onClose: () => void;
   loan: Loan | null;
@@ -22,6 +23,8 @@ interface Props {
 }
 
 export default function LoanDetailsView({
+  storeSettings,
+
   isOpen,
   onClose,
   loan,
@@ -44,6 +47,7 @@ export default function LoanDetailsView({
   const totalInsts = loanInsts.length;
 
   if (!isOpen || !loan) return null;
+  const currencyUnit = storeSettings?.currency || "تومان";
 
   return (
     <motion.div
@@ -75,7 +79,7 @@ export default function LoanDetailsView({
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                   <div className="text-sm font-medium text-gray-500 mb-1">مبلغ وام</div>
-                  <div className="text-lg font-black font-mono text-gray-900" dir="ltr">{formatCurrency(loan.amount)}</div>
+                  <div className="text-lg font-black font-mono text-gray-900" dir="ltr">{formatCurrency(loan.amount)} {currencyUnit}</div>
                 </div>
                 <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                   <div className="text-sm font-medium text-gray-500 mb-1">تاریخ پرداخت</div>
@@ -132,20 +136,37 @@ export default function LoanDetailsView({
                          <Layers className="w-4 h-4" />
                          تاریخچه وضعیت‌ها
                       </h5>
-                      <div className="space-y-3">
-                         {loan.history.map((hist, idx) => (
-                            <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-                               <div className="flex items-center gap-3">
-                                  <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${LOAN_STATUS_COLORS[hist.status] || 'bg-gray-100 text-gray-700'}`}>
-                                     {LOAN_STATUS_LABELS[hist.status] || hist.status}
-                                  </span>
-                                  <span className="text-sm font-medium text-gray-600">{hist.desc}</span>
-                               </div>
-                               <div className="text-xs text-gray-400 mt-2 sm:mt-0 font-mono" dir="ltr">
-                                  {new Date(hist.date).toLocaleString('fa-IR')}
-                               </div>
-                            </div>
-                         ))}
+                      <div className="overflow-x-auto rounded-xl border border-slate-200">
+                         <table className="w-full text-right border-collapse">
+                            <thead>
+                               <tr className="bg-slate-100 text-slate-500 text-sm">
+                                  <th className="p-3 font-bold">وضعیت</th>
+                                  <th className="p-3 font-bold">تاریخ و زمان</th>
+                                  <th className="p-3 font-bold">کاربر</th>
+                                  <th className="p-3 font-bold">توضیحات</th>
+                               </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                               {loan.history.map((hist, idx) => (
+                                  <tr key={idx} className="bg-white hover:bg-slate-50 transition-colors">
+                                     <td className="p-3">
+                                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${LOAN_STATUS_COLORS[hist.status] || 'bg-gray-100 text-gray-700'}`}>
+                                           {LOAN_STATUS_LABELS[hist.status] || hist.status}
+                                        </span>
+                                     </td>
+                                     <td className="p-3 text-sm font-medium text-slate-600 font-mono" dir="ltr">
+                                        {new Date(hist.date).toLocaleString('fa-IR')}
+                                     </td>
+                                     <td className="p-3 text-sm font-medium text-slate-600">
+                                        {hist.user || 'سیستم'}
+                                     </td>
+                                     <td className="p-3 text-sm font-medium text-slate-600">
+                                        {hist.desc}
+                                     </td>
+                                  </tr>
+                               ))}
+                            </tbody>
+                         </table>
                       </div>
                    </div>
                  )}
@@ -181,7 +202,7 @@ export default function LoanDetailsView({
                                 <tr key={inst.id} className="hover:bg-gray-50 transition-colors">
                                    <td className="p-3 font-bold text-gray-600">{idx + 1}</td>
                                    <td className="p-3 font-mono font-medium">{formatDateDisplay(inst.dueDate.replace(/\-/g, '/'))}</td>
-                                   <td className="p-3 font-black text-gray-900" dir="ltr">{formatCurrency(inst.amount)}</td>
+                                   <td className="p-3 font-black text-gray-900" dir="ltr">{formatCurrency(inst.amount)} {currencyUnit}</td>
                                    <td className="p-3">
                                       <span className={`px-2 py-1 rounded-lg text-xs font-bold ${inst.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : inst.status === 'overdue' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
                                          {inst.status === 'paid' ? 'پرداخت شده' : inst.status === 'overdue' ? 'معوق' : 'سررسید نشده'}

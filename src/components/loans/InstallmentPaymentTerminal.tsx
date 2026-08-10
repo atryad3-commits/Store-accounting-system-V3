@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, CheckCircle, AlertCircle, ArrowRight, Printer, CreditCard, Banknote, Calendar, User, FileText, ArrowLeft, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { lookupInstallmentByCode, calculatePaymentPreview, registerInstallmentPayment, PaymentPreview } from '../../services/installmentPaymentService';
+import { lookupInstallmentByCode, lookupNextInstallmentByLoanId, calculatePaymentPreview, registerInstallmentPayment, PaymentPreview } from '../../services/installmentPaymentService';
 import { getAccounts } from '../../services/dataService';
 import { getCashboxes } from '../../services/accountingService';
 import { Account, Cashbox } from '../../types';
@@ -12,11 +12,14 @@ interface Props {
   formatCurrency: (val: number) => string;
   onBack: () => void;
   userId: string;
+  storeSettings?: any;
 }
 
-export default function InstallmentPaymentTerminal({ showNotification, formatCurrency, onBack, userId }: Props) {
+export default function InstallmentPaymentTerminal({ showNotification, formatCurrency, onBack, userId, storeSettings }: Props) {
+  const currencyUnit = storeSettings?.currency || "";
   const [searchParams] = useSearchParams();
   const initialCode = searchParams.get('code') || '';
+  const initialLoanId = searchParams.get('loanId') || '';
   const [step, setStep] = useState<'search' | 'form' | 'confirm' | 'success'>('search');
   const [searchCode, setSearchCode] = useState(initialCode);
   const [isSearching, setIsSearching] = useState(false);
@@ -63,11 +66,32 @@ export default function InstallmentPaymentTerminal({ showNotification, formatCur
     } catch (e) {}
   };
 
-  useEffect(() => {
+    useEffect(() => {
     if (initialCode && step === 'search') {
       handleSearch(undefined, initialCode);
+    } else if (initialLoanId && step === 'search') {
+      handleSearchByLoanId(initialLoanId);
     }
-  }, [initialCode]);
+  }, [initialCode, initialLoanId]);
+
+  const handleSearchByLoanId = async (loanIdStr: string) => {
+    setIsSearching(true);
+    setSearchError('');
+    try {
+        const data = await lookupNextInstallmentByLoanId(loanIdStr);
+        setInstallmentData(data);
+        if (data.installment?.installmentCode) {
+            setSearchCode(data.installment.installmentCode);
+        }
+        setAmountEntered(data.amountRemaining);
+        updatePreview(data.installment.installmentCode, data.amountRemaining);
+        setStep('form');
+    } catch (err: any) {
+        setSearchError(err.message || 'قسط پرداخت نشده‌ای برای این وام یافت نشد');
+    } finally {
+        setIsSearching(false);
+    }
+  };
 
   const handleSearch = async (e?: React.FormEvent, codeToSearch?: string) => {
     if (e) e.preventDefault();
@@ -276,7 +300,7 @@ export default function InstallmentPaymentTerminal({ showNotification, formatCur
 
                             <div className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">مبلغ پرداختی مشتری (تومان)</label>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">مبلغ پرداختی مشتری ()</label>
                                     <input 
                                         type="number"
                                         value={amountEntered}
@@ -294,7 +318,7 @@ export default function InstallmentPaymentTerminal({ showNotification, formatCur
                                             <div>
                                                 {paymentPreview.isFullPayment && 'پرداخت کامل: این قسط کاملاً تسویه خواهد شد.'}
                                                 {paymentPreview.isPartial && 'پرداخت جزئی: این قسط به صورت جزئی تسویه می‌شود و مبلغی باقی می‌ماند.'}
-                                                {paymentPreview.isOverpayment && `پرداخت مازاد: قسط فعلی تسویه شده و ${formatCurrency(paymentPreview.overpaymentAmount)} تومان به اقساط بعدی تخصیص می‌یابد.`}
+                                                {paymentPreview.isOverpayment && `پرداخت مازاد: قسط فعلی تسویه شده و ${formatCurrency(paymentPreview.overpaymentAmount)}  به اقساط بعدی تخصیص می‌یابد.`}
                                             </div>
                                         </motion.div>
                                     )}
@@ -371,7 +395,7 @@ export default function InstallmentPaymentTerminal({ showNotification, formatCur
                                 </div>
                                 <div className="flex justify-between items-center pb-4 border-b border-gray-100">
                                     <span className="text-gray-600">مبلغ دریافتی:</span>
-                                    <span className="text-xl font-black text-emerald-600">{formatCurrency(Number(amountEntered))} تومان</span>
+                                    <span className="text-xl font-black text-emerald-600">{formatCurrency(Number(amountEntered))} </span>
                                 </div>
                                 
                                 <div>

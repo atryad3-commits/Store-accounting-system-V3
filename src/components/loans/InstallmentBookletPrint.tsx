@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Loan, Installment, Person } from '../../types';
 import { motion } from 'motion/react';
 import { Printer, X } from 'lucide-react';
-import { useReactToPrint } from 'react-to-print';
+// import { useReactToPrint } from 'react-to-print';
 
 interface InstallmentBookletPrintProps {
   loan: Loan;
@@ -16,19 +16,16 @@ interface InstallmentBookletPrintProps {
 export default function InstallmentBookletPrint({ loan, installments, person, onClose, formatCurrency, currency = 'تومان' }: InstallmentBookletPrintProps) {
   const componentRef = useRef<HTMLDivElement>(null);
 
-  const handlePrint = useReactToPrint({
-    contentRef: componentRef,
-    documentTitle: `دفترچه_اقساط_وام_${loan.loanNumber || loan.id}`,
-    pageStyle: `
-      @page { size: auto; margin: 10mm; }
-      @media print {
-        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; direction: rtl; }
-      }
-    `,
-  });
+  const handlePrint = () => {
+    document.title = `دفترچه_اقساط_وام_${loan.loanNumber || loan.id}`;
+    setTimeout(() => {
+        window.print();
+        document.title = "Applet";
+    }, 100);
+  };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm print:fixed print:inset-0 print:bg-white print:p-0">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm print:fixed print:inset-0 print:bg-white print:p-0 print-section">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -36,7 +33,7 @@ export default function InstallmentBookletPrint({ loan, installments, person, on
         className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col print:shadow-none print:max-h-none print:h-auto print:overflow-visible"
         dir="rtl"
       >
-        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+        <div className="flex items-center justify-between p-6 border-b border-slate-200 print:hidden">
           <h2 className="text-xl font-bold text-slate-800">چاپ دفترچه اقساط</h2>
           <div className="flex items-center gap-2">
             <button
@@ -56,7 +53,7 @@ export default function InstallmentBookletPrint({ loan, installments, person, on
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 bg-slate-50 print:overflow-visible print:bg-white print:p-0">
-          <div ref={componentRef} dir="rtl" style={{ direction: 'rtl' }} className="bg-white p-8 rounded-xl print:p-8 print:bg-white text-slate-900 print-section">
+          <div ref={componentRef} dir="rtl" style={{ direction: 'rtl' }} className="bg-white p-8 rounded-xl print:p-8 print:bg-white text-slate-900">
             {/* Booklet Header */}
             <div className="text-center mb-8 pb-6 border-b-2 border-slate-200">
               <h1 className="text-2xl font-black text-slate-800 mb-2">دفترچه اقساط وام</h1>
@@ -126,10 +123,16 @@ export default function InstallmentBookletPrint({ loan, installments, person, on
                       </span>
                     </div>
                     {inst.status === 'paid' && inst.paidAmount ? (
+                      <>
                       <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                         <span className="text-sm font-semibold text-slate-600">مبلغ پرداخت شده:</span>
                         <span className="font-black text-emerald-600" dir="ltr">{formatCurrency(inst.paidAmount)} {currency}</span>
                       </div>
+                      <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <span className="text-sm font-semibold text-slate-600">شماره رسید پرداختی:</span>
+                        <span className="font-black text-slate-900">{inst.receiptNumber || '-'}</span>
+                      </div>
+                      </>
                     ) : null}
                     <div className="flex justify-between items-center pt-2">
                       <span className="text-sm font-semibold text-slate-600">مهر و امضا:</span>

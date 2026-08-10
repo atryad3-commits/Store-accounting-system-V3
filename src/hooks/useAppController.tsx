@@ -3721,6 +3721,23 @@ const fetchSmsMessages = async () => {
     }
   };
 
+  
+  useEffect(() => {
+    const handleDataChanged = (e: any) => {
+        // debounce fetch
+        if ((window as any)._dataChangeTimeout) {
+            clearTimeout((window as any)._dataChangeTimeout);
+        }
+        (window as any)._dataChangeTimeout = setTimeout(() => {
+            fetchDataSilent();
+        }, 300);
+    };
+    if (typeof window !== 'undefined') {
+        window.addEventListener('app_data_changed', handleDataChanged);
+        return () => window.removeEventListener('app_data_changed', handleDataChanged);
+    }
+  }, []);
+
   const fetchDataSilent = async () => {
     try {
       await Promise.all([

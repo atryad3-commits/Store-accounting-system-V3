@@ -166,23 +166,41 @@ export const registerInstallmentPayment = async (
         }
     }
     
-    // Save updated installments
-    await saveInstallments(updatedInstallments);
-    
     // Update Transaction & Accounting
     const txType = loan.type === 'given' ? 'receive' : 'pay';
     const tx = await addTransaction({
         type: txType,
         amount: amountEntered, // Actual amount received
+        method: paymentMethodType === 'account' ? 'account' : 'cash',
+        resourceType: paymentMethodType === 'account' ? 'bank' : 'cashbox',
+        resourceId: paymentMethodId,
         accountId: paymentMethodType === 'account' ? paymentMethodId : undefined,
         cashboxId: paymentMethodType === 'cashbox' ? paymentMethodId : undefined,
         personId: loan.personId,
         categoryId: loan.type === 'given' ? 'loan_installment_received' : 'loan_installment_paid',
         description: `پرداخت قسط(ها) برای کد یکتا ${installmentCode}`,
-        date: today,
+        date: new Date().toISOString().split('T')[0],
+        jalaliDate: new Date().toLocaleDateString('fa-IR').replace(/\//g, '-'),
         time: new Date().toLocaleTimeString('fa-IR', { hour12: false }),
         isSystem: true,
     });
+    
+    // Attach receipt info to installments that were paid in this batch
+    updatedInstallments = updatedInstallments.map((inst: any) => {
+        if (inst.loanId === loan.id && inst.status === 'paid' && inst.paidDate === today) {
+            // We assume if it was paid today in this session, we attach the receipt info
+            // A more robust way is to check if we just allocated to this installment
+            return {
+                ...inst,
+                receiptId: tx.id,
+                receiptNumber: tx.receiptNumber
+            };
+        }
+        return inst;
+    });
+
+    // Save updated installments
+    await saveInstallments(updatedInstallments);
     
     // Check if loan status needs change
     const loanInsts = updatedInstallments.filter(i => i.loanId === loan.id);
@@ -210,4 +228,18 @@ export const registerInstallmentPayment = async (
         allocatedAmount: totalAllocatedPrincipal,
         newLoanStatus
     };
+};
+
+
+export const lookupNextInstallmentByLoanId = async (loanId: string) => {
+    const installments = await getLocalData<Installment[]>('installments', []);
+    const loanInstallments = installments
+        .filter(i => i.loanId.toString() === loanId.toString() && i.status !== 'paid')
+        .sort((a, b) => (a.installmentNumber || 0) - (b.installmentNumber || 0));
+
+    if (loanInstallments.length === 0) {
+        throw new Error('هیچ قسط پرداخت‌نشده‌ای برای این وام یافت نشد.');
+    }
+    const nextInst = loanInstallments[0];
+    return lookupInstallmentByCode(nextInst.installmentCode);
 };

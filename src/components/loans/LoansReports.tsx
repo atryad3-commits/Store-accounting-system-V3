@@ -141,15 +141,15 @@ export default function LoansReports({
                       <td className="px-6 py-4 font-mono text-gray-600">{row.loanNumber || row.id}</td>
                       <td className="px-6 py-4 font-bold text-gray-900">{row.personName}</td>
                       <td className="px-6 py-4 font-mono text-gray-600" dir="ltr">{row.startDate}</td>
-                      <td className="px-6 py-4 font-mono font-medium text-gray-900" dir="ltr">{addCommas(row.amount)}</td>
-                      <td className="px-6 py-4 font-mono font-medium text-emerald-600" dir="ltr">{addCommas(row.paidAmount)}</td>
-                      <td className="px-6 py-4 font-mono font-bold text-rose-600" dir="ltr">{addCommas(row.remainingAmount)}</td>
+                      <td className="px-6 py-4 font-mono font-medium text-gray-900" dir="ltr">{addCommas(row.amount)} {storeSettings?.currency || "تومان"}</td>
+                      <td className="px-6 py-4 font-mono font-medium text-emerald-600" dir="ltr">{addCommas(row.paidAmount)} {storeSettings?.currency || "تومان"}</td>
+                      <td className="px-6 py-4 font-mono font-bold text-rose-600" dir="ltr">{addCommas(row.remainingAmount)} {storeSettings?.currency || "تومان"}</td>
                     </>
                   ) : (
                     <>
                       <td className="px-6 py-4 font-mono font-bold text-gray-900" dir="ltr">{row.month}</td>
                       <td className="px-6 py-4 text-gray-600">{row.count} قسط</td>
-                      <td className="px-6 py-4 font-mono font-black text-indigo-600" dir="ltr">{addCommas(row.expectedAmount)}</td>
+                      <td className="px-6 py-4 font-mono font-black text-indigo-600" dir="ltr">{addCommas(row.expectedAmount)} {storeSettings?.currency || "تومان"}</td>
                     </>
                   )}
                 </tr>

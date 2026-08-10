@@ -14,7 +14,7 @@ interface LoansArrearsProps {
 }
 
 export default function LoansArrears({ 
-  formatCurrency = (val: number) => Number(val).toLocaleString("fa-IR") + " تومان",
+  formatCurrency = (val: number) => Number(val).toLocaleString("fa-IR") + " " + (storeSettings?.currency || "تومان"),
   loans, installments, persons, storeSettings
 }: LoansArrearsProps) {
   const navigate = useNavigate();
@@ -137,7 +137,7 @@ export default function LoansArrears({
                       {inst.daysOverdue} روز
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-black font-mono text-gray-900" dir="ltr">{addCommas(inst.amount)}</td>
+                  <td className="px-6 py-4 font-black font-mono text-gray-900" dir="ltr">{addCommas(inst.amount)} {storeSettings?.currency || "تومان"}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                      <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">

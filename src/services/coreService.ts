@@ -137,6 +137,7 @@ export const saveLocalData = async <T>(key: string, data: T, retries = 3): Promi
       throw new Error('Network response was not ok');
     }
     invalidateCache(key);
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('app_data_changed', { detail: { key } }));
   } catch (error) {
     if (retries > 0) {
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -165,6 +166,7 @@ export const updateLocalData = async <T>(key: string, id: string | number, data:
     throw new Error(errText);
   }
   invalidateCache(key);
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('app_data_changed', { detail: { key } }));
   const result = await res.json();
   return result.data;
 };
@@ -183,6 +185,7 @@ export const appendLocalData = async <T>(key: string, data: T): Promise<T> => {
     throw new Error('Network response was not ok');
   }
   invalidateCache(key);
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('app_data_changed', { detail: { key } }));
   const result = await res.json();
   return result.data;
 };
@@ -208,7 +211,10 @@ export const batchLocalData = async (operations: any[]): Promise<any> => {
     if (res.status === 401) return { success: false };
     throw new Error('Network response was not ok');
   }
-  operations.forEach(op => invalidateCache(op.key));
+  operations.forEach(op => {
+    invalidateCache(op.key);
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('app_data_changed', { detail: { key: op.key } }));
+});
   return await res.json();
 };
 
