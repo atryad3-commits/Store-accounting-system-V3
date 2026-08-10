@@ -28,6 +28,7 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
   const [selectedInst, setSelectedInst] = useState<Installment | null>(null);
   const [paymentMethodType, setPaymentMethodType] = useState<'account' | 'cashbox'>('account');
   const [paymentMethodId, setPaymentMethodId] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [cashboxes, setCashboxes] = useState<Cashbox[]>([]);
@@ -102,10 +103,19 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
 
   const handleConfirmPay = async () => {
     if (!selectedInst || !selectedLoan) return;
+    
+    if (selectedInst.status === 'paid') {
+      showNotification('این قسط قبلاً پرداخت شده است.', 'warning');
+      return;
+    }
+
     if (!paymentMethodId) {
       showNotification('لطفاً روش پرداخت را انتخاب کنید.', 'error');
       return;
     }
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
     try {
       const today = new Date().toLocaleDateString('fa-IR').replace(/\//g, '-');
@@ -138,6 +148,8 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
       setIsModalOpen(false);
     } catch(err) {
       showNotification('خطا در پرداخت قسط', 'error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -411,7 +423,7 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
                 </button>
                 <button
                   onClick={handleConfirmPay}
-                  disabled={!paymentMethodId}
+                  disabled={!paymentMethodId || isSubmitting}
                   className="px-8 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl font-bold transition-all shadow-sm flex items-center gap-2"
                 >
                   <CheckCircle className="w-5 h-5" />

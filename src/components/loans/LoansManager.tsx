@@ -182,7 +182,8 @@ export default function LoansManager({
       showNotification('مبلغ قسط باید بیشتر از صفر باشد.', 'error');
       return;
     }
-    if (instCount * instAmount < amountNum) {
+    const maxRoundingDiff = instCount;
+    if (instCount * instAmount < amountNum && (amountNum - (instCount * instAmount) > maxRoundingDiff)) {
       showNotification('مجموع اقساط نمی‌تواند کمتر از اصل وام باشد.', 'error');
       return;
     }
@@ -236,6 +237,24 @@ export default function LoansManager({
     const newInstallments: Installment[] = [];
     const stepMonths = formData.frequency === 'yearly' ? 12 : formData.frequency === 'quarterly' ? 3 : 1;
     
+    let targetTotalPayable = instAmount * instCount;
+    const r = formData.interestRate === '' ? 0 : Number(formData.interestRate);
+    if (r === 0) {
+        if (instAmount * instCount < amountNum || instAmount === Math.round(amountNum / instCount)) {
+            targetTotalPayable = amountNum;
+        }
+    } else {
+        let freq = formData.frequency || 'monthly';
+        let periodsPerYear = freq === 'monthly' ? 12 : freq === 'quarterly' ? 4 : 1;
+        let periodicRate = (r / 100) / periodsPerYear;
+        let exactInstAmt = (amountNum * periodicRate * Math.pow(1 + periodicRate, instCount)) / (Math.pow(1 + periodicRate, instCount) - 1);
+        if (instAmount === Math.round(exactInstAmt)) {
+            targetTotalPayable = Math.round(exactInstAmt * instCount);
+        }
+    }
+    
+    let accumulated = 0;
+
     for (let i = 0; i < instCount; i++) {
       let totalMonths = initM + ((i + 1) * stepMonths);
       let instY = initY + Math.floor((totalMonths - 1) / 12);
@@ -245,12 +264,19 @@ export default function LoansManager({
       if (instM === 12 && finalD > 29) finalD = 29;
       if (instM > 6 && finalD === 31) finalD = 30;
       let dueDateStr = instY + '-' + instM.toString().padStart(2, '0') + '-' + finalD.toString().padStart(2, '0');
+      
+      let currentInstAmount = instAmount;
+      if (i === instCount - 1) {
+          currentInstAmount = targetTotalPayable - accumulated;
+      }
+      accumulated += currentInstAmount;
+
       newInstallments.push({
         id: 'inst-' + loanId + '-' + i,
         installmentNumber: i + 1,
         loanId: loanId,
         dueDate: dueDateStr,
-        amount: instAmount,
+        amount: currentInstAmount,
         status: 'pending',
       });
     }
@@ -317,7 +343,7 @@ export default function LoansManager({
       incomplete: ['completed_dossier'],
       completed_dossier: ['incomplete', 'approved'],
       approved: ['active'],
-      active: ['completed'],
+      active: ['completed', 'overdue'],
       overdue: ['completed', 'active'],
       completed: [] // No coming back from completed
     };
