@@ -46,7 +46,7 @@ export default function LoansArrears({
 
     if (searchTerm) {
       const lower = searchTerm.toLowerCase();
-      overdue = overdue.filter(i => i.person?.name.toLowerCase().includes(lower) || i.loan?.id.toString().includes(lower));
+      overdue = overdue.filter(i => i.person?.name.toLowerCase().includes(lower) || i.loan?.loanNumber?.toString().includes(lower) || i.loan?.id.toString().includes(lower));
     }
 
     return overdue;
@@ -117,7 +117,7 @@ export default function LoansArrears({
                     </div>
                   </td>
                   <td className="px-6 py-4 text-gray-600">
-                    <div>وام: <span className="font-mono">{inst.loanId}</span></div>
+                    <div>وام: <span className="font-mono">{inst.loan?.loanNumber || inst.loan?.id || inst.loanId}</span></div>
                     <div className="text-xs mt-1">قسط شماره: {inst.installmentNumber}</div>
                   </td>
                   <td className="px-6 py-4 text-rose-600 font-medium font-mono" dir="ltr">{inst.dueDate}</td>

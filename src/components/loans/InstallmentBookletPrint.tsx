@@ -17,7 +17,7 @@ export default function InstallmentBookletPrint({ loan, installments, person, on
 
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
-    documentTitle: `دفترچه_اقساط_وام_${loan.id}`,
+    documentTitle: `دفترچه_اقساط_وام_${loan.loanNumber || loan.id}`,
   });
 
   return (
@@ -53,7 +53,7 @@ export default function InstallmentBookletPrint({ loan, installments, person, on
             {/* Booklet Header */}
             <div className="text-center mb-8 pb-6 border-b-2 border-slate-200">
               <h1 className="text-2xl font-black text-slate-800 mb-2">دفترچه اقساط وام</h1>
-              <div className="text-sm text-slate-500">شماره وام: {loan.id}</div>
+              <div className="text-sm text-slate-500">شماره وام: {loan.loanNumber || loan.id}</div>
             </div>
 
             {/* Loan & Person Info */}

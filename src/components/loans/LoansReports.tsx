@@ -56,7 +56,7 @@ export default function LoansReports({
      if (reportType === 'active' || reportType === 'settled') {
         csvContent += "شماره وام,وام‌گیرنده,مبلغ اصل,کل مبلغ با سود,پرداخت شده,باقیمانده,تاریخ شروع\n";
         (reportData as any[]).forEach(row => {
-           csvContent += `${row.id},${row.personName},${row.amount},${row.totalExpected},${row.paidAmount},${row.remainingAmount},${row.startDate}\n`;
+           csvContent += `${row.loanNumber || row.id},${row.personName},${row.amount},${row.totalExpected},${row.paidAmount},${row.remainingAmount},${row.startDate}\n`;
         });
      } else {
         csvContent += "ماه سررسید,تعداد اقساط,مجموع مبلغ پیش‌بینی شده\n";
@@ -138,7 +138,7 @@ export default function LoansReports({
                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                   {(reportType === 'active' || reportType === 'settled') ? (
                     <>
-                      <td className="px-6 py-4 font-mono text-gray-600">{row.id}</td>
+                      <td className="px-6 py-4 font-mono text-gray-600">{row.loanNumber || row.id}</td>
                       <td className="px-6 py-4 font-bold text-gray-900">{row.personName}</td>
                       <td className="px-6 py-4 font-mono text-gray-600" dir="ltr">{row.startDate}</td>
                       <td className="px-6 py-4 font-mono font-medium text-gray-900" dir="ltr">{addCommas(row.amount)}</td>

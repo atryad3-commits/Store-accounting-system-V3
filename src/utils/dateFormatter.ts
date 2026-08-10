@@ -31,7 +31,10 @@ export class DateFormatterService {
   }
 
   updateConfig(config: Partial<DateDisplayConfig>) {
-    this.config = { ...this.config, ...config };
+    const cleanedConfig = Object.fromEntries(
+      Object.entries(config).filter(([_, v]) => v !== undefined)
+    );
+    this.config = { ...this.config, ...cleanedConfig };
   }
 
   getConfig() {
