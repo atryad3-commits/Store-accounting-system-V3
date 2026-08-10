@@ -67,6 +67,7 @@ export default function AccountingAutoSync({ showNotification }: any) {
       const bankAccounts = await getAccounts();
       const cashboxesList = await getCashboxes();
       const activeYear = await getActiveFinancialYear();
+      const allLoans = await getLoans();
       const defaultLedger = ledgerAccounts.length > 0 ? ledgerAccounts[0].id : '';
 
       const getPersonLedgerAcc = (personId: string | number) => {
@@ -249,7 +250,7 @@ export default function AccountingAutoSync({ showNotification }: any) {
           const items = [];
           const total = Number(inst.paidAmount) || Number(inst.amount) || 0;
           const resourceLedgerId = getResourceLedgerAcc(inst);
-          const relatedLoan = loans.find(l => l.id === inst.loanId);
+          const relatedLoan = allLoans.find((l: any) => l.id === inst.loanId);
           const loanType = relatedLoan?.type || 'given';
           const personId = relatedLoan?.personId || '';
 

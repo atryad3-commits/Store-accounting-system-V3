@@ -61,7 +61,7 @@ export default function LoanStatusModal({ isOpen, onClose, loan, onUpdateStatus 
                 <label className="block text-sm font-bold text-gray-700 mb-2">وضعیت جدید را انتخاب کنید:</label>
                 <select
                   value={status}
-                  onChange={(e) => setStatus(e.target.value)}
+                  onChange={(e) => setStatus(e.target.value as any)}
                   className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 font-medium"
                 >
                   <option value="requested">درخواست (ثبت اولیه)</option>
