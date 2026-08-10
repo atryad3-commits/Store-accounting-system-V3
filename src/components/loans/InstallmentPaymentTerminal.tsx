@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, CheckCircle, AlertCircle, ArrowRight, Printer, CreditCard, Banknote, Calendar, User, FileText, ArrowLeft, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { lookupInstallmentByCode, calculatePaymentPreview, registerInstallmentPayment, PaymentPreview } from '../../services/installmentPaymentService';
@@ -14,8 +15,10 @@ interface Props {
 }
 
 export default function InstallmentPaymentTerminal({ showNotification, formatCurrency, onBack, userId }: Props) {
+  const [searchParams] = useSearchParams();
+  const initialCode = searchParams.get('code') || '';
   const [step, setStep] = useState<'search' | 'form' | 'confirm' | 'success'>('search');
-  const [searchCode, setSearchCode] = useState('');
+  const [searchCode, setSearchCode] = useState(initialCode);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
   
@@ -60,18 +63,25 @@ export default function InstallmentPaymentTerminal({ showNotification, formatCur
     } catch (e) {}
   };
 
-  const handleSearch = async (e?: React.FormEvent) => {
+  useEffect(() => {
+    if (initialCode && step === 'search') {
+      handleSearch(undefined, initialCode);
+    }
+  }, [initialCode]);
+
+  const handleSearch = async (e?: React.FormEvent, codeToSearch?: string) => {
     if (e) e.preventDefault();
-    if (!searchCode.trim()) return;
+    const code = codeToSearch || searchCode;
+    if (!code.trim()) return;
     
     setIsSearching(true);
     setSearchError('');
     
     try {
-        const data = await lookupInstallmentByCode(searchCode.trim());
+        const data = await lookupInstallmentByCode(code.trim());
         setInstallmentData(data);
         setAmountEntered(data.amountRemaining);
-        updatePreview(searchCode.trim(), data.amountRemaining);
+        updatePreview(code.trim(), data.amountRemaining);
         setStep('form');
     } catch (err: any) {
         setSearchError(err.message || 'کد قسط یافت نشد');

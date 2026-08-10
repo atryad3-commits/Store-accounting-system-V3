@@ -56,7 +56,7 @@ export default function InstallmentBookletPrint({ loan, installments, person, on
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 bg-slate-50 print:overflow-visible print:bg-white print:p-0">
-          <div ref={componentRef} dir="rtl" style={{ direction: 'rtl' }} className="bg-white p-8 rounded-xl print:p-8 print:bg-white text-slate-900">
+          <div ref={componentRef} dir="rtl" style={{ direction: 'rtl' }} className="bg-white p-8 rounded-xl print:p-8 print:bg-white text-slate-900 print-section">
             {/* Booklet Header */}
             <div className="text-center mb-8 pb-6 border-b-2 border-slate-200">
               <h1 className="text-2xl font-black text-slate-800 mb-2">دفترچه اقساط وام</h1>
@@ -121,11 +121,21 @@ export default function InstallmentBookletPrint({ loan, installments, person, on
                     </div>
                     <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                       <span className="text-sm font-semibold text-slate-600">تاریخ پرداخت:</span>
-                      <span className="text-slate-400 text-xs">.......................................</span>
+                      <span className={`text-xs ${inst.paidDate ? 'font-black text-emerald-600' : 'text-slate-400'}`}>
+                        {inst.paidDate ? inst.paidDate : '.......................................'}
+                      </span>
                     </div>
+                    {inst.status === 'paid' && inst.paidAmount ? (
+                      <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <span className="text-sm font-semibold text-slate-600">مبلغ پرداخت شده:</span>
+                        <span className="font-black text-emerald-600" dir="ltr">{formatCurrency(inst.paidAmount)} {currency}</span>
+                      </div>
+                    ) : null}
                     <div className="flex justify-between items-center pt-2">
                       <span className="text-sm font-semibold text-slate-600">مهر و امضا:</span>
-                      <span className="text-slate-400 text-xs">.......................................</span>
+                      <span className="text-slate-400 text-xs">
+                        {inst.status === 'paid' ? '✔ تایید شده' : '.......................................'}
+                      </span>
                     </div>
                   </div>
                 </div>

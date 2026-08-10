@@ -15,7 +15,7 @@ import LoansReports from './LoansReports';
 import LoansSettings from './LoansSettings';
 import InstallmentPaymentTerminal from './InstallmentPaymentTerminal';
 import InstallmentBookletPrint from './InstallmentBookletPrint';
-import LoanCardModal from './LoanCardModal';
+import LoanDetailsView from './LoanDetailsView';
 import LoanTransitionModal from './LoanTransitionModal';
 
 
@@ -754,7 +754,8 @@ export default function LoansManager({
         {activeTab === 'settings' && (
            <LoansSettings showNotification={showNotification} userRole={userRole} />
         )}
-              <LoanCardModal
+        {expandedLoanId !== null && (
+              <LoanDetailsView
         isOpen={expandedLoanId !== null}
         onClose={() => setExpandedLoanId(null)}
         loan={loans.find(l => l.id === expandedLoanId) || null}
@@ -774,6 +775,7 @@ export default function LoansManager({
         LOAN_STATUS_COLORS={LOAN_STATUS_COLORS}
         isSubmitting={isSubmitting}
       />
+        )}
       
             {transitionState && (
         <LoanTransitionModal
@@ -801,7 +803,7 @@ export default function LoansManager({
            />
         )}
 
-        {activeTab === 'list' && (
+        {activeTab === 'list' && expandedLoanId === null && (
         <motion.div 
            initial={{ opacity: 0 }} 
            animate={{ opacity: 1 }} 

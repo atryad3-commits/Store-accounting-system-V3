@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Loan, Installment, Person } from '../../types';
 import { addCommas } from '../../utils/format';
-import { AlertCircle, Clock, Search, Phone, MessageCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, Clock, Search, Phone, MessageCircle, CheckCircle, CreditCard } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 
 interface LoansArrearsProps {
   formatCurrency?: (val: number) => string;
@@ -16,12 +17,19 @@ export default function LoansArrears({
   formatCurrency = (val: number) => Number(val).toLocaleString("fa-IR") + " تومان",
   loans, installments, persons, storeSettings
 }: LoansArrearsProps) {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const today = new Date().toLocaleDateString('fa-IR').replace(/\//g, '-');
 
   const overdueInstallments = useMemo(() => {
     let overdue = installments
-      .filter(i => i.status === 'pending' && i.dueDate < today)
+      .filter(i => {
+        if (i.status !== 'pending' && i.status !== 'overdue') return false;
+        if (i.dueDate >= today) return false;
+        const loan = loans.find(l => l.id === i.loanId);
+        if (!loan || (loan.status !== 'active' && loan.status !== 'overdue')) return false;
+        return true;
+      })
       .map(inst => {
         const loan = loans.find(l => l.id === inst.loanId);
         const loanInsts = installments.filter(i => i.loanId === inst.loanId).sort((a,b) => a.dueDate.localeCompare(b.dueDate));
@@ -46,7 +54,7 @@ export default function LoansArrears({
 
     if (searchTerm) {
       const lower = searchTerm.toLowerCase();
-      overdue = overdue.filter(i => i.person?.name.toLowerCase().includes(lower) || i.loan?.loanNumber?.toString().includes(lower) || i.loan?.id.toString().includes(lower));
+      overdue = overdue.filter(i => i.person?.name.toLowerCase().includes(lower) || i.loan?.loanNumber?.toString().includes(lower) || i.loan?.id.toString().includes(lower) || i.installmentCode?.toString().includes(lower));
     }
 
     return overdue;
@@ -77,7 +85,7 @@ export default function LoansArrears({
           <div className="relative w-full sm:w-96">
             <input
               type="text"
-              placeholder="جستجو در نام وام‌گیرنده یا شماره وام..."
+              placeholder="جستجو نام، شماره وام یا کد قسط..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
@@ -119,6 +127,7 @@ export default function LoansArrears({
                   <td className="px-6 py-4 text-gray-600">
                     <div>وام: <span className="font-mono">{inst.loan?.loanNumber || inst.loan?.id || inst.loanId}</span></div>
                     <div className="text-xs mt-1">قسط شماره: {inst.installmentNumber}</div>
+                    <div className="text-xs mt-1 text-gray-400 font-mono">کد: {inst.installmentCode}</div>
                   </td>
                   <td className="px-6 py-4 text-rose-600 font-medium font-mono" dir="ltr">{inst.dueDate}</td>
                   <td className="px-6 py-4">
@@ -130,10 +139,18 @@ export default function LoansArrears({
                   </td>
                   <td className="px-6 py-4 font-black font-mono text-gray-900" dir="ltr">{addCommas(inst.amount)}</td>
                   <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
                      <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">
                         <MessageCircle className="w-3.5 h-3.5" />
                         ثبت پیگیری
                      </button>
+                     <button 
+                        onClick={() => navigate(`/loans_payment?code=${inst.installmentCode}`)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors">
+                        <CreditCard className="w-3.5 h-3.5" />
+                        پرداخت قسط
+                     </button>
+                    </div>
                   </td>
                 </motion.tr>
               ))}

@@ -27,11 +27,13 @@ export default function LoansDashboard({
     let totalPaid = 0;
 
     loans.forEach(loan => {
-      if (loan.status === 'active') activeLoans++;
+      if (loan.status === 'active' || loan.status === 'overdue') activeLoans++;
     });
 
     installments.forEach(inst => {
-      if (inst.status === 'pending') {
+      const loan = loans.find(l => l.id.toString() === inst.loanId.toString());
+      if (!loan || (loan.status !== 'active' && loan.status !== 'overdue' && loan.status !== 'completed')) return;
+      if (inst.status === 'pending' || inst.status === 'overdue') {
         totalOutstanding += (inst.amount || 0);
         if (inst.dueDate < today) {
           totalArrears += (inst.amount || 0);
@@ -52,6 +54,8 @@ export default function LoansDashboard({
     const dataMap: Record<string, { month: string, expected: number, received: number }> = {};
     
     installments.forEach(inst => {
+      const loan = loans.find(l => l.id.toString() === inst.loanId.toString());
+      if (!loan || (loan.status !== 'active' && loan.status !== 'overdue' && loan.status !== 'completed')) return;
       // Extract YYYY-MM
       const month = inst.dueDate.substring(0, 7);
       if (!dataMap[month]) {
@@ -143,7 +147,13 @@ export default function LoansDashboard({
              اقساط نیازمند پیگیری
           </h3>
           <div className="flex-1 overflow-y-auto pr-2 space-y-4">
-             {installments.filter(i => i.status === 'pending' && i.dueDate < today).sort((a,b) => a.dueDate.localeCompare(b.dueDate)).slice(0, 10).map(inst => {
+             {installments.filter(i => {
+                if (i.status !== 'pending' && i.status !== 'overdue') return false;
+                if (i.dueDate >= today) return false;
+                const loan = loans.find(l => l.id.toString() === i.loanId.toString());
+                if (!loan || (loan.status !== 'active' && loan.status !== 'overdue' && loan.status !== 'completed')) return false;
+                return true;
+             }).sort((a,b) => a.dueDate.localeCompare(b.dueDate)).slice(0, 10).map(inst => {
                 const loan = loans.find(l => l.id === inst.loanId);
                 const person = persons.find(p => p.id === loan?.personId);
                 return (
