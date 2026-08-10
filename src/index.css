@@ -104,77 +104,77 @@
   font-style: normal;
   font-weight: 100;
   font-display: swap;
-  src: url('/fonts/IRANYekan/IRANYekanXFaNum-Thin.woff2') format('woff2');
+  src: url('/Webfonts/Woff2/IRANYekanXFaNum-Thin.woff2') format('woff2');
 }
 @font-face {
   font-family: 'IRANYekanXFaNum';
   font-style: normal;
   font-weight: 200;
   font-display: swap;
-  src: url('/fonts/IRANYekan/IRANYekanXFaNum-UltraLight.woff2') format('woff2');
+  src: url('/Webfonts/Woff2/IRANYekanXFaNum-UltraLight.woff2') format('woff2');
 }
 @font-face {
   font-family: 'IRANYekanXFaNum';
   font-style: normal;
   font-weight: 300;
   font-display: swap;
-  src: url('/fonts/IRANYekan/IRANYekanXFaNum-Light.woff2') format('woff2');
+  src: url('/Webfonts/Woff2/IRANYekanXFaNum-Light.woff2') format('woff2');
 }
 @font-face {
   font-family: 'IRANYekanXFaNum';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/IRANYekan/IRANYekanXFaNum-Regular.woff2') format('woff2');
+  src: url('/Webfonts/Woff2/IRANYekanXFaNum-Regular.woff2') format('woff2');
 }
 @font-face {
   font-family: 'IRANYekanXFaNum';
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url('/fonts/IRANYekan/IRANYekanXFaNum-Medium.woff2') format('woff2');
+  src: url('/Webfonts/Woff2/IRANYekanXFaNum-Medium.woff2') format('woff2');
 }
 @font-face {
   font-family: 'IRANYekanXFaNum';
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('/fonts/IRANYekan/IRANYekanXFaNum-DemiBold.woff2') format('woff2');
+  src: url('/Webfonts/Woff2/IRANYekanXFaNum-DemiBold.woff2') format('woff2');
 }
 @font-face {
   font-family: 'IRANYekanXFaNum';
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('/fonts/IRANYekan/IRANYekanXFaNum-Bold.woff2') format('woff2');
+  src: url('/Webfonts/Woff2/IRANYekanXFaNum-Bold.woff2') format('woff2');
 }
 @font-face {
   font-family: 'IRANYekanXFaNum';
   font-style: normal;
   font-weight: 800;
   font-display: swap;
-  src: url('/fonts/IRANYekan/IRANYekanXFaNum-ExtraBold.woff2') format('woff2');
+  src: url('/Webfonts/Woff2/IRANYekanXFaNum-ExtraBold.woff2') format('woff2');
 }
 @font-face {
   font-family: 'IRANYekanXFaNum';
   font-style: normal;
   font-weight: 900;
   font-display: swap;
-  src: url('/fonts/IRANYekan/IRANYekanXFaNum-Black.woff2') format('woff2');
+  src: url('/Webfonts/Woff2/IRANYekanXFaNum-Black.woff2') format('woff2');
 }
 @font-face {
   font-family: 'IRANYekanXFaNum';
   font-style: normal;
   font-weight: 950;
   font-display: swap;
-  src: url('/fonts/IRANYekan/IRANYekanXFaNum-ExtraBlack.woff2') format('woff2');
+  src: url('/Webfonts/Woff2/IRANYekanXFaNum-ExtraBlack.woff2') format('woff2');
 }
 @font-face {
   font-family: 'IRANYekanXFaNum';
   font-style: normal;
   font-weight: 1000;
   font-display: swap;
-  src: url('/fonts/IRANYekan/IRANYekanXFaNum-Heavy.woff2') format('woff2');
+  src: url('/Webfonts/Woff2/IRANYekanXFaNum-Heavy.woff2') format('woff2');
 }
 
 
