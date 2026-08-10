@@ -14,6 +14,8 @@ import LoansReports from './LoansReports';
 import LoansSettings from './LoansSettings';
 import LoansPayment from './LoansPayment';
 import InstallmentBookletPrint from './InstallmentBookletPrint';
+import LoanCardModal from './LoanCardModal';
+
 import { Printer, X } from 'lucide-react';
 
 
@@ -828,8 +830,29 @@ export default function LoansManager({
         {activeTab === 'settings' && (
            <LoansSettings showNotification={showNotification} userRole={userRole} />
         )}
-        {activeTab === 'payment' && (
-           <LoansPayment
+              <LoanCardModal
+        isOpen={expandedLoanId !== null}
+        onClose={() => setExpandedLoanId(null)}
+        loan={loans.find(l => l.id === expandedLoanId) || null}
+        installments={installments}
+        formatCurrency={formatCurrency}
+        getPersonName={getPersonName}
+        userRole={userRole}
+        handleUpdateLoanStatus={handleUpdateLoanStatus}
+        handleDeleteLoan={handleDeleteLoan}
+        setPrintingLoanId={setPrintingLoanId}
+        onPayInstallment={(loanId) => {
+           setExpandedLoanId(null);
+           setSelectedLoanForPayment(loanId);
+           navigate('/loans_payment');
+        }}
+        LOAN_STATUS_LABELS={LOAN_STATUS_LABELS}
+        LOAN_STATUS_COLORS={LOAN_STATUS_COLORS}
+        isSubmitting={isSubmitting}
+      />
+      
+      {activeTab === 'payment' && (
+         <LoansPayment
              loans={loans}
              installments={installments}
              persons={persons}
@@ -934,130 +957,17 @@ export default function LoansManager({
                             </div>
                             <div className="flex items-center gap-2 mt-2">
                                <button 
-                                  onClick={(e) => { e.stopPropagation(); setExpandedLoanId(isExpanded ? null : loan.id); }}
-                                  className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${isExpanded ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
+                                  onClick={(e) => { e.stopPropagation(); setExpandedLoanId(loan.id); }}
+                                  className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all bg-indigo-50 text-indigo-700 hover:bg-indigo-100`}
                                >
-                                  {isExpanded ? 'بستن جزئیات' : 'جزئیات و عملیات'}
-                                  <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                  کارت وام (جزئیات و عملیات)
                                </button>
                             </div>
                          </div>
                        </div>
                     </div>
                     
-                    <AnimatePresence>
-                      {isExpanded && (
-                         <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="border-t border-gray-100 bg-gray-50/50"
-                         >
-                            <div className="p-6">
-                               <div className="mb-8 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                                  <h4 className="font-black text-gray-800 mb-4 flex items-center gap-2">
-                                     <Activity className="w-5 h-5 text-indigo-500" />
-                                     تغییر وضعیت وام
-                                  </h4>
-                                  <div className="flex flex-wrap gap-2">
-                                     {['requested', 'incomplete', 'completed_dossier', 'approved', 'active', 'completed'].map((st) => {
-                                        const isActive = loan.status === st;
-                                        const statusLabels = {
-                                           requested: 'درخواست',
-                                           incomplete: 'نقص پرونده',
-                                           completed_dossier: 'تکمیل پرونده',
-                                           approved: 'تایید شده',
-                                           active: 'پرداخت شده',
-                                           completed: 'تسویه شده'
-                                        };
-                                        return (
-                                           <button
-                                              key={st}
-                                              onClick={() => handleUpdateLoanStatus(loan.id, st)}
-                                              disabled={isSubmitting}
-                                              className={`px-4 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all ${isActive ? 'bg-indigo-600 text-white shadow-md' : 'bg-gray-50 border border-gray-200 text-gray-700 hover:border-indigo-300 hover:text-indigo-700 hover:bg-indigo-50'} disabled:opacity-50`}
-                                           >
-                                              {isActive && <CheckCircle className="w-5 h-5" />}
-                                              {statusLabels[st as keyof typeof statusLabels]}
-                                           </button>
-                                        );
-                                     })}
-                                  </div>
-                               </div>
-
-                               <div className="flex flex-col lg:flex-row gap-6">
-                                  <div className="flex-1">
-                                     <div className="flex justify-between items-center mb-4">
-                                        <h4 className="font-black text-gray-800 flex items-center gap-2">
-                                           <List className="w-5 h-5 text-emerald-500" />
-                                           گزارش اقساط
-                                        </h4>
-                                        <button
-                                           onClick={() => { setSelectedLoanForPayment(loan.id as string); navigate('/loans_payment'); }}
-                                           className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors"
-                                        >
-                                           <CheckCircle className="w-4 h-4" />
-                                           ثبت پرداختی قسط
-                                        </button>
-                                     </div>
-                                     <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm max-h-[400px] overflow-y-auto">
-                                        <table className="w-full text-sm text-right relative">
-                                           <thead className="bg-gray-100 text-gray-600 font-bold border-b border-gray-200 sticky top-0">
-                                              <tr>
-                                                 <th className="p-3">ردیف</th>
-                                                 <th className="p-3">سررسید</th>
-                                                 <th className="p-3">مبلغ قسط</th>
-                                                 <th className="p-3">وضعیت</th>
-                                              </tr>
-                                           </thead>
-                                           <tbody className="divide-y divide-gray-100">
-                                              {loanInsts.map((inst, idx) => (
-                                                 <tr key={inst.id} className="hover:bg-gray-50 transition-colors">
-                                                    <td className="p-3 font-bold text-gray-600">{idx + 1}</td>
-                                                    <td className="p-3 font-mono font-medium">{formatDateDisplay(inst.dueDate.replace(/\-/g, '/'))}</td>
-                                                    <td className="p-3 font-black text-gray-900">{formatCurrency(inst.amount)}</td>
-                                                    <td className="p-3">
-                                                       <span className={`px-2 py-1 rounded-lg text-xs font-bold ${inst.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : inst.status === 'overdue' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
-                                                          {inst.status === 'paid' ? 'پرداخت شده' : inst.status === 'overdue' ? 'معوق' : 'سررسید نشده'}
-                                                       </span>
-                                                    </td>
-                                                 </tr>
-                                              ))}
-                                           </tbody>
-                                        </table>
-                                     </div>
-                                  </div>
-
-                                  <div className="w-full lg:w-64">
-                                     <h4 className="font-black text-gray-800 mb-4 flex items-center gap-2">
-                                        <Settings className="w-5 h-5 text-gray-500" />
-                                        عملیات
-                                     </h4>
-                                     <div className="space-y-2">
-                                        <button
-                                           onClick={(e) => { e.stopPropagation(); setPrintingLoanId(loan.id as string); }}
-                                           className="w-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-3 rounded-xl flex items-center gap-3 font-bold transition-colors shadow-sm"
-                                        >
-                                           <Printer className="w-5 h-5 text-gray-400" />
-                                           چاپ دفترچه اقساط
-                                        </button>
-                                        {(userRole === 'admin' || userRole === 'manager') && (
-                                           <button
-                                              onClick={(e) => { e.stopPropagation(); handleDeleteLoan(loan.id); }}
-                                              className="w-full bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 px-4 py-3 rounded-xl flex items-center gap-3 font-bold transition-colors shadow-sm"
-                                           >
-                                              <Trash2 className="w-5 h-5 text-rose-400" />
-                                              حذف کامل وام
-                                           </button>
-                                        )}
-                                     </div>
-                                  </div>
-                               </div>
-
-                            </div>
-                         </motion.div>
-                      )}
-                    </AnimatePresence>
+                    
                  </div>
                );
             })
