@@ -397,13 +397,15 @@ export const addTransaction = async (transaction: any) => {
                ledgerAccountId: resourceLedgerId});
          }
      }
-     await addAccountingDocument({
-        date: transaction.date || new Date().toISOString().split('T')[0],
-        description: docDescription,
-        status: 'approved',
-        sourceType: docType,
-        sourceId: newTransaction.id,
-        items});
+     if (!transaction.skipAccounting) {
+         await addAccountingDocument({
+            date: transaction.date || new Date().toISOString().split('T')[0],
+            description: docDescription,
+            status: 'approved',
+            sourceType: docType,
+            sourceId: newTransaction.id,
+            items});
+     }
   } catch(e) {}
 
     await syncInvoiceAllocations(newTransaction);

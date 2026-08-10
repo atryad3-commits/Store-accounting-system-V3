@@ -1003,9 +1003,10 @@ export default function LoansManager({
         <InstallmentBookletPrint 
           loan={printingLoanId === 'preview' && previewData ? previewData.loan : loans.find(l => l.id === printingLoanId) as Loan} 
           installments={printingLoanId === 'preview' && previewData ? previewData.installments : (installments || []).filter(i => i.loanId === printingLoanId)} 
-          person={persons.find(p => p.id === (printingLoanId === 'preview' && previewData ? previewData.loan.personId : loans.find(l => l.id === printingLoanId)?.personId))} 
+          person={persons.find(p => p.id?.toString() === (printingLoanId === 'preview' && previewData ? previewData.loan.personId?.toString() : loans.find(l => l.id === printingLoanId)?.personId?.toString()))} 
           onClose={() => setPrintingLoanId(null)} 
-          formatCurrency={formatCurrency} 
+          formatCurrency={formatCurrency}
+          currency={storeSettings?.currency || 'تومان'}
         />
       )}
     </div>

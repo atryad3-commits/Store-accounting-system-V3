@@ -136,7 +136,7 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
           amount: selectedInst.amount,
           accountId: paymentMethodId,
           personId: selectedLoan.personId,
-          categoryId: selectedLoan.type === 'given' ? 'loan_installment_receive' : 'loan_installment_pay',
+          categoryId: selectedLoan.type === 'given' ? 'loan_installment_received' : 'loan_installment_paid',
           description: selectedLoan.type === 'given' ? `دریافت قسط ${selectedInst.installmentNumber || ''} وام ${selectedLoan.loanNumber || selectedLoan.id}` : `پرداخت قسط ${selectedInst.installmentNumber || ''} وام ${selectedLoan.loanNumber || selectedLoan.id}`,
           date: today,
           time: new Date().toLocaleTimeString('fa-IR', { hour12: false }),

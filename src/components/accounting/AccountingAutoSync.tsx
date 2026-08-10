@@ -50,7 +50,7 @@ export default function AccountingAutoSync({ showNotification }: any) {
       setMissingBalances([]); // Removed from arrears
       setMissingChecks(mChecks);
       setMissingLoans(mLoans);
-      setMissingInstallments(mInsts);
+      setMissingInstallments([]);
     } catch (err) {
       showNotification('خطا در اسکن سیستم', 'error');
     }

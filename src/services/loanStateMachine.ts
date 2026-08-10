@@ -164,7 +164,7 @@ export async function applyTransition(
             description: loan.type === 'given' ? `اعطای وام پرداختی شماره ${loan.loanNumber || loan.id}` : `اخذ وام دریافتی شماره ${loan.loanNumber || loan.id}`,
             date: new Date().toLocaleDateString('fa-IR').replace(/\//g, '-'),
             documentNumber: `LOAN-${loan.loanNumber || loan.id}`,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(), skipAccounting: true
         };
         await addTransaction(newTransaction);
         
