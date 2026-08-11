@@ -9,7 +9,7 @@ import SearchableSelect from '../ui/SearchableSelect';
 import CustomDatePicker from '../ui/CustomDatePicker';
 import { startAppProcessing, stopAppProcessing } from '../../utils/processingHelper';
 import { saveLoans, saveInstallments, addTransaction, deleteTransaction, checkFinancialYear, addSystemLog, addLoanHistoryEntry } from '../../services/dataService';
-import { formatDateDisplay } from '../../utils/format';
+import { formatDateDisplay, convertToGregorian } from '../../utils/format';
 import LoansDashboard from './LoansDashboard';
 import LoansArrears from './LoansArrears';
 import LoansReports from './LoansReports';
@@ -100,6 +100,11 @@ export default function LoansManager({
     description: string;
     type: 'given' | 'received';
     accountId: string | number;
+    penaltyType: 'none' | 'fixed_per_day' | 'percent_per_day' | 'fixed_per_month' | 'percent_per_month';
+    penaltyRate: number | '';
+    earlySettlementPolicy: 'none' | 'discount_interest';
+    earlySettlementDiscountPercent: number | '';
+    roundingBase: number;
   }>({
     personId: '',
     amount: '',
@@ -111,6 +116,11 @@ export default function LoansManager({
     description: '',
     type: 'given',
     accountId: '',
+    penaltyType: 'none',
+    penaltyRate: '',
+    earlySettlementPolicy: 'none',
+    earlySettlementDiscountPercent: '',
+    roundingBase: 1000
   });
 
 
@@ -163,6 +173,19 @@ export default function LoansManager({
     return str.replace(/,/g, "");
   };
 
+  const calculateInstallment = (amount: number, count: number, rate: number, freq: string, roundBase: number) => {
+      if (!amount || !count) return '';
+      let periodsPerYear = freq === 'monthly' ? 12 : freq === 'quarterly' ? 4 : 1;
+      let periodicRate = (rate / 100) / periodsPerYear;
+      let exactAmt = 0;
+      if (periodicRate > 0) {
+          exactAmt = (amount * periodicRate * Math.pow(1 + periodicRate, count)) / (Math.pow(1 + periodicRate, count) - 1);
+      } else {
+          exactAmt = amount / count;
+      }
+      return Math.round(exactAmt / roundBase) * roundBase;
+  };
+
   const handleCreateLoan = async () => {
     if (isSubmitting) return;
     if (userRole !== 'admin' && userRole !== 'manager' && userRole !== 'accountant') {
@@ -208,7 +231,7 @@ export default function LoansManager({
       return;
     }
 
-    const loanId = 'loan_' + Date.now();
+    const loanId = crypto.randomUUID();
     const loanNumber = Math.floor(10000 + Math.random() * 90000).toString();
     const newLoan: Loan = {
       id: loanId,
@@ -217,13 +240,17 @@ export default function LoansManager({
       amount: amountNum,
       interestRate: formData.interestRate === '' ? undefined : Number(formData.interestRate),
       frequency: formData.frequency,
-      startDate: formData.startDate,
+      startDate: convertToGregorian(formData.startDate).split('T')[0], // save as ISO date
       totalInstallments: instCount,
       installmentAmount: instAmount,
       description: formData.description,
       status: 'requested', // Initial status
       type: formData.type,
       accountId: formData.accountId,
+      penaltyType: formData.penaltyType,
+      penaltyRate: formData.penaltyRate === '' ? undefined : Number(formData.penaltyRate),
+      earlySettlementPolicy: formData.earlySettlementPolicy,
+      earlySettlementDiscountPercent: formData.earlySettlementDiscountPercent === '' ? undefined : Number(formData.earlySettlementDiscountPercent),
     };
     
     // To english numbers
@@ -246,7 +273,7 @@ export default function LoansManager({
     let targetTotalPayable = instAmount * instCount;
     const r = formData.interestRate === '' ? 0 : Number(formData.interestRate);
     if (r === 0) {
-        if (instAmount * instCount < amountNum || instAmount === Math.round(amountNum / instCount)) {
+        if (instAmount * instCount < amountNum || Math.abs(instAmount - (amountNum / instCount)) <= formData.roundingBase) {
             targetTotalPayable = amountNum;
         }
     } else {
@@ -254,7 +281,7 @@ export default function LoansManager({
         let periodsPerYear = freq === 'monthly' ? 12 : freq === 'quarterly' ? 4 : 1;
         let periodicRate = (r / 100) / periodsPerYear;
         let exactInstAmt = (amountNum * periodicRate * Math.pow(1 + periodicRate, instCount)) / (Math.pow(1 + periodicRate, instCount) - 1);
-        if (instAmount === Math.round(exactInstAmt)) {
+        if (Math.abs(instAmount - exactInstAmt) <= formData.roundingBase) {
             targetTotalPayable = Math.round(exactInstAmt * instCount);
         }
     }
@@ -269,7 +296,8 @@ export default function LoansManager({
       let finalD = initD;
       if (instM === 12 && finalD > 29) finalD = 29;
       if (instM > 6 && finalD === 31) finalD = 30;
-      let dueDateStr = instY + '-' + instM.toString().padStart(2, '0') + '-' + finalD.toString().padStart(2, '0');
+      let dueDateStr = instY + '/' + instM.toString().padStart(2, '0') + '/' + finalD.toString().padStart(2, '0');
+      let gregorianDueDate = convertToGregorian(dueDateStr).split('T')[0];
       
       let currentInstAmount = instAmount;
       if (i === instCount - 1) {
@@ -281,10 +309,10 @@ export default function LoansManager({
         id: 'inst-' + loanId + '-' + i,
         installmentNumber: i + 1,
         loanId: loanId,
-        dueDate: dueDateStr,
+        dueDate: gregorianDueDate,
         amount: currentInstAmount,
         status: 'pending',
-        installmentCode: generateInstallmentCode(loanId, newLoan.loanNumber, i, dueDateStr),
+        installmentCode: generateInstallmentCode(loanId, newLoan.loanNumber, i, gregorianDueDate),
       });
     }
 
@@ -334,6 +362,11 @@ export default function LoansManager({
       description: '',
       type: 'given',
       accountId: '',
+      penaltyType: 'none',
+      penaltyRate: '',
+      earlySettlementPolicy: 'none',
+      earlySettlementDiscountPercent: '',
+      roundingBase: 1000
     });
     setPreviewData(null);
     navigate('/loans_list');
@@ -576,13 +609,7 @@ export default function LoansManager({
                            let r = formData.interestRate === '' ? 0 : Number(formData.interestRate);
                            let instCount = Number(formData.totalInstallments);
                            let freq = formData.frequency || 'monthly';
-                           let periodsPerYear = freq === 'monthly' ? 12 : freq === 'quarterly' ? 4 : 1;
-                           let periodicRate = (r / 100) / periodsPerYear;
-                           if (periodicRate > 0) {
-                               instAmt = Math.round((amt * periodicRate * Math.pow(1 + periodicRate, instCount)) / (Math.pow(1 + periodicRate, instCount) - 1)) as any;
-                           } else {
-                               instAmt = Math.round(amt / instCount) as any;
-                           }
+                           instAmt = calculateInstallment(amt, instCount, r, freq, formData.roundingBase) as any;
                         }
                         setFormData({...formData, amount: amt, installmentAmount: instAmt});
                      }
@@ -637,13 +664,7 @@ export default function LoansManager({
                         let amt = Number(formData.amount);
                         let instCount = Number(formData.totalInstallments);
                         let freq = formData.frequency || 'monthly';
-                        let periodsPerYear = freq === 'monthly' ? 12 : freq === 'quarterly' ? 4 : 1;
-                        let periodicRate = (r / 100) / periodsPerYear;
-                        if (periodicRate > 0) {
-                            instAmt = Math.round((amt * periodicRate * Math.pow(1 + periodicRate, instCount)) / (Math.pow(1 + periodicRate, instCount) - 1));
-                        } else {
-                            instAmt = Math.round(amt / instCount);
-                        }
+                        instAmt = calculateInstallment(amt, instCount, r, freq, formData.roundingBase);
                      }
                      setFormData({...formData, interestRate: rate, installmentAmount: instAmt});
                   }}
@@ -653,6 +674,36 @@ export default function LoansManager({
              </div>
 
 
+
+             <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                   <Layers className="w-4 h-4 text-gray-400" /> رند کردن اقساط
+                </label>
+                <select
+                  value={formData.roundingBase}
+                  onChange={(e) => {
+                     const roundBase = Number(e.target.value);
+                     
+                     let instAmt = formData.installmentAmount;
+                     if (formData.amount && formData.totalInstallments) {
+                        let r = formData.interestRate === '' ? 0 : Number(formData.interestRate);
+                        let amt = Number(formData.amount);
+                        let instCount = Number(formData.totalInstallments);
+                        let freq = formData.frequency || 'monthly';
+                        instAmt = calculateInstallment(amt, instCount, r, freq, roundBase);
+                     }
+                        
+                     setFormData({...formData, roundingBase: roundBase, installmentAmount: instAmt});
+                  }}
+                  className="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl pr-4 pl-4 py-3 outline-none transition-all font-medium text-slate-800"
+                >
+                  <option value={1}>بدون رند کردن (دقیق)</option>
+                  <option value={1000}>رند به هزار</option>
+                  <option value={10000}>رند به ده هزار</option>
+                  <option value={50000}>رند به پنجاه هزار</option>
+                  <option value={100000}>رند به صد هزار</option>
+                </select>
+             </div>
 
              <div className="space-y-2">
                 <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
@@ -668,13 +719,7 @@ export default function LoansManager({
                         let r = formData.interestRate === '' ? 0 : Number(formData.interestRate);
                         let amt = Number(formData.amount);
                         let instCount = Number(formData.totalInstallments);
-                        let periodsPerYear = freq === 'monthly' ? 12 : freq === 'quarterly' ? 4 : 1;
-                        let periodicRate = (r / 100) / periodsPerYear;
-                        if (periodicRate > 0) {
-                            instAmt = Math.round((amt * periodicRate * Math.pow(1 + periodicRate, instCount)) / (Math.pow(1 + periodicRate, instCount) - 1));
-                        } else {
-                            instAmt = Math.round(amt / instCount);
-                        }
+                        instAmt = calculateInstallment(amt, instCount, r, freq, formData.roundingBase);
                      }
                      
                      setFormData({...formData, frequency: freq, installmentAmount: instAmt});
@@ -701,13 +746,7 @@ export default function LoansManager({
                         let amt = Number(formData.amount);
                         let instCount = Number(val);
                         let freq = formData.frequency || 'monthly';
-                        let periodsPerYear = freq === 'monthly' ? 12 : freq === 'quarterly' ? 4 : 1;
-                        let periodicRate = (r / 100) / periodsPerYear;
-                        if (periodicRate > 0) {
-                            instAmt = Math.round((amt * periodicRate * Math.pow(1 + periodicRate, instCount)) / (Math.pow(1 + periodicRate, instCount) - 1));
-                        } else {
-                            instAmt = Math.round(amt / instCount);
-                        }
+                        instAmt = calculateInstallment(amt, instCount, r, freq, formData.roundingBase);
                      }
                      setFormData({...formData, totalInstallments: val, installmentAmount: instAmt});
                   }}
@@ -732,6 +771,63 @@ export default function LoansManager({
                 />
              </div>
              <div className="space-y-2 lg:col-span-3">
+                <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl mb-4">
+                  <h4 className="font-bold text-orange-800 mb-4 flex items-center gap-2">
+                     <Settings className="w-4 h-4" /> تنظیمات قوانین وام (دیرکرد و تسویه)
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-orange-700">نوع جریمه دیرکرد</label>
+                      <select 
+                        value={formData.penaltyType} 
+                        onChange={e => setFormData({...formData, penaltyType: e.target.value as any})}
+                        className="w-full bg-white border border-orange-200 rounded-lg p-2 outline-none text-sm"
+                      >
+                        <option value="none">بدون جریمه</option>
+                        <option value="fixed_per_day">مبلغ ثابت روزانه</option>
+                        <option value="percent_per_day">درصد روزانه از مبلغ قسط</option>
+                        <option value="fixed_per_month">مبلغ ثابت ماهانه</option>
+                        <option value="percent_per_month">درصد ماهانه از مبلغ قسط</option>
+                      </select>
+                    </div>
+                    {formData.penaltyType !== 'none' && (
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-orange-700">
+                          {formData.penaltyType.includes('fixed') ? 'مبلغ جریمه (ریال)' : 'درصد جریمه (%)'}
+                        </label>
+                        <input 
+                          type="number"
+                          value={formData.penaltyRate}
+                          onChange={e => setFormData({...formData, penaltyRate: e.target.value === '' ? '' : Number(e.target.value)})}
+                          className="w-full bg-white border border-orange-200 rounded-lg p-2 outline-none text-sm"
+                        />
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-orange-700">سیاست تسویه زودتر از موعد</label>
+                      <select 
+                        value={formData.earlySettlementPolicy} 
+                        onChange={e => setFormData({...formData, earlySettlementPolicy: e.target.value as any})}
+                        className="w-full bg-white border border-orange-200 rounded-lg p-2 outline-none text-sm"
+                      >
+                        <option value="none">بدون تخفیف</option>
+                        <option value="discount_interest">تخفیف در کارمزد/سود</option>
+                      </select>
+                    </div>
+                    {formData.earlySettlementPolicy === 'discount_interest' && (
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-orange-700">درصد تخفیف کارمزد (%)</label>
+                        <input 
+                          type="number"
+                          value={formData.earlySettlementDiscountPercent}
+                          onChange={e => setFormData({...formData, earlySettlementDiscountPercent: e.target.value === '' ? '' : Number(e.target.value)})}
+                          className="w-full bg-white border border-orange-200 rounded-lg p-2 outline-none text-sm"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
                     توضیحات (اختیاری)
                 </label>
@@ -875,7 +971,7 @@ export default function LoansManager({
                                </span>
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-500">
-                               <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4"/> تاریخ: {formatDateDisplay(loan.startDate.replace(/\-/g, '/'))}</span>
+                               <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4"/> تاریخ: {formatDateDisplay(loan.startDate)}</span>
                                <span className="flex items-center gap-1.5"><Layers className="w-4 h-4"/> اقساط: {totalInsts} {loan.frequency === 'yearly' ? '(سالانه)' : loan.frequency === 'quarterly' ? '(فصلی)' : '(ماهانه)'}</span>
                                {loan.interestRate && <span className="flex items-center gap-1.5"><Percent className="w-4 h-4"/> سود: {loan.interestRate}٪</span>}
                             </div>
@@ -959,7 +1055,7 @@ export default function LoansManager({
                         {previewData.installments.map((inst, idx) => (
                            <tr key={inst.id} className="hover:bg-gray-50/50 transition-colors">
                               <td className="p-3 font-bold text-gray-600">{idx + 1}</td>
-                              <td className="p-3 font-mono font-medium">{formatDateDisplay(inst.dueDate.replace(/-/g, '/'))}</td>
+                              <td className="p-3 font-mono font-medium">{formatDateDisplay(inst.dueDate)}</td>
                               <td className="p-3 font-black text-gray-900">{formatCurrency(inst.amount)} {currencyUnit}</td>
                            </tr>
                         ))}

@@ -3,6 +3,7 @@ import { saveInstallments } from './accountingService';
 import { getPersons } from './personService';
 import { Installment, Loan, Account, Cashbox } from '../types';
 import { applyTransition } from './loanStateMachine';
+import { calculatePenalty } from '../utils/penaltyUtils';
 
 export interface PaymentPreview {
     isFullPayment: boolean;
@@ -67,7 +68,7 @@ export const calculatePaymentPreview = async (
 ): Promise<PaymentPreview> => {
     const { installment, loan, amountRemaining } = await lookupInstallmentByCode(installmentCode);
     
-    const penaltyAmount = 0; // Can be enhanced later
+    const penaltyAmount = calculatePenalty(loan, installment);
     
     const totalDueForThisInst = amountRemaining + penaltyAmount;
     
@@ -141,8 +142,10 @@ export const registerInstallmentPayment = async (
     const loans = await getLoans();
     let updatedInstallments = [...installments];
     
-    const today = new Date().toLocaleDateString('fa-IR').replace(/\//g, '-');
+    const todayIso = new Date().toISOString();
+    const todayFa = new Date().toLocaleDateString('fa-IR').replace(/\//g, '-');
     let totalAllocatedPrincipal = 0;
+    let totalAllocatedPenalty = 0;
     
     // Apply allocations
     for (const alloc of preview.allocations) {
@@ -150,7 +153,12 @@ export const registerInstallmentPayment = async (
         if (instIndex !== -1) {
             const inst = updatedInstallments[instIndex];
             if (alloc.isPenalty) {
-                // Handle penalty (maybe save separately, for now just log it or add to paidAmount if you want to track it)
+                totalAllocatedPenalty += alloc.amount;
+                // We might track penaltyPaid on installment here
+                updatedInstallments[instIndex] = {
+                    ...inst,
+                    // If we want to store penalty amount paid, we could add `penaltyPaidAmount` to type Installment, but for now we skip storing it individually.
+                };
             } else {
                 const newPaid = (inst.paidAmount || 0) + alloc.amount;
                 const isPaid = newPaid >= inst.amount;
@@ -159,7 +167,7 @@ export const registerInstallmentPayment = async (
                     ...inst,
                     paidAmount: newPaid,
                     status: isPaid ? 'paid' : 'pending',
-                    paidDate: isPaid ? today : inst.paidDate
+                    paidDate: isPaid ? todayIso : inst.paidDate
                 };
                 totalAllocatedPrincipal += alloc.amount;
             }
@@ -187,7 +195,7 @@ export const registerInstallmentPayment = async (
     
     // Attach receipt info to installments that were paid in this batch
     updatedInstallments = updatedInstallments.map((inst: any) => {
-        if (inst.loanId === loan.id && inst.status === 'paid' && inst.paidDate === today) {
+        if (inst.loanId === loan.id && inst.status === 'paid' && inst.paidDate === todayIso) {
             // We assume if it was paid today in this session, we attach the receipt info
             // A more robust way is to check if we just allocated to this installment
             return {
@@ -213,7 +221,7 @@ export const registerInstallmentPayment = async (
         await applyTransition(loan.id, 'completed', 'system', 'پرداخت تمام اقساط');
     } else if (loan.status === 'overdue') {
         // If it was overdue, and now the overdue installments are paid...
-        const hasOverdue = loanInsts.some(i => i.status === 'overdue' || (i.status === 'pending' && i.dueDate < today));
+        const hasOverdue = loanInsts.some(i => i.status === 'overdue' || (i.status === 'pending' && new Date(i.dueDate) < new Date(todayIso)));
         if (!hasOverdue) {
              newLoanStatus = 'active';
              await applyTransition(loan.id, 'active', 'system', 'تسویه اقساط معوق');

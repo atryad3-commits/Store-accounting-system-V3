@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Loan, Installment, Person } from '../../types';
-import { addCommas } from '../../utils/format';
+import { addCommas, formatDateDisplay } from '../../utils/format';
+import { calculateDaysPastDue, calculatePenalty } from '../../utils/penaltyUtils';
 import { AlertCircle, Clock, Search, Phone, MessageCircle, CheckCircle, CreditCard } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
@@ -37,10 +38,7 @@ export default function LoansArrears({
         const person = persons.find(p => p.id === loan?.personId);
         
         // Calculate days overdue
-        // Simple approximation for UI sorting (not exact calendar days)
-        const d1 = new Date(inst.dueDate.replace(/-/g, '/')).getTime();
-        const d2 = new Date(today.replace(/-/g, '/')).getTime();
-        const daysOverdue = Math.floor((d2 - d1) / (1000 * 60 * 60 * 24)) || 1;
+        const daysOverdue = calculateDaysPastDue(inst.dueDate);
 
         return {
           ...inst,
@@ -129,7 +127,7 @@ export default function LoansArrears({
                     <div className="text-xs mt-1">قسط شماره: {inst.installmentNumber}</div>
                     <div className="text-xs mt-1 text-gray-400 font-mono">کد: {inst.installmentCode}</div>
                   </td>
-                  <td className="px-6 py-4 text-rose-600 font-medium font-mono" dir="ltr">{inst.dueDate}</td>
+                  <td className="px-6 py-4 text-rose-600 font-medium font-mono" dir="ltr">{formatDateDisplay(inst.dueDate)}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
                       inst.daysOverdue > 30 ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
@@ -137,7 +135,12 @@ export default function LoansArrears({
                       {inst.daysOverdue} روز
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-black font-mono text-gray-900" dir="ltr">{addCommas(inst.amount)} {storeSettings?.currency || "تومان"}</td>
+                  <td className="px-6 py-4 font-black font-mono text-gray-900" dir="ltr">
+                    {addCommas(inst.amount)} {storeSettings?.currency || "تومان"}
+                    {inst.loan && calculatePenalty(inst.loan, inst) > 0 && (
+                       <div className="text-xs text-rose-600 mt-1 block">+ {addCommas(calculatePenalty(inst.loan, inst))} جریمه</div>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                      <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">

@@ -4,6 +4,7 @@ import { X, Calendar, Layers, Percent, Wallet, Printer, Trash2, List, Settings, 
 import { Loan, Installment, LoanHistoryItem } from '../../types';
 import { formatDateDisplay } from '../../utils/format';
 import { getLoanHistory } from '../../services/accountingService';
+import { calculateDaysPastDue, calculatePenalty, calculateEarlySettlement } from '../../utils/penaltyUtils';
 
 interface Props {
   isOpen: boolean;
@@ -121,7 +122,7 @@ export default function LoanCardModal({
                 </div>
                 <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                   <div className="text-sm font-medium text-gray-500 mb-1">تاریخ پرداخت</div>
-                  <div className="text-lg font-bold text-gray-900">{formatDateDisplay(loan.startDate.replace(/\-/g, '/'))}</div>
+                  <div className="text-lg font-bold text-gray-900">{formatDateDisplay(loan.startDate)}</div>
                 </div>
                 <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                   <div className="text-sm font-medium text-gray-500 mb-1">اقساط</div>
@@ -192,21 +193,34 @@ export default function LoanCardModal({
                                 <th className="p-3">سررسید</th>
                                 <th className="p-3">مبلغ قسط</th>
                                 <th className="p-3">وضعیت</th>
+                                <th className="p-3">دیرکرد/جریمه</th>
                              </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100">
-                             {loanInsts.map((inst, idx) => (
+                             {loanInsts.map((inst, idx) => {
+                                const daysPast = calculateDaysPastDue(inst.dueDate);
+                                const penalty = calculatePenalty(loan, inst);
+                                return (
                                 <tr key={inst.id} className="hover:bg-gray-50 transition-colors">
                                    <td className="p-3 font-bold text-gray-600">{idx + 1}</td>
-                                   <td className="p-3 font-mono font-medium">{formatDateDisplay(inst.dueDate.replace(/\-/g, '/'))}</td>
+                                   <td className="p-3 font-mono font-medium">{formatDateDisplay(inst.dueDate)}</td>
                                    <td className="p-3 font-black text-gray-900" dir="ltr">{formatCurrency(inst.amount)}</td>
                                    <td className="p-3">
                                       <span className={`px-2 py-1 rounded-lg text-xs font-bold ${inst.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : inst.status === 'overdue' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>
                                          {inst.status === 'paid' ? 'پرداخت شده' : inst.status === 'overdue' ? 'معوق' : 'سررسید نشده'}
                                       </span>
                                    </td>
+                                   <td className="p-3">
+                                     {(inst.status === 'pending' || inst.status === 'overdue') && daysPast > 0 ? (
+                                        <div className="flex flex-col text-xs">
+                                           <span className="text-rose-500 font-bold">{daysPast} روز گذشته</span>
+                                           {penalty > 0 && <span className="text-rose-700 font-black">{formatCurrency(penalty)} ریال جریمه</span>}
+                                        </div>
+                                     ) : '-'}
+                                   </td>
                                 </tr>
-                             ))}
+                                );
+                             })}
                           </tbody>
                        </table>
                     </div>
@@ -218,6 +232,25 @@ export default function LoanCardModal({
                        عملیات
                     </h4>
                     <div className="space-y-3">
+                       {loan.status === 'active' && loan.earlySettlementPolicy !== 'none' && (
+                          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
+                             <h5 className="font-bold text-emerald-800 text-sm mb-2">تسویه زودتر از موعد</h5>
+                             <div className="space-y-2 text-xs text-emerald-700">
+                                <div className="flex justify-between">
+                                   <span>باقیمانده + جریمه:</span>
+                                   <span className="font-bold">{formatCurrency(calculateEarlySettlement(loan, loanInsts).totalRemaining + calculateEarlySettlement(loan, loanInsts).penaltyTotal)}</span>
+                                </div>
+                                <div className="flex justify-between text-rose-600">
+                                   <span>کسر تخفیف ({loan.earlySettlementDiscountPercent}%):</span>
+                                   <span className="font-bold">{formatCurrency(calculateEarlySettlement(loan, loanInsts).discountAmount)}</span>
+                                </div>
+                                <div className="flex justify-between pt-2 border-t border-emerald-200 font-black text-emerald-900 text-sm">
+                                   <span>قابل پرداخت:</span>
+                                   <span>{formatCurrency(calculateEarlySettlement(loan, loanInsts).payableAmount)}</span>
+                                </div>
+                             </div>
+                          </div>
+                       )}
                        <button
                           onClick={() => setPrintingLoanId(loan.id as string)}
                           className="w-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-3 rounded-xl flex items-center gap-3 font-bold transition-colors shadow-sm"

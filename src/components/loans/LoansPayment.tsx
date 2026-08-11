@@ -134,11 +134,16 @@ export default function LoansPayment({ loans, installments, persons, formatCurre
         await addTransaction({
           type: txType,
           amount: selectedInst.amount,
-          accountId: paymentMethodId,
+          method: paymentMethodType === 'account' ? 'account' : 'cash',
+          resourceType: paymentMethodType === 'account' ? 'bank' : 'cashbox',
+          resourceId: paymentMethodId,
+          accountId: paymentMethodType === 'account' ? paymentMethodId : undefined,
+          cashboxId: paymentMethodType === 'cashbox' ? paymentMethodId : undefined,
           personId: selectedLoan.personId,
           categoryId: selectedLoan.type === 'given' ? 'loan_installment_received' : 'loan_installment_paid',
           description: selectedLoan.type === 'given' ? `دریافت قسط ${selectedInst.installmentNumber || ''} وام ${selectedLoan.loanNumber || selectedLoan.id}` : `پرداخت قسط ${selectedInst.installmentNumber || ''} وام ${selectedLoan.loanNumber || selectedLoan.id}`,
-          date: today,
+          date: new Date().toISOString().split('T')[0],
+          jalaliDate: today,
           time: new Date().toLocaleTimeString('fa-IR', { hour12: false }),
           isSystem: true,
         });

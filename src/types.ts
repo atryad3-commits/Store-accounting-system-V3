@@ -434,7 +434,26 @@ export type LoanHistoryItem = {
   createdAt?: string;
 };
 
-export type Loan = { id: string | number; personId: string | number; amount: number; interestRate?: number; frequency?: 'monthly' | 'quarterly' | 'yearly'; startDate: string; totalInstallments: number; installmentAmount: number; description?: string; status: 'requested' | 'incomplete' | 'completed_dossier' | 'approved' | 'active' | 'completed' | 'overdue'; type: 'given' | 'received'; accountId?: string | number; loanNumber?: string; history?: { status: string, date: string, desc?: string, user?: string }[]; };
+export type Loan = { 
+  id: string | number; 
+  personId: string | number; 
+  amount: number; 
+  interestRate?: number; 
+  frequency?: 'monthly' | 'quarterly' | 'yearly'; 
+  startDate: string; 
+  totalInstallments: number; 
+  installmentAmount: number; 
+  description?: string; 
+  status: 'requested' | 'incomplete' | 'completed_dossier' | 'approved' | 'active' | 'completed' | 'overdue'; 
+  type: 'given' | 'received'; 
+  accountId?: string | number; 
+  loanNumber?: string; 
+  history?: { status: string, date: string, desc?: string, user?: string }[];
+  penaltyType?: 'none' | 'fixed_per_day' | 'percent_per_day' | 'fixed_per_month' | 'percent_per_month';
+  penaltyRate?: number;
+  earlySettlementPolicy?: 'none' | 'discount_interest';
+  earlySettlementDiscountPercent?: number;
+};
 
 export type Installment = { id: string | number; loanId: string | number; dueDate: string; amount: number; status: 'pending' | 'paid' | 'overdue'; paidDate?: string; paidAmount?: number; description?: string; installmentNumber?: number; installmentCode?: string; receiptId?: string | number; receiptNumber?: string; };
 

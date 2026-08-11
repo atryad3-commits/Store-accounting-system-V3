@@ -151,12 +151,26 @@ export function convertToGregorian(dateInput: string | Date | null | undefined):
     }
     if (typeof dateInput === 'string') {
         if (dateInput.includes('T')) return dateInput; // Already ISO
-        if (dateInput.includes('/')) {
+        
+        let normalizedInput = dateInput;
+        if (normalizedInput.includes('-') && !normalizedInput.includes('T')) {
+            normalizedInput = normalizedInput.replace(/-/g, '/');
+        }
+
+        if (normalizedInput.includes('/')) {
             try {
-                const englishStr = dateInput.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString());
+                const englishStr = normalizedInput.replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d).toString());
                 const year = parseInt(englishStr.split('/')[0], 10);
                 if (year < 1500) {
-                     const d = new DateObject({ date: englishStr, format: "YYYY/MM/DD", calendar: persian, locale: persian_fa });
+                     let format = "YYYY/MM/DD";
+                     if (englishStr.includes(':')) {
+                         if (englishStr.includes('am') || englishStr.includes('pm')) {
+                             format = "YYYY/MM/DD hh:mm a";
+                         } else {
+                             format = englishStr.split(':').length === 3 ? "YYYY/MM/DD HH:mm:ss" : "YYYY/MM/DD HH:mm";
+                         }
+                     }
+                     const d = new DateObject({ date: englishStr, format: format, calendar: persian, locale: persian_fa });
                      return d.toDate().toISOString();
                 } else {
                      const d = new Date(englishStr);

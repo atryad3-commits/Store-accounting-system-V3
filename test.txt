@@ -1,0 +1,12 @@
+   721	                     if (formData.amount && formData.totalInstallments) {
+   722	                        let r = formData.interestRate === '' ? 0 : Number(formData.interestRate);
+   723	                        let amt = Number(formData.amount);
+   724	                        let instCount = Number(formData.totalInstallments);
+   725	                        let periodsPerYear = freq === 'monthly' ? 12 : freq === 'quarterly' ? 4 : 1;
+   726	                        let periodicRate = (r / 100) / periodsPerYear;
+   727	                        if (periodicRate > 0) {
+   728	                            instAmt = Math.round((amt * periodicRate * Math.pow(1 + periodicRate, instCount)) / (Math.pow(1 + periodicRate, instCount) - 1));
+   729	                        } else {
+   730	                            instAmt = Math.round(amt / instCount);
+   731	                        }
+   732	                     }

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Loan, Installment, Person } from '../../types';
-import { addCommas } from '../../utils/format';
+import { addCommas, formatDateDisplay } from '../../utils/format';
+import { calculateDaysPastDue } from '../../utils/penaltyUtils';
 import { Activity, AlertCircle, Calendar, CheckCircle, TrendingUp, Users } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -17,6 +18,10 @@ export default function LoansDashboard({
   loans, installments, persons, storeSettings
 }: LoansDashboardProps) {
   const today = new Date().toLocaleDateString('fa-IR').replace(/\//g, '-');
+  const todayDate = new Date();
+  todayDate.setHours(0,0,0,0);
+  const nextMonthDate = new Date(todayDate);
+  nextMonthDate.setDate(nextMonthDate.getDate() + 30); // Approx 30 days for upcoming
 
   const kpis = useMemo(() => {
     let activeLoans = 0;
@@ -33,12 +38,15 @@ export default function LoansDashboard({
     installments.forEach(inst => {
       const loan = loans.find(l => l.id.toString() === inst.loanId.toString());
       if (!loan || (loan.status !== 'active' && loan.status !== 'overdue' && loan.status !== 'completed')) return;
+      
+      const dueD = new Date(inst.dueDate);
+      
       if (inst.status === 'pending' || inst.status === 'overdue') {
         totalOutstanding += (inst.amount || 0);
-        if (inst.dueDate < today) {
+        if (dueD < todayDate) {
           totalArrears += (inst.amount || 0);
           overdueCount++;
-        } else if (inst.dueDate >= today && inst.dueDate <= today.slice(0, 8) + '31') {
+        } else if (dueD >= todayDate && dueD <= nextMonthDate) {
            upcomingCount++;
         }
       } else if (inst.status === 'paid') {
@@ -47,7 +55,7 @@ export default function LoansDashboard({
     });
 
     return { activeLoans, totalOutstanding, totalArrears, overdueCount, upcomingCount, totalPaid };
-  }, [loans, installments, today]);
+  }, [loans, installments, todayDate, nextMonthDate]);
 
   // Chart data: Group installments by month
   const chartData = useMemo(() => {

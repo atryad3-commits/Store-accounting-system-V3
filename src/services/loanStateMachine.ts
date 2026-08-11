@@ -153,16 +153,22 @@ export async function applyTransition(
     const txs = await getTransactions();
     if (!txs.find(t => t.id === transactionId)) {
         const interestAmt = (loan.totalInstallments * loan.installmentAmount) - loan.amount;
+        // Find if accountId is bank or cashbox (we'll assume bank if not specified, since LoansManager currently sets accountId)
+        // A robust fix would check if it's a cashbox or bank, but LoansManager form only provides accounts.
         const newTransaction = {
             interestAmount: interestAmt > 0 ? interestAmt : 0,
             id: transactionId,
             type: loan.type === 'given' ? 'pay' : 'receive',
             amount: loan.amount,
+            method: 'account',
+            resourceType: 'bank',
+            resourceId: loan.accountId || '',
             accountId: loan.accountId || '',
             personId: loan.personId,
             categoryId: loan.type === 'given' ? 'loan_given' : 'loan_received',
             description: loan.type === 'given' ? `اعطای وام پرداختی شماره ${loan.loanNumber || loan.id}` : `اخذ وام دریافتی شماره ${loan.loanNumber || loan.id}`,
-            date: new Date().toLocaleDateString('fa-IR').replace(/\//g, '-'),
+            date: new Date().toISOString().split('T')[0],
+            jalaliDate: new Date().toLocaleDateString('fa-IR').replace(/\//g, '-'),
             documentNumber: `LOAN-${loan.loanNumber || loan.id}`,
             createdAt: new Date().toISOString(), skipAccounting: true
         };
