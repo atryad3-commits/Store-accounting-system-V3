@@ -1,6 +1,6 @@
 import { Loan, Installment, SystemLog } from '../types';
 import { getInstallments, getTransactions, addTransaction, deleteTransaction, saveLoans, getLoans, addSystemLog, getAccounts, getPersons } from './dataService';
-import { getLedgerAccounts, addAccountingDocument, getAccountingDocuments, updateAccountingDocument } from './accountingService';
+import { getLedgerAccounts, addAccountingDocument, getAccountingDocuments, updateAccountingDocument, addLoanHistoryEntry } from './accountingService';
 
 export interface TransitionCheck {
   name: string;
@@ -255,16 +255,17 @@ export async function applyTransition(
   }
 
   // Update loan status
-  const historyEntry = {
+  await addLoanHistoryEntry({
+    loanId: loan.id,
     status: targetStatus,
     date: new Date().toISOString(),
     desc: reason || 'تغییر وضعیت',
     user: userId || 'سیستم'
-  };
+  });
+
   const updatedLoan = { 
     ...loan, 
-    status: targetStatus,
-    history: [...(loan.history || []), historyEntry]
+    status: targetStatus
   };
   const updatedLoans = loans.map(l => l.id === loan.id ? updatedLoan : l);
   await saveLoans(updatedLoans);

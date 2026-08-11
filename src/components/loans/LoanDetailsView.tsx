@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Calendar, Layers, Percent, Wallet, Printer, Trash2, List, Settings, CheckCircle, ArrowLeftRight } from 'lucide-react';
-import { Loan, Installment } from '../../types';
+import { Loan, Installment, LoanHistoryItem } from '../../types';
 import { formatDateDisplay } from '../../utils/format';
+import { getLoanHistory } from '../../services/accountingService';
 
 interface Props {
   storeSettings?: any;
@@ -41,6 +42,35 @@ export default function LoanDetailsView({
   isSubmitting
 }: Props) {
   if (!loan) return null;
+
+  const [historyList, setHistoryList] = useState<LoanHistoryItem[]>([]);
+
+  useEffect(() => {
+    if (loan?.id) {
+      loadHistory();
+    }
+  }, [loan?.id, loan?.status]);
+
+  const loadHistory = async () => {
+    if (!loan) return;
+    const items = await getLoanHistory(loan.id);
+    const combined: LoanHistoryItem[] = [...items];
+    if (loan.history && Array.isArray(loan.history)) {
+      loan.history.forEach(lh => {
+        if (!combined.some(c => c.status === lh.status && c.date === lh.date)) {
+          combined.push({
+            loanId: loan.id,
+            status: lh.status,
+            date: lh.date,
+            desc: lh.desc,
+            user: lh.user
+          });
+        }
+      });
+    }
+    combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    setHistoryList(combined);
+  };
 
   const loanInsts = (installments || []).filter(i => i.loanId === loan.id);
   const paidInsts = loanInsts.filter(i => i.status === 'paid').length;
@@ -105,7 +135,7 @@ export default function LoanDetailsView({
                     <ArrowLeftRight className="w-5 h-5 text-indigo-500" />
                     تغییر وضعیت وام
                  </h4>
-                 <div className="flex flex-wrap gap-2 mb-6">
+                 <div className="flex flex-wrap gap-2">
                     {['requested', 'incomplete', 'completed_dossier', 'approved', 'active', 'completed'].map(st => {
                        const isActive = loan.status === st;
                        const statusLabels = {
@@ -129,50 +159,9 @@ export default function LoanDetailsView({
                        );
                     })}
                  </div>
-                 
-                 {loan.history && loan.history.length > 0 && (
-                   <div className="mt-6 bg-gray-50 rounded-2xl border border-gray-200 p-5">
-                      <h5 className="font-bold text-gray-700 mb-4 flex items-center gap-2">
-                         <Layers className="w-4 h-4" />
-                         تاریخچه وضعیت‌ها
-                      </h5>
-                      <div className="overflow-x-auto rounded-xl border border-slate-200">
-                         <table className="w-full text-right border-collapse">
-                            <thead>
-                               <tr className="bg-slate-100 text-slate-500 text-sm">
-                                  <th className="p-3 font-bold">وضعیت</th>
-                                  <th className="p-3 font-bold">تاریخ و زمان</th>
-                                  <th className="p-3 font-bold">کاربر</th>
-                                  <th className="p-3 font-bold">توضیحات</th>
-                               </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                               {loan.history.map((hist, idx) => (
-                                  <tr key={idx} className="bg-white hover:bg-slate-50 transition-colors">
-                                     <td className="p-3">
-                                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${LOAN_STATUS_COLORS[hist.status] || 'bg-gray-100 text-gray-700'}`}>
-                                           {LOAN_STATUS_LABELS[hist.status] || hist.status}
-                                        </span>
-                                     </td>
-                                     <td className="p-3 text-sm font-medium text-slate-600 font-mono" dir="ltr">
-                                        {new Date(hist.date).toLocaleString('fa-IR')}
-                                     </td>
-                                     <td className="p-3 text-sm font-medium text-slate-600">
-                                        {hist.user || 'سیستم'}
-                                     </td>
-                                     <td className="p-3 text-sm font-medium text-slate-600">
-                                        {hist.desc}
-                                     </td>
-                                  </tr>
-                               ))}
-                            </tbody>
-                         </table>
-                      </div>
-                   </div>
-                 )}
               </div>
 
-              <div className="flex flex-col lg:flex-row gap-8">
+              <div className="flex flex-col lg:flex-row gap-8 mb-8">
                  <div className="flex-1">
                     <div className="flex justify-between items-center mb-4">
                        <h4 className="font-black text-gray-800 flex items-center gap-2">
@@ -231,8 +220,8 @@ export default function LoanDetailsView({
                        {(userRole === 'admin' || userRole === 'manager') && (
                           <button
                              onClick={() => {
-                               handleDeleteLoan(loan.id);
-                               onClose();
+                                handleDeleteLoan(loan.id);
+                                onClose();
                              }}
                              className="w-full bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 px-4 py-3 rounded-xl flex items-center gap-3 font-bold transition-colors shadow-sm"
                           >
@@ -243,6 +232,47 @@ export default function LoanDetailsView({
                     </div>
                  </div>
               </div>
+
+              {historyList.length > 0 && (
+                <div className="mt-8 bg-gray-50 rounded-2xl border border-gray-200 p-5">
+                   <h5 className="font-bold text-gray-700 mb-4 flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-indigo-500" />
+                      تاریخچه وضعیت‌های وام
+                   </h5>
+                   <div className="overflow-x-auto rounded-xl border border-slate-200">
+                      <table className="w-full text-right border-collapse">
+                         <thead>
+                            <tr className="bg-slate-100 text-slate-500 text-sm">
+                               <th className="p-3 font-bold">وضعیت</th>
+                               <th className="p-3 font-bold">تاریخ و زمان</th>
+                               <th className="p-3 font-bold">کاربر</th>
+                               <th className="p-3 font-bold">توضیحات</th>
+                            </tr>
+                         </thead>
+                         <tbody className="divide-y divide-slate-100">
+                            {historyList.map((hist, idx) => (
+                               <tr key={hist.id || idx} className="bg-white hover:bg-slate-50 transition-colors">
+                                  <td className="p-3">
+                                     <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${LOAN_STATUS_COLORS[hist.status] || 'bg-gray-100 text-gray-700'}`}>
+                                        {LOAN_STATUS_LABELS[hist.status] || hist.status}
+                                     </span>
+                                  </td>
+                                  <td className="p-3 text-sm font-medium text-slate-600 font-mono" dir="ltr">
+                                     {new Date(hist.date).toLocaleString('fa-IR')}
+                                  </td>
+                                  <td className="p-3 text-sm font-medium text-slate-600">
+                                     {hist.user || 'سیستم'}
+                                  </td>
+                                  <td className="p-3 text-sm font-medium text-slate-600">
+                                     {hist.desc}
+                                  </td>
+                               </tr>
+                            ))}
+                         </tbody>
+                      </table>
+                   </div>
+                </div>
+              )}
       </div>
     </motion.div>
   );

@@ -324,6 +324,7 @@ const FinancialDashboard = React.lazy(() => import('./components/reports/Financi
 const AccountLedgerReport = React.lazy(() => import('./components/accounting/AccountLedgerReport'));
 const DebtsCreditsReport = React.lazy(() => import('./components/reports/DebtsCreditsReport'));
 const LoansManager = React.lazy(() => import('./components/loans/LoansManager'));
+const LoanCardPage = React.lazy(() => import('./pages/loans/LoanCardPage'));
 const ChartOfAccounts = React.lazy(() => import('./components/accounting/ChartOfAccounts'));
 const AccountingDocsList = React.lazy(() => import('./components/accounting/AccountingDocsList'));
 const AccountingDocCreate = React.lazy(() => import('./components/accounting/AccountingDocCreate'));

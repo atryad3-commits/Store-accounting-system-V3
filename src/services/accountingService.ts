@@ -441,6 +441,28 @@ export const deleteRefundRequest = async (id: string) => {
 
 export const getLoans = async () => getLocalData<any[]>('loans', []);
 
+export const getLoanHistory = async (loanId?: string | number) => {
+  const allHistory = await getLocalData<any[]>('loan_history', []);
+  if (loanId !== undefined && loanId !== null && loanId !== '') {
+    return allHistory.filter(h => String(h.loanId) === String(loanId));
+  }
+  return allHistory;
+};
+
+export const addLoanHistoryEntry = async (entry: { loanId: string | number; status: string; desc?: string; user?: string; date?: string }) => {
+  const newEntry = {
+    id: 'lh_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+    loanId: entry.loanId,
+    status: entry.status,
+    date: entry.date || new Date().toISOString(),
+    desc: entry.desc || '',
+    user: entry.user || 'سیستم',
+    createdAt: new Date().toISOString()
+  };
+  await appendLocalData('loan_history', newEntry);
+  return newEntry;
+};
+
 export const saveLoans = async (loans: any[]) => {
   const activeYear = await getActiveFinancialYear();
   const processedLoans = [];

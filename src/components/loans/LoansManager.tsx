@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import SearchableSelect from '../ui/SearchableSelect';
 import CustomDatePicker from '../ui/CustomDatePicker';
 import { startAppProcessing, stopAppProcessing } from '../../utils/processingHelper';
-import { saveLoans, saveInstallments, addTransaction, deleteTransaction, checkFinancialYear, addSystemLog } from '../../services/dataService';
+import { saveLoans, saveInstallments, addTransaction, deleteTransaction, checkFinancialYear, addSystemLog, addLoanHistoryEntry } from '../../services/dataService';
 import { formatDateDisplay } from '../../utils/format';
 import LoansDashboard from './LoansDashboard';
 import LoansArrears from './LoansArrears';
@@ -306,6 +306,13 @@ export default function LoansManager({
     try {
       await saveLoans(newLoansList);
       await saveInstallments(newInstsList);
+      await addLoanHistoryEntry({
+        loanId: previewData.loan.id,
+        status: 'requested',
+        date: new Date().toISOString(),
+        desc: 'ثبت اولیه درخواست وام',
+        user: userRole || 'سیستم'
+      });
       if (typeof addSystemLog !== 'undefined') {
         await addSystemLog('ADD_LOAN', `ثبت وام جدید به مبلغ ${previewData.loan.amount} برای شخص ${previewData.loan.personId}`, 'Loan', previewData.loan.id);
       }

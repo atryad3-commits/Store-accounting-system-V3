@@ -145,7 +145,7 @@ const KNOWN_TABLES = ['notifications', 'customers_risk_profile', 'repayment_tran
   'payslips', 'debtors_trackings',
   'accounts', 'cashboxes', 'warehouses', 'product_categories', 'products',
   'transactions', 'invoices', 'accounting_documents', 'checkbooks', 'invoice_items', 'accounting_document_items', 'stocktaking_items',
-  'warehouse_stocks', 'stocktakings', 'person_follow_ups', 'loans',
+  'warehouse_stocks', 'stocktakings', 'person_follow_ups', 'loans', 'loan_history',
   'ledger_accounts', 'installments', 'sms_messages', 'person_opening_balances', 'product_price_history', 'sales_invoice_payments', 'purchase_invoice_payments',
   'issued_checks', 'received_checks', 'check_history',
   'persons', 'person_contacts', 'person_bank_accounts', 'system_logs',
