@@ -644,7 +644,10 @@ export default function LoansManager({
                  </label>
                  <CustomDatePicker
                    value={formData.startDate}
+                   format="YYYY/MM/DD"
                    onChange={(val: string) => setFormData({...formData, startDate: val})}
+                   inputClass="w-full bg-gray-50 border-2 border-gray-100 focus:border-emerald-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-medium text-slate-800"
+                   containerClassName="w-full"
                  />
               </div>
 

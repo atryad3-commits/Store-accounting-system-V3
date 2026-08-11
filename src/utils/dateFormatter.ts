@@ -1,4 +1,5 @@
-import DateObject from "react-date-object";
+import DateObjectModule from "react-date-object";
+const DateObject = (DateObjectModule as any).default || DateObjectModule;
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import gregorian from "react-date-object/calendars/gregorian";
