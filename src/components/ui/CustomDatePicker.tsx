@@ -52,8 +52,14 @@ export default function CustomDatePicker(props: any) {
       format={props.format || globalProps.format}
       value={parsedValue}
       onChange={(date: any) => {
+         let valueToPass = date;
+         if (date && typeof date.format === 'function') {
+           valueToPass = date.format(props.format || globalProps.format);
+         } else if (Array.isArray(date)) {
+           valueToPass = date.map((d: any) => d && typeof d.format === 'function' ? d.format(props.format || globalProps.format) : d);
+         }
          // if component has its own onChange, call it
-         if (props.onChange) props.onChange(date);
+         if (props.onChange) props.onChange(valueToPass);
       }}
       plugins={[
         ...(!props.range && showTime ? [<TimePicker position="bottom" />] : []),
