@@ -282,6 +282,9 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
               pendingIssuedAmount={pendingIssuedAmount} bouncedIssuedAmount={bouncedIssuedAmount}
               totalReceivedAmount={totalReceivedAmount} cashedReceivedAmount={cashedReceivedAmount}
               inHandReceivedAmount={inHandReceivedAmount} bouncedReceivedAmount={bouncedReceivedAmount}
+              issuedChecks={issuedChecks}
+              receivedChecks={receivedChecks}
+              accounts={accounts}
             />
           )}
         </div>
