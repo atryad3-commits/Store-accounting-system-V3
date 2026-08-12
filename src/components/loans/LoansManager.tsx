@@ -263,48 +263,45 @@ export default function LoansManager({
       }).join('');
     };
 
-    let [initY, initM, initD] = toEnglishNumbers(formData.startDate).replace(/\//g, '-').split('-').map(Number);
-    if (isNaN(initY) || isNaN(initM) || isNaN(initD)) {
-        initY = 1403; initM = 1; initD = 1; // fallback
-    }
-
-    const newInstallments: Installment[] = [];
-    const stepMonths = formData.frequency === 'yearly' ? 12 : formData.frequency === 'quarterly' ? 3 : 1;
     
-    let targetTotalPayable = instAmount * instCount;
     const r = formData.interestRate === '' ? 0 : Number(formData.interestRate);
-    if (r === 0) {
-        if (instAmount * instCount < amountNum || Math.abs(instAmount - (amountNum / instCount)) <= formData.roundingBase) {
-            targetTotalPayable = amountNum;
-        }
-    } else {
+    let targetTotalPayable = amountNum;
+    let exactInstAmt = amountNum / instCount;
+
+    if (r > 0) {
         let freq = formData.frequency || 'monthly';
         let periodsPerYear = freq === 'monthly' ? 12 : freq === 'quarterly' ? 4 : 1;
         let periodicRate = (r / 100) / periodsPerYear;
-        let exactInstAmt = (amountNum * periodicRate * Math.pow(1 + periodicRate, instCount)) / (Math.pow(1 + periodicRate, instCount) - 1);
-        if (Math.abs(instAmount - exactInstAmt) <= formData.roundingBase) {
-            targetTotalPayable = Math.round(exactInstAmt * instCount);
-        }
+        exactInstAmt = (amountNum * periodicRate * Math.pow(1 + periodicRate, instCount)) / (Math.pow(1 + periodicRate, instCount) - 1);
+        targetTotalPayable = Math.round(exactInstAmt * instCount);
     }
     
+    // Determine the calendar type and calculate dates
+    const calendarType = globalDateFormatter.getConfig().calendarType === 'jalali' ? 'jalali' : 'gregorian';
+    const firstDateIso = convertToGregorian(formData.startDate).split('T')[0];
+    const newDates = calculateInstallmentDates(firstDateIso, instCount + 1, formData.frequency || 'monthly', calendarType);
+    // newDates[0] is the start date. Installments start from index 1.
+
+    const newInstallments: Installment[] = [];
     let accumulated = 0;
 
     for (let i = 0; i < instCount; i++) {
-      let totalMonths = initM + ((i + 1) * stepMonths);
-      let instY = initY + Math.floor((totalMonths - 1) / 12);
-      let instM = ((totalMonths - 1) % 12) + 1;
+      let expectedAccumulated = (i + 1) * exactInstAmt;
       
-      let finalD = initD;
-      if (instM === 12 && finalD > 29) finalD = 29;
-      if (instM > 6 && finalD === 31) finalD = 30;
-      let dueDateStr = instY + '/' + instM.toString().padStart(2, '0') + '/' + finalD.toString().padStart(2, '0');
-      let gregorianDueDate = convertToGregorian(dueDateStr).split('T')[0];
-      
-      let currentInstAmount = instAmount;
-      if (i === instCount - 1) {
-          currentInstAmount = targetTotalPayable - accumulated;
+      if (formData.roundingBase > 0) {
+         expectedAccumulated = Math.round(expectedAccumulated / formData.roundingBase) * formData.roundingBase;
+      } else {
+         expectedAccumulated = Math.round(expectedAccumulated);
       }
-      accumulated += currentInstAmount;
+      
+      if (i === instCount - 1) {
+          expectedAccumulated = targetTotalPayable; // The final must exactly match total payable
+      }
+
+      let currentInstAmount = expectedAccumulated - accumulated;
+      accumulated = expectedAccumulated;
+      
+      let gregorianDueDate = newDates[i + 1];
 
       newInstallments.push({
         id: 'inst-' + loanId + '-' + i,
@@ -641,7 +638,7 @@ export default function LoansManager({
 
              <div className="space-y-2">
                  <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-400" /> تاریخ شروع قسط‌بندی
+                    <Calendar className="w-4 h-4 text-gray-400" /> تاریخ ثبت درخواست
                  </label>
                  <CustomDatePicker
                    value={formData.startDate}

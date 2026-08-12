@@ -1,12 +1,11 @@
-import DateObjectModule from "react-date-object";
-import persian from "react-date-object/calendars/persian";
-import persian_fa from "react-date-object/locales/persian_fa";
-const DateObject = (DateObjectModule as any).default || DateObjectModule;
+const fs = require('fs');
+let code = fs.readFileSync('src/utils/installmentUtils.ts', 'utf8');
 
-export function generateInstallmentCode(loanId: string | number, loanNumber: string | undefined, index: number, dueDate: string): string {
-    return Math.floor(1000000 + Math.random() * 9000000).toString();
+if (!code.includes('DateObject')) {
+    code = `import DateObjectModule from "react-date-object";\nimport persian from "react-date-object/calendars/persian";\nimport persian_fa from "react-date-object/locales/persian_fa";\nconst DateObject = (DateObjectModule as any).default || DateObjectModule;\n\n` + code;
 }
 
+code += `
 export function calculateInstallmentDates(startDateIso: string, count: number, frequency: 'monthly'|'quarterly'|'yearly', calendarType: 'gregorian'|'jalali'): string[] {
     const dates: string[] = [];
     const stepMonths = frequency === 'yearly' ? 12 : frequency === 'quarterly' ? 3 : 1;
@@ -30,3 +29,6 @@ export function calculateInstallmentDates(startDateIso: string, count: number, f
     }
     return dates;
 }
+`;
+
+fs.writeFileSync('src/utils/installmentUtils.ts', code);

@@ -1,5 +1,5 @@
 import { Loan, Installment, SystemLog } from '../types';
-import { getInstallments, getTransactions, addTransaction, deleteTransaction, saveLoans, getLoans, addSystemLog, getAccounts, getPersons } from './dataService';
+import { getInstallments, saveInstallments, getTransactions, addTransaction, deleteTransaction, saveLoans, getLoans, addSystemLog, getAccounts, getPersons } from './dataService';
 import { getLedgerAccounts, addAccountingDocument, getAccountingDocuments, updateAccountingDocument, addLoanHistoryEntry } from './accountingService';
 
 export interface TransitionCheck {
@@ -123,12 +123,26 @@ export async function checkTransitionEligibility(
   return result;
 }
 
+import { convertToGregorian } from '../utils/format';
+import { generateInstallmentCode, calculateInstallmentDates } from '../utils/installmentUtils';
+import { globalDateFormatter } from '../utils/dateFormatter';
+
+const toEnglishNumbers = (str: string) => {
+    const persianNumbers = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    let res = str;
+    for (let i = 0; i < 10; i++) {
+        res = res.replace(new RegExp(persianNumbers[i], 'g'), i.toString());
+    }
+    return res;
+};
+
 export async function applyTransition(
   loanId: string | number, 
   targetStatus: Loan['status'], 
   userRole: string, 
   reason?: string,
-  userId?: string
+  userId?: string,
+  dates?: { paymentDate: string, firstInstallmentDate: string }
 ) {
   const loans = await getLoans();
   const loan = loans.find(l => l.id === loanId);
@@ -167,8 +181,8 @@ export async function applyTransition(
             personId: loan.personId,
             categoryId: loan.type === 'given' ? 'loan_given' : 'loan_received',
             description: loan.type === 'given' ? `اعطای وام پرداختی شماره ${loan.loanNumber || loan.id}` : `اخذ وام دریافتی شماره ${loan.loanNumber || loan.id}`,
-            date: new Date().toISOString().split('T')[0],
-            jalaliDate: new Date().toLocaleDateString('fa-IR').replace(/\//g, '-'),
+            date: dates?.paymentDate ? convertToGregorian(dates.paymentDate).split('T')[0] : new Date().toISOString().split('T')[0],
+            jalaliDate: dates?.paymentDate ? dates.paymentDate : new Date().toLocaleDateString('fa-IR').replace(/\//g, '-'),
             documentNumber: `LOAN-${loan.loanNumber || loan.id}`,
             createdAt: new Date().toISOString(), skipAccounting: true
         };
@@ -220,7 +234,7 @@ export async function applyTransition(
 
         if (items.length >= 2 && items.every(i => i.ledgerAccountId)) {
             await addAccountingDocument({
-                date: loan.startDate,
+                date: dates?.paymentDate ? convertToGregorian(dates.paymentDate).split('T')[0] : loan.startDate,
                 description: `سند مکانیزه وام ${loan.type === 'given' ? 'پرداختی' : 'دریافتی'} شماره ${loan.loanNumber || loan.id}`,
                 status: 'approved',
                 sourceType: 'loan',
@@ -270,9 +284,40 @@ export async function applyTransition(
   });
 
   const updatedLoan = { 
-    ...loan, 
-    status: targetStatus
+     ...loan, 
+     status: targetStatus,
+     ...(dates && targetStatus === 'active' ? { 
+         paymentDate: convertToGregorian(dates.paymentDate).split('T')[0],
+         firstInstallmentDate: convertToGregorian(dates.firstInstallmentDate).split('T')[0]
+     } : {})
   };
+
+  if (dates && targetStatus === 'active') {
+      // Recalculate installments based on firstInstallmentDate
+      const allInst = await getInstallments();
+      const loanInst = allInst.filter((i: any) => i.loanId === loanId).sort((a: any, b: any) => a.installmentNumber - b.installmentNumber);
+      
+      let [initY, initM, initD] = toEnglishNumbers(dates.firstInstallmentDate).replace(/\//g, '-').split('-').map(Number);
+      if (isNaN(initY)) {
+          // fallback to ISO split
+          const iso = convertToGregorian(dates.firstInstallmentDate).split('T')[0];
+          const parts = iso.split('-');
+          // Wait, initY/M/D needs to be Jalali so stepMonths logic works nicely, but convertToGregorian takes Jalali. 
+          // If the user picked a Jalali date, toEnglishNumbers.replace... works.
+      }
+      
+      const calendarType = globalDateFormatter.getConfig().calendarType === 'jalali' ? 'jalali' : 'gregorian';
+      const firstDateIso = convertToGregorian(dates.firstInstallmentDate).split('T')[0];
+      const newDates = calculateInstallmentDates(firstDateIso, loanInst.length, loan.frequency || 'monthly', calendarType);
+      
+      loanInst.forEach((inst: any, idx: number) => {
+          inst.dueDate = newDates[idx];
+          inst.installmentCode = generateInstallmentCode(loanId, loan.loanNumber, idx, newDates[idx]);
+      });
+      
+      const otherInst = allInst.filter((i: any) => i.loanId !== loanId);
+      await saveInstallments([...otherInst, ...loanInst]);
+  }
   const updatedLoans = loans.map(l => l.id === loan.id ? updatedLoan : l);
   await saveLoans(updatedLoans);
 

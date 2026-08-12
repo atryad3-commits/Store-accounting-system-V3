@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+import React, { useRef } from 'react'; 
+import { formatDateDisplay } from '../../utils/format';
 import { Loan, Installment, Person } from '../../types';
 import { motion } from 'motion/react';
 import { Printer, X } from 'lucide-react';
@@ -73,7 +74,7 @@ export default function InstallmentBookletPrint({ loan, installments, person, on
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-slate-500">تاریخ پرداخت:</span>
-                  <span className="font-bold text-slate-800">{loan.startDate}</span>
+                  <span className="font-bold text-slate-800">{formatDateDisplay(loan.startDate)}</span>
                 </div>
               </div>
               <div className="space-y-4">
@@ -110,7 +111,7 @@ export default function InstallmentBookletPrint({ loan, installments, person, on
                     </div>
                     <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                       <span className="text-sm font-semibold text-slate-600">تاریخ سررسید:</span>
-                      <span className="font-black text-slate-900">{inst.dueDate}</span>
+                      <span className="font-black text-slate-900">{formatDateDisplay(inst.dueDate)}</span>
                     </div>
                     <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                       <span className="text-sm font-semibold text-slate-600">مبلغ قسط:</span>
@@ -119,7 +120,7 @@ export default function InstallmentBookletPrint({ loan, installments, person, on
                     <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                       <span className="text-sm font-semibold text-slate-600">تاریخ پرداخت:</span>
                       <span className={`text-xs ${inst.paidDate ? 'font-black text-emerald-600' : 'text-slate-400'}`}>
-                        {inst.paidDate ? inst.paidDate : '.......................................'}
+                        {inst.paidDate ? formatDateDisplay(inst.paidDate) : '.......................................'}
                       </span>
                     </div>
                     {inst.status === 'paid' && inst.paidAmount ? (

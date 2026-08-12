@@ -263,6 +263,9 @@ export type UserProfileExtended = {
     title: string;
     company: string;
     startDate: string;
+  requestDate?: string;
+  paymentDate?: string;
+  firstInstallmentDate?: string;
     endDate?: string;
     current: boolean;
     description?: string;

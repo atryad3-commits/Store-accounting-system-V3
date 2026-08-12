@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import CustomDatePicker from '../ui/CustomDatePicker';
+import { globalDateFormatter } from '../../utils/dateFormatter';
+import { convertToGregorian } from '../../utils/format';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, CheckCircle, AlertCircle, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { Loan } from '../../types';
@@ -30,6 +33,8 @@ export default function LoanTransitionModal({
   const [loading, setLoading] = useState(true);
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [paymentDate, setPaymentDate] = useState(globalDateFormatter.formatDateOnly(new Date()));
+  const [firstInstallmentDate, setFirstInstallmentDate] = useState(globalDateFormatter.formatDateOnly(new Date()));
 
   useEffect(() => {
     if (isOpen) {
@@ -58,7 +63,13 @@ export default function LoanTransitionModal({
     setSubmitting(true);
     startAppProcessing('در حال اعمال تغییر وضعیت...');
     try {
-      const updated = await applyTransition(loan.id, targetStatus, userRole, reason);
+      let finalPaymentDate = paymentDate;
+      let finalFirstInstDate = firstInstallmentDate;
+      if (paymentDate && typeof paymentDate === 'string' && !paymentDate.includes('-')) {
+        // Assume it's Shamsi and convert? CustomDatePicker might output strings like 1403/05/20
+        // We will pass the Jalali strings to applyTransition and it will handle ISO conversions.
+      }
+      const updated = await applyTransition(loan.id, targetStatus, userRole, reason, undefined, { paymentDate, firstInstallmentDate });
       showNotification('وضعیت وام با موفقیت تغییر کرد.', 'success');
       onSuccess(updated as any);
       onClose();
@@ -159,6 +170,28 @@ export default function LoanTransitionModal({
                   </div>
                 )}
 
+                {targetStatus === 'active' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-2 text-sm">تاریخ پرداخت</label>
+                      <CustomDatePicker
+                         value={paymentDate}
+                         format="YYYY/MM/DD"
+                         onChange={(val: string) => setPaymentDate(val)}
+                         inputClass="w-full bg-gray-50 border-2 border-gray-100 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-medium text-slate-800"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-gray-700 mb-2 text-sm">تاریخ اولین سررسید</label>
+                      <CustomDatePicker
+                         value={firstInstallmentDate}
+                         format="YYYY/MM/DD"
+                         onChange={(val: string) => setFirstInstallmentDate(val)}
+                         inputClass="w-full bg-gray-50 border-2 border-gray-100 focus:border-indigo-500 focus:bg-white rounded-xl px-4 py-3 outline-none transition-all font-medium text-slate-800"
+                      />
+                    </div>
+                  </div>
+                )}
                 {eligibility.requiresReason && (
                   <div>
                     <label className="block font-bold text-gray-700 mb-2 text-sm">
