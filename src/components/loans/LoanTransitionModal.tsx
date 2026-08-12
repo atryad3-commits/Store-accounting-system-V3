@@ -32,7 +32,9 @@ export default function LoanTransitionModal({
   const [eligibility, setEligibility] = useState<TransitionEligibility | null>(null);
   const [loading, setLoading] = useState(true);
   const [reason, setReason] = useState('');
+  const [rollbackConfirmed, setRollbackConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmRollback, setConfirmRollback] = useState(false);
   const [paymentDate, setPaymentDate] = useState(globalDateFormatter.formatDateOnly(new Date()));
   const [firstInstallmentDate, setFirstInstallmentDate] = useState(globalDateFormatter.formatDateOnly(new Date()));
 
@@ -41,6 +43,7 @@ export default function LoanTransitionModal({
       setLoading(true);
       setEligibility(null);
       setReason('');
+      setRollbackConfirmed(false);
       checkTransitionEligibility(loan, targetStatus, userRole)
         .then(res => {
           setEligibility(res);
@@ -205,6 +208,22 @@ export default function LoanTransitionModal({
                     />
                   </div>
                 )}
+              
+                {eligibility.direction === 'rollback' && (
+                  <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={rollbackConfirmed}
+                        onChange={e => setRollbackConfirmed(e.target.checked)}
+                        className="mt-1 w-5 h-5 text-amber-600 rounded border-amber-300 focus:ring-amber-500"
+                      />
+                      <div className="text-sm text-amber-900 font-medium leading-relaxed">
+                        تایید می‌کنم که قصد بازگشت وضعیت این وام به مرحله قبل را دارم. با این کار، سیستم به صورت خودکار اسناد حسابداری اصلاحی (معکوس) و تراکنش‌های برگشتی صادر خواهد کرد.
+                      </div>
+                    </label>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center text-rose-500 py-8">
@@ -222,7 +241,7 @@ export default function LoanTransitionModal({
             </button>
             <button
               onClick={handleConfirm}
-              disabled={submitting || !eligibility?.allowed || (eligibility?.requiresReason && !reason.trim())}
+              disabled={submitting || !eligibility?.allowed || (eligibility?.requiresReason && !reason.trim()) || (eligibility?.direction === 'rollback' && !rollbackConfirmed)}
               className="flex-1 px-4 py-3 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors shadow-md"
             >
               {submitting ? 'در حال اعمال...' : 'تایید نهایی'}

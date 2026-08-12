@@ -13,7 +13,7 @@ export function calculateInstallmentDates(startDateIso: string, count: number, f
     
     // We parse the ISO string (which is standard Gregorian) into a DateObject
     // But we set its calendar to the system's calendar, so adding months respects that calendar's lengths
-    const d = new DateObject({ date: new Date(startDateIso) });
+    const d = new DateObject({ date: startDateIso, format: "YYYY-MM-DD" });
     if (calendarType === 'jalali') {
         d.setCalendar(persian);
         d.setLocale(persian_fa);
@@ -26,7 +26,8 @@ export function calculateInstallmentDates(startDateIso: string, count: number, f
         }
         // Convert back to ISO (Gregorian) string for storage
         // DateObject natively supports .toDate()
-        dates.push(current.toDate().toISOString().split('T')[0]);
+        const localIso = new Date(current.toDate().getTime() - current.toDate().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+        dates.push(localIso);
     }
     return dates;
 }

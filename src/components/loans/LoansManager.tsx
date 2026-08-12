@@ -111,6 +111,7 @@ export default function LoansManager({
     amount: '',
     interestRate: '',
     startDate: globalDateFormatter.formatDateOnly(new Date()),
+    firstInstallmentDate: globalDateFormatter.formatDateOnly(new Date()),
     totalInstallments: '',
     installmentAmount: '',
     frequency: 'monthly',
@@ -278,7 +279,7 @@ export default function LoansManager({
     
     // Determine the calendar type and calculate dates
     const calendarType = globalDateFormatter.getConfig().calendarType === 'jalali' ? 'jalali' : 'gregorian';
-    const firstDateIso = convertToGregorian(formData.startDate).split('T')[0];
+    const firstDateIso = convertToGregorian(formData.firstInstallmentDate || formData.startDate).split('T')[0];
     const newDates = calculateInstallmentDates(firstDateIso, instCount + 1, formData.frequency || 'monthly', calendarType);
     // newDates[0] is the start date. Installments start from index 1.
 

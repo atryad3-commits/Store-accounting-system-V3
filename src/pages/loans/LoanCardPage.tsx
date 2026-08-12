@@ -118,6 +118,7 @@ export default function LoanCardPage(props: any) {
           person={persons.find(p => String(p.id) === String(loan.personId))}
           onClose={() => setPrintingLoanId(null)}
           formatCurrency={props.formatCurrency || ((v: number) => Number(v).toLocaleString())}
+          currency={props.storeSettings?.currency || 'تومان'}
         />
       )}
     </div>

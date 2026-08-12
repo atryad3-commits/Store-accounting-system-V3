@@ -105,7 +105,7 @@ export async function checkTransitionEligibility(
   if (isRollback && fromStatus === 'active') {
     const installments = await getInstallments();
     const loanInsts = installments.filter(i => i.loanId === loan.id);
-    const hasPaid = loanInsts.some(i => i.status === 'paid');
+    const hasPaid = loanInsts.some(i => i.status === 'paid' || (i.paidAmount && i.paidAmount > 0) || i.receiptId);
     
     if (hasPaid) {
       result.checks.push({ name: 'عدم پرداخت اقساط', passed: false, detail: 'این وام دارای اقساط پرداخت شده است. ابتدا باید پرداخت اقساط لغو شود.' });
@@ -114,7 +114,7 @@ export async function checkTransitionEligibility(
       result.checks.push({ name: 'عدم پرداخت اقساط', passed: true, detail: 'هیچ قسطی هنوز پرداخت نشده است.' });
     }
     
-    result.sideEffects.push('حذف تراکنش ثبت شده صندوق/بانک');
+    result.sideEffects.push('صدور تراکنش برگشتی (واریز) به صندوق/بانک');
     result.sideEffects.push('صدور سند حسابداری معکوس (اصلاحی) برای ابطال سند قبلی');
   }
 
@@ -244,16 +244,26 @@ export async function applyTransition(
         }
     }
   } else if (eligibility.direction === 'rollback' && fromStatus === 'active') {
-    // Reverse Accounting doc & Delete transaction
-    const transactionId = `txn-loan-${loan.id}`;
-    await deleteTransaction(transactionId);
+    // Reverse Accounting doc & Add reverse transaction instead of deleting
+    const reverseTransaction = {
+        id: `txn-rev-loan-${loan.id}-${Date.now()}`,
+        accountId: loan.accountId,
+        type: loan.type === 'given' ? 'deposit' : 'withdrawal',
+        amount: Number(loan.amount),
+        date: new Date().toISOString().split('T')[0],
+        description: `برگشت تراکنش وام شماره ${loan.loanNumber || loan.id}`,
+        personId: loan.personId,
+        categoryId: 'loan_reversal',
+        createdAt: new Date().toISOString(), 
+        skipAccounting: true
+    };
+    await addTransaction(reverseTransaction as any);
     
     const docs = await getAccountingDocuments();
     const docToReverse = docs.find(d => d.sourceType === 'loan' && d.sourceId === loan.id && d.status === 'approved');
     
     if (docToReverse) {
-       // Mark original as rejected/reversed
-       await updateAccountingDocument(docToReverse.id, { ...docToReverse, status: 'rejected', description: docToReverse.description + ' (ابطال شده)' });
+       // DO NOT modify or delete the original document so history remains intact
        
        // Create reverse document
        const reversedItems = docToReverse.items.map((item: any) => ({
@@ -264,7 +274,7 @@ export async function applyTransition(
        }));
        
        await addAccountingDocument({
-           date: new Date().toLocaleDateString('fa-IR').replace(/\//g, '-'),
+           date: new Date().toISOString().split('T')[0],
            description: `سند اصلاحی بازگشت وضعیت وام ${loan.loanNumber || loan.id}`,
            status: 'approved',
            sourceType: 'loan_reversal',

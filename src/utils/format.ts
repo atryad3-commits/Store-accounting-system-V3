@@ -3,6 +3,8 @@ import DateObjectModule from "react-date-object";
 const DateObject = (DateObjectModule as any).default || DateObjectModule;
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+import gregorian from "react-date-object/calendars/gregorian";
+import gregorian_en from "react-date-object/locales/gregorian_en";
 import { globalDateFormatter } from "./dateFormatter";
 
 
@@ -172,7 +174,10 @@ export function convertToGregorian(dateInput: string | Date | null | undefined):
                          }
                      }
                      const d = new DateObject({ date: englishStr, format: format, calendar: persian, locale: persian_fa });
-                     return d.toDate().toISOString();
+                     // To avoid timezone shift when using toISOString, we get the local ISO
+                     const tzOffset = d.toDate().getTimezoneOffset() * 60000;
+                     const localISOTime = (new Date(d.toDate().getTime() - tzOffset)).toISOString().slice(0, -1);
+                     return localISOTime;
                 } else {
                      const d = new Date(englishStr);
                      if (!isNaN(d.getTime())) return d.toISOString();
