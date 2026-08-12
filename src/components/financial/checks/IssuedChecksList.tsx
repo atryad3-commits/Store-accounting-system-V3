@@ -235,7 +235,15 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button 
-                                onClick={() => handleDeleteIssuedCheck(c.id)} 
+                                onClick={() => {
+                                  if (c.status === 'cashed') {
+                                    alert('حذف چک وصول شده امکان‌پذیر نیست. ابتدا وضعیت آن را تغییر دهید.');
+                                    return;
+                                  }
+                                  if (window.confirm('آیا از حذف این چک اطمینان دارید؟ توجه: این عملیات غیرقابل بازگشت است و اسناد مرتبط حذف خواهند شد.')) {
+                                    handleDeleteIssuedCheck(c.id);
+                                  }
+                                }} 
                                 className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100 inline-block"
                                 title="حذف چک"
                               >

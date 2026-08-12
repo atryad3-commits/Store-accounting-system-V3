@@ -193,7 +193,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                            const start = new Date(targetDate); start.setDate(start.getDate() - 15);
                            const end = new Date(targetDate); end.setDate(end.getDate() + 15);
                            const filtered = issuedChecks.filter(c => {
-                             if (!c.dueDate || c.status === 'blank' || c.status === 'cancelled') return false;
+                             if (!c.dueDate || c.status === 'blank' || c.status === 'cancelled' || c.status === 'bounced') return false;
                              const d = new Date(c.dueDate);
                              return d >= start && d <= end;
                            });
@@ -359,7 +359,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                            const start = new Date(targetDate); start.setDate(start.getDate() - 15);
                            const end = new Date(targetDate); end.setDate(end.getDate() + 15);
                            const filtered = receivedChecks.filter(c => {
-                             if (!c.dueDate || c.status === 'returned') return false;
+                             if (!c.dueDate || c.status === 'returned' || c.status === 'bounced' || c.status === 'bounced_assigned') return false;
                              const d = new Date(c.dueDate);
                              return d >= start && d <= end;
                            });

@@ -56,20 +56,20 @@ export function useCheckForm(
       switch(currentStatus) {
         case 'blank': return ['issued', 'cancelled'];
         case 'issued': return ['cashed', 'bounced', 'cancelled'];
-        case 'cashed': return [];
-        case 'bounced': return ['cancelled'];
-        case 'cancelled': return [];
+        case 'cashed': return ['issued']; // Allow rollback to issued
+        case 'bounced': return ['cancelled', 'issued']; // Allow rollback
+        case 'cancelled': return ['issued']; // Allow rollback
         default: return [];
       }
     } else {
       switch(currentStatus) {
         case 'received': return ['deposited', 'assigned', 'returned'];
         case 'deposited': return ['cashed', 'bounced', 'received'];
-        case 'cashed': return [];
-        case 'assigned': return ['bounced_assigned'];
-        case 'bounced_assigned': return ['returned'];
+        case 'cashed': return ['deposited']; // Allow rollback to deposited
+        case 'assigned': return ['bounced_assigned', 'received']; // Allow rollback to received
+        case 'bounced_assigned': return ['returned', 'assigned']; // Allow rollback to assigned
         case 'bounced': return ['returned', 'deposited'];
-        case 'returned': return [];
+        case 'returned': return ['received', 'bounced']; // Allow rollback
         default: return [];
       }
     }
@@ -109,21 +109,25 @@ export function useCheckForm(
       description: icDescription
     };
 
-    const blankCheck = issuedChecks.find(c => c.status === 'blank' && c.checkbookId?.toString() === payload.checkbookId?.toString() && c.checkNumber === payload.checkNumber);
-    if (blankCheck && !editingIssuedCheckId) {
-       await updateIssuedCheck(blankCheck.id.toString(), { ...blankCheck, ...payload, status: 'issued' } as any);
-    } else if (editingIssuedCheckId) {
-      const existing = issuedChecks.find(c => c.id === editingIssuedCheckId);
-      if (existing) {
-        await updateIssuedCheck(editingIssuedCheckId.toString(), { ...existing, ...payload, status: existing.status || 'issued' } as any);
+    try {
+      const blankCheck = issuedChecks.find(c => c.status === 'blank' && c.checkbookId?.toString() === payload.checkbookId?.toString() && c.checkNumber === payload.checkNumber);
+      if (blankCheck && !editingIssuedCheckId) {
+         await updateIssuedCheck(blankCheck.id.toString(), { ...blankCheck, ...payload, status: 'issued' } as any);
+      } else if (editingIssuedCheckId) {
+        const existing = issuedChecks.find(c => c.id === editingIssuedCheckId);
+        if (existing) {
+          await updateIssuedCheck(editingIssuedCheckId.toString(), { ...existing, ...payload, status: existing.status || 'issued' } as any);
+        }
+      } else {
+        await addIssuedCheck(payload);
       }
-    } else {
-      await addIssuedCheck(payload);
+      
+      setIsIssuedModalOpen(false);
+      resetIssuedForm();
+      await fetchData();
+    } catch (err: any) {
+      notify(err.message || 'خطا در ثبت چک', 'error');
     }
-    
-    setIsIssuedModalOpen(false);
-    resetIssuedForm();
-    await fetchData();
   };
 
   const resetReceivedForm = () => {
@@ -161,18 +165,22 @@ export function useCheckForm(
       description: rcDescription
     };
 
-    if (editingReceivedCheckId) {
-      const existing = receivedChecks.find(c => c.id === editingReceivedCheckId);
-      if (existing) {
-         await updateReceivedCheck(editingReceivedCheckId.toString(), { ...existing, ...payload, status: existing.status || 'received' } as any);
+    try {
+      if (editingReceivedCheckId) {
+        const existing = receivedChecks.find(c => c.id === editingReceivedCheckId);
+        if (existing) {
+           await updateReceivedCheck(editingReceivedCheckId.toString(), { ...existing, ...payload, status: existing.status || 'received' } as any);
+        }
+      } else {
+        await addReceivedCheck(payload);
       }
-    } else {
-      await addReceivedCheck(payload);
+      
+      setIsReceivedModalOpen(false);
+      resetReceivedForm();
+      await fetchData();
+    } catch (err: any) {
+      notify(err.message || 'خطا در ثبت چک', 'error');
     }
-    
-    setIsReceivedModalOpen(false);
-    resetReceivedForm();
-    await fetchData();
   };
 
   const handleUpdateStatus = async (e: React.FormEvent) => {
@@ -200,7 +208,7 @@ export function useCheckForm(
         if (statusVal === 'cashed' && !wasAlreadyCashed) {
           if (depositAccountId) {
             await addTransaction({
-              type: 'payment',
+              type: 'pay',
               resourceType: 'bank',
               resourceId: depositAccountId,
               amount: existing.amount,
