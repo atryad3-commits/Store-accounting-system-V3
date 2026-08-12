@@ -860,7 +860,7 @@ export default function LoansManager({
         )}
         
         {activeTab === 'arrears' && (
-           <LoansArrears formatCurrency={formatCurrency} loans={finalApprovedLoans} installments={installments} persons={persons} />
+           <LoansArrears formatCurrency={formatCurrency} loans={finalApprovedLoans} installments={installments} persons={persons} storeSettings={storeSettings} />
         )}
 
         {activeTab === 'reports' && (

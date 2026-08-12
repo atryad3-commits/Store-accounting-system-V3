@@ -935,7 +935,7 @@ export default function App() {
                           setViewingCheck={setViewingCheck} />
                       </motion.div>} />
 
-<Route path="/loan/:id" element={<LoanCardPage showNotification={showNotification} userRole={user?.role} formatCurrency={formatCurrency} />} />
+<Route path="/loan/:id" element={<LoanCardPage showNotification={showNotification} userRole={user?.role} formatCurrency={formatCurrency} storeSettings={storeSettings} />} />
 <Route path="/loans_dashboard" element={<LoansManager activeTab="dashboard" showNotification={showNotification} persons={persons} accounts={accounts} loans={loans} setLoans={setLoans} installments={installments} setInstallments={setInstallments} currentUser={user?.name || "کاربر سیستم"} userRole={user?.role} setAccounts={setAccounts} transactions={transactions} setTransactions={setTransactions} storeSettings={storeSettings} />} />
 <Route path="/loans_list" element={<LoansManager activeTab="list" showNotification={showNotification} persons={persons} accounts={accounts} loans={loans} setLoans={setLoans} installments={installments} setInstallments={setInstallments} currentUser={user?.name || "کاربر سیستم"} userRole={user?.role} setAccounts={setAccounts} transactions={transactions} setTransactions={setTransactions} storeSettings={storeSettings} />} />
 <Route path="/loans_create" element={<LoansManager activeTab="create" showNotification={showNotification} persons={persons} accounts={accounts} loans={loans} setLoans={setLoans} installments={installments} setInstallments={setInstallments} currentUser={user?.name || "کاربر سیستم"} userRole={user?.role} setAccounts={setAccounts} transactions={transactions} setTransactions={setTransactions} storeSettings={storeSettings} />} />
