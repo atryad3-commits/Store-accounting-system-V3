@@ -191,7 +191,7 @@ export default function LoanDetailsView({
                           <tbody className="divide-y divide-gray-100">
                              {loanInsts.map((inst, idx) => {
                                 const daysPast = calculateDaysPastDue(inst.dueDate);
-                                const penalty = calculatePenalty(loan, inst);
+                                const penalty = Math.max(0, calculatePenalty(loan, inst) - (inst.penaltyPaidAmount || 0));
                                 return (
                                 <tr key={inst.id} className="hover:bg-gray-50 transition-colors">
                                    <td className="p-3 font-bold text-gray-600">{idx + 1}</td>
@@ -206,7 +206,7 @@ export default function LoanDetailsView({
                                      {(inst.status === 'pending' || inst.status === 'overdue') && daysPast > 0 ? (
                                         <div className="flex flex-col text-xs">
                                            <span className="text-rose-500 font-bold">{daysPast} روز گذشته</span>
-                                           {penalty > 0 && <span className="text-rose-700 font-black">{formatCurrency(penalty)} ریال جریمه</span>}
+                                           {penalty > 0 && <span className="text-rose-700 font-black">{formatCurrency(penalty)} {currencyUnit} جریمه باقی‌مانده</span>}
                                         </div>
                                      ) : '-'}
                                    </td>

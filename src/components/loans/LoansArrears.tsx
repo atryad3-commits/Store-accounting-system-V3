@@ -137,8 +137,8 @@ export default function LoansArrears({
                   </td>
                   <td className="px-6 py-4 font-black font-mono text-gray-900" dir="ltr">
                     {addCommas(inst.amount)} {storeSettings?.currency || "تومان"}
-                    {inst.loan && calculatePenalty(inst.loan, inst) > 0 && (
-                       <div className="text-xs text-rose-600 mt-1 block">+ {addCommas(calculatePenalty(inst.loan, inst))} جریمه</div>
+                    {inst.loan && Math.max(0, calculatePenalty(inst.loan, inst) - (inst.penaltyPaidAmount || 0)) > 0 && (
+                       <div className="text-xs text-rose-600 mt-1 block">+ {addCommas(Math.max(0, calculatePenalty(inst.loan, inst) - (inst.penaltyPaidAmount || 0)))} جریمه</div>
                     )}
                   </td>
                   <td className="px-6 py-4">

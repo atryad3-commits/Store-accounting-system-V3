@@ -39,9 +39,22 @@ export default function CustomDatePicker(props: any) {
 
   let parsedValue = props.value;
   if (typeof props.value === 'string' && props.value) {
-    parsedValue = new Date(convertToGregorian(props.value));
+    if (props.value.includes('T') || props.value.startsWith('20') || props.value.startsWith('19')) {
+      parsedValue = new Date(convertToGregorian(props.value));
+    } else {
+      // It's likely a Shamsi string, let DatePicker parse it directly using format
+      parsedValue = props.value;
+    }
   } else if (Array.isArray(props.value)) {
-    parsedValue = props.value.map((v: any) => typeof v === 'string' ? new Date(convertToGregorian(v)) : v);
+    parsedValue = props.value.map((v: any) => {
+      if (typeof v === 'string') {
+        if (v.includes('T') || v.startsWith('20') || v.startsWith('19')) {
+          return new Date(convertToGregorian(v));
+        }
+        return v;
+      }
+      return v;
+    });
   }
 
   return (

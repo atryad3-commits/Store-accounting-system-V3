@@ -455,7 +455,7 @@ export type Loan = {
   earlySettlementDiscountPercent?: number;
 };
 
-export type Installment = { id: string | number; loanId: string | number; dueDate: string; amount: number; status: 'pending' | 'paid' | 'overdue'; paidDate?: string; paidAmount?: number; description?: string; installmentNumber?: number; installmentCode?: string; receiptId?: string | number; receiptNumber?: string; };
+export type Installment = { id: string | number; loanId: string | number; dueDate: string; amount: number; status: 'pending' | 'paid' | 'overdue'; paidDate?: string; paidAmount?: number; penaltyPaidAmount?: number; description?: string; installmentNumber?: number; installmentCode?: string; receiptId?: string | number; receiptNumber?: string; };
 
 
 export type SystemLog = {

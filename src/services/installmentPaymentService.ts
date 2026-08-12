@@ -59,6 +59,7 @@ export const lookupInstallmentByCode = async (code: string) => {
         loan,
         person,
         amountRemaining: inst.amount - (inst.paidAmount || 0),
+        penaltyPaidAmount: inst.penaltyPaidAmount || 0,
     };
 };
 
@@ -68,7 +69,8 @@ export const calculatePaymentPreview = async (
 ): Promise<PaymentPreview> => {
     const { installment, loan, amountRemaining } = await lookupInstallmentByCode(installmentCode);
     
-    const penaltyAmount = calculatePenalty(loan, installment);
+    const totalAccruedPenalty = calculatePenalty(loan, installment);
+    const penaltyAmount = Math.max(0, totalAccruedPenalty - (installment.penaltyPaidAmount || 0));
     
     const totalDueForThisInst = amountRemaining + penaltyAmount;
     
@@ -80,11 +82,12 @@ export const calculatePaymentPreview = async (
     
     const allocations: { installmentId: string | number; amount: number; isPenalty: boolean }[] = [];
     
-    if (penaltyAmount > 0) {
-        allocations.push({ installmentId: installment.id, amount: penaltyAmount, isPenalty: true });
+    const allocatedPenalty = Math.min(amountEntered, penaltyAmount);
+    if (allocatedPenalty > 0) {
+        allocations.push({ installmentId: installment.id, amount: allocatedPenalty, isPenalty: true });
     }
     
-    const principalToPay = Math.min(amountEntered - penaltyAmount, amountRemaining);
+    const principalToPay = Math.min(Math.max(0, amountEntered - allocatedPenalty), amountRemaining);
     if (principalToPay > 0) {
         allocations.push({ installmentId: installment.id, amount: principalToPay, isPenalty: false });
     }
@@ -154,28 +157,39 @@ export const registerInstallmentPayment = async (
             const inst = updatedInstallments[instIndex];
             if (alloc.isPenalty) {
                 totalAllocatedPenalty += alloc.amount;
-                // We might track penaltyPaid on installment here
                 updatedInstallments[instIndex] = {
                     ...inst,
-                    // If we want to store penalty amount paid, we could add `penaltyPaidAmount` to type Installment, but for now we skip storing it individually.
+                    penaltyPaidAmount: (inst.penaltyPaidAmount || 0) + alloc.amount
                 };
             } else {
                 const newPaid = (inst.paidAmount || 0) + alloc.amount;
-                const isPaid = newPaid >= inst.amount;
+                // Important: an installment is fully paid only if the principal is paid AND there is no remaining accrued penalty
+                const isPaid = newPaid >= inst.amount && (calculatePenalty(loan, inst) - (updatedInstallments[instIndex].penaltyPaidAmount || inst.penaltyPaidAmount || 0) <= 0);
                 
                 updatedInstallments[instIndex] = {
-                    ...inst,
+                    ...updatedInstallments[instIndex],
                     paidAmount: newPaid,
                     status: isPaid ? 'paid' : 'pending',
                     paidDate: isPaid ? todayIso : inst.paidDate
                 };
                 totalAllocatedPrincipal += alloc.amount;
             }
+            
+            // Re-check isPaid status for penalty allocations as well
+            if (alloc.isPenalty) {
+                const currentInst = updatedInstallments[instIndex];
+                const isPaid = (currentInst.paidAmount || 0) >= currentInst.amount && (calculatePenalty(loan, currentInst) - (currentInst.penaltyPaidAmount || 0) <= 0);
+                if (isPaid) {
+                    updatedInstallments[instIndex].status = 'paid';
+                    updatedInstallments[instIndex].paidDate = currentInst.paidDate || todayIso;
+                }
+            }
         }
     }
     
     // Update Transaction & Accounting
     const txType = loan.type === 'given' ? 'receive' : 'pay';
+    // The main payment transaction
     const tx = await addTransaction({
         type: txType,
         amount: amountEntered, // Actual amount received
@@ -192,6 +206,24 @@ export const registerInstallmentPayment = async (
         time: new Date().toLocaleTimeString('fa-IR', { hour12: false }),
         isSystem: true,
     });
+    
+    // Also register the penalty charge in the ledger if there is any penalty paid
+    if (totalAllocatedPenalty > 0) {
+        await addTransaction({
+            type: loan.type === 'given' ? 'pay' : 'receive', // The opposite type: charges the person
+            amount: totalAllocatedPenalty,
+            method: 'account', // Does not matter, but we must provide it
+            resourceType: 'bank',
+            resourceId: 'penalty-virtual',
+            personId: loan.personId,
+            categoryId: loan.type === 'given' ? 'loan_penalty_charged' : 'loan_penalty_deducted',
+            description: `ثبت جریمه دیرکرد قسط برای کد یکتا ${installmentCode}`,
+            date: new Date().toISOString().split('T')[0],
+            jalaliDate: new Date().toLocaleDateString('fa-IR').replace(/\//g, '-'),
+            time: new Date().toLocaleTimeString('fa-IR', { hour12: false }),
+            isSystem: true,
+        });
+    }
     
     // Attach receipt info to installments that were paid in this batch
     updatedInstallments = updatedInstallments.map((inst: any) => {

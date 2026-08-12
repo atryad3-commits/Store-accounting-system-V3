@@ -75,7 +75,7 @@ export function calculateEarlySettlement(loan: Loan, installments: Installment[]
     
     loanInsts.forEach(inst => {
         totalRemaining += inst.amount - (inst.paidAmount || 0);
-        penaltyTotal += calculatePenalty(loan, inst);
+        penaltyTotal += Math.max(0, calculatePenalty(loan, inst) - (inst.penaltyPaidAmount || 0));
     });
 
     let discountAmount = 0;

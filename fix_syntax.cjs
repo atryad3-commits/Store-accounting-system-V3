@@ -1,21 +1,16 @@
 const fs = require('fs');
-let code = fs.readFileSync('src/components/loans/LoansManager.tsx', 'utf8');
 
-// Find the erroneous block in the middle
-const errorBlock = `                                                       {printingLoanId && (
-          <InstallmentBookletPrint
-            loan={loans.find(l => l.id === printingLoanId)!}
-            installments={installments.filter(i => i.loanId === printingLoanId)}
-            person={persons.find(p => p.id === loans.find(l => l.id === printingLoanId)?.personId)}
-            onClose={() => setPrintingLoanId(null)}
-            formatCurrency={formatCurrency}
-          />
-        )}
-      </div>
-    </div>
-  );
-}`;
+const path = 'src/services/installmentPaymentService.ts';
+let code = fs.readFileSync(path, 'utf8');
 
-code = code.replace(errorBlock, "");
+code = code.replace(
+    `if (principalToPay > 0) {
+        allocations.push({ installmentId: installment.id, amount: principalToPay, isPenalty: false });
+    });
+    }`,
+    `if (principalToPay > 0) {
+        allocations.push({ installmentId: installment.id, amount: principalToPay, isPenalty: false });
+    }`
+);
 
-fs.writeFileSync('src/components/loans/LoansManager.tsx', code);
+fs.writeFileSync(path, code);

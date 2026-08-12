@@ -10,6 +10,7 @@ import CustomDatePicker from '../ui/CustomDatePicker';
 import { startAppProcessing, stopAppProcessing } from '../../utils/processingHelper';
 import { saveLoans, saveInstallments, addTransaction, deleteTransaction, checkFinancialYear, addSystemLog, addLoanHistoryEntry } from '../../services/dataService';
 import { formatDateDisplay, convertToGregorian } from '../../utils/format';
+import { globalDateFormatter } from '../../utils/dateFormatter';
 import LoansDashboard from './LoansDashboard';
 import LoansArrears from './LoansArrears';
 import LoansReports from './LoansReports';
@@ -109,7 +110,7 @@ export default function LoansManager({
     personId: '',
     amount: '',
     interestRate: '',
-    startDate: new Date().toLocaleDateString('fa-IR').replace(/\//g, '-'),
+    startDate: globalDateFormatter.formatDateOnly(new Date()),
     totalInstallments: '',
     installmentAmount: '',
     frequency: 'monthly',
@@ -152,7 +153,7 @@ export default function LoansManager({
     installmentId: null,
     amount: '',
     accountId: '',
-    paymentDate: new Date().toLocaleDateString('fa-IR').replace(/\//g, '-'),
+    paymentDate: globalDateFormatter.formatDateOnly(new Date()),
   });
 
   const addCommas = (num: number | string) => {
@@ -356,7 +357,7 @@ export default function LoansManager({
       personId: '',
       amount: '',
       interestRate: '',
-      startDate: new Date().toLocaleDateString('fa-IR').replace(/\//g, '-'),
+      startDate: globalDateFormatter.formatDateOnly(new Date()),
       totalInstallments: '',
       installmentAmount: '',
       description: '',
