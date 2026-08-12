@@ -27,6 +27,7 @@ export function useCheckForm(
   const [icIssueDate, setIcIssueDate] = useState('');
   const [icDueDate, setIcDueDate] = useState('');
   const [icDescription, setIcDescription] = useState('');
+  const [icAttachments, setIcAttachments] = useState<string[]>([]);
 
   // Received Check form state
   const [rcPayerId, setRcPayerId] = useState('');
@@ -39,6 +40,7 @@ export function useCheckForm(
   const [rcReceiveDate, setRcReceiveDate] = useState('');
   const [rcDueDate, setRcDueDate] = useState('');
   const [rcDescription, setRcDescription] = useState('');
+  const [rcAttachments, setRcAttachments] = useState<string[]>([]);
 
   // Status adjustment form state
   const [updatingCheckType, setUpdatingCheckType] = useState<'issued' | 'received'>('issued');
@@ -87,6 +89,7 @@ export function useCheckForm(
     setIcIssueDate('');
     setIcDueDate('');
     setIcDescription('');
+    setIcAttachments([]);
   };
 
   const handleIssueCheckSubmit = async (e: React.FormEvent) => {
@@ -106,7 +109,8 @@ export function useCheckForm(
       issueDate: icIssueDate || new Date().toISOString(),
       dueDate: icDueDate,
       status: 'issued', // Default
-      description: icDescription
+      description: icDescription,
+      attachments: icAttachments
     };
 
     try {
@@ -142,6 +146,7 @@ export function useCheckForm(
     setRcReceiveDate('');
     setRcDueDate('');
     setRcDescription('');
+    setRcAttachments([]);
   };
 
   const handleReceiveCheckSubmit = async (e: React.FormEvent) => {
@@ -162,7 +167,8 @@ export function useCheckForm(
       receiveDate: rcReceiveDate || new Date().toISOString(),
       dueDate: rcDueDate,
       status: 'received', 
-      description: rcDescription
+      description: rcDescription,
+      attachments: rcAttachments
     };
 
     try {
@@ -295,6 +301,7 @@ export function useCheckForm(
     icIssueDate, setIcIssueDate,
     icDueDate, setIcDueDate,
     icDescription, setIcDescription,
+    icAttachments, setIcAttachments,
     rcPayerId, setRcPayerId,
     rcBankName, setRcBankName,
     rcBranchName, setRcBranchName,
@@ -305,6 +312,7 @@ export function useCheckForm(
     rcReceiveDate, setRcReceiveDate,
     rcDueDate, setRcDueDate,
     rcDescription, setRcDescription,
+    rcAttachments, setRcAttachments,
     updatingCheckType, setUpdatingCheckType,
     updatingCheckId, setUpdatingCheckId,
     statusVal, setStatusVal,

@@ -28,6 +28,7 @@ icAmount, setIcAmount,
 icIssueDate, setIcIssueDate,
 icDueDate, setIcDueDate,
 icDescription, setIcDescription,
+icAttachments, setIcAttachments,
 rcPayerId, setRcPayerId,
 rcBankName, setRcBankName,
 rcBranchName, setRcBranchName,
@@ -38,6 +39,7 @@ rcAmount, setRcAmount,
 rcReceiveDate, setRcReceiveDate,
 rcDueDate, setRcDueDate,
 rcDescription, setRcDescription,
+rcAttachments, setRcAttachments,
 updatingCheckType, setUpdatingCheckType,
 updatingCheckId, setUpdatingCheckId,
 statusVal, setStatusVal,
@@ -173,6 +175,34 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                 <div>
                   <label className="block text-xs font-black text-gray-700 mb-1">توضیحات و بابت</label>
                   <textarea rows={2} value={icDescription} onChange={e => setIcDescription(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-xs" placeholder="بابت فاکتور خرید فلان یا هرگونه یادداشت اضافی..."></textarea>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-gray-700 mb-1">تصویر چک (اختیاری)</label>
+                  <div className="flex flex-col gap-2">
+                    <input type="file" accept="image/*" multiple onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      files.forEach(file => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setIcAttachments(prev => [...(prev || []), reader.result as string]);
+                        };
+                        reader.readAsDataURL(file);
+                      });
+                    }} className="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                    {icAttachments?.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {icAttachments.map((att, i) => (
+                          <div key={i} className="relative group w-16 h-16 rounded-xl border overflow-hidden">
+                            <img src={att} alt="attachment" className="w-full h-full object-cover" />
+                            <button type="button" onClick={() => setIcAttachments(prev => prev.filter((_, idx) => idx !== i))} className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2.5 pt-4 border-t">
@@ -339,6 +369,34 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                 <div>
                   <label className="block text-xs font-black text-gray-700 mb-1">بابت و توضیحات چک</label>
                   <textarea rows={2} value={rcDescription} onChange={e => setRcDescription(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-xs" placeholder="بابت فاکتور فروش یا هرگونه یادداشت..."></textarea>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-gray-700 mb-1">تصویر چک (اختیاری)</label>
+                  <div className="flex flex-col gap-2">
+                    <input type="file" accept="image/*" multiple onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      files.forEach(file => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setRcAttachments(prev => [...(prev || []), reader.result as string]);
+                        };
+                        reader.readAsDataURL(file);
+                      });
+                    }} className="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
+                    {rcAttachments?.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {rcAttachments.map((att, i) => (
+                          <div key={i} className="relative group w-16 h-16 rounded-xl border overflow-hidden">
+                            <img src={att} alt="attachment" className="w-full h-full object-cover" />
+                            <button type="button" onClick={() => setRcAttachments(prev => prev.filter((_, idx) => idx !== i))} className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2.5 pt-4 border-t">
