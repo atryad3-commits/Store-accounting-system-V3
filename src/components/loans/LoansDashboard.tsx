@@ -14,7 +14,7 @@ interface LoansDashboardProps {
 }
 
 export default function LoansDashboard({ 
-  formatCurrency = (val: number) => Number(val).toLocaleString("fa-IR") + " تومان",
+  formatCurrency = (val: number) => Number(val).toLocaleString("fa-IR") + " " + (storeSettings?.currency || "تومان"),
   loans, installments, persons, storeSettings
 }: LoansDashboardProps) {
   const today = new Date().toLocaleDateString('fa-IR').replace(/\//g, '-');
@@ -157,7 +157,7 @@ export default function LoansDashboard({
           <div className="flex-1 overflow-y-auto pr-2 space-y-4">
              {installments.filter(i => {
                 if (i.status !== 'pending' && i.status !== 'overdue') return false;
-                if (i.dueDate >= today) return false;
+                if (calculateDaysPastDue(i.dueDate) <= 0) return false;
                 const loan = loans.find(l => l.id.toString() === i.loanId.toString());
                 if (!loan || (loan.status !== 'active' && loan.status !== 'overdue' && loan.status !== 'completed')) return false;
                 return true;
@@ -172,7 +172,7 @@ export default function LoansDashboard({
                     </div>
                     <div className="text-left">
                       <p className="font-mono font-bold text-gray-900 text-sm" dir="ltr">{addCommas(inst.amount)}</p>
-                      <p className="text-[10px] text-gray-500 mt-1">تومان</p>
+                      <p className="text-[10px] text-gray-500 mt-1">{storeSettings?.currency || "تومان"}</p>
                     </div>
                   </div>
                 )

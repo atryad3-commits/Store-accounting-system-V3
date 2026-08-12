@@ -29,7 +29,7 @@ export default function LoansArrears({
       .filter(i => {
         if (filterType === 'overdue') {
             if (i.status !== 'pending' && i.status !== 'overdue') return false;
-            if (i.dueDate >= today) return false;
+            if (calculateDaysPastDue(i.dueDate) <= 0) return false;
         }
         
         const loan = loans.find(l => l.id === i.loanId);
