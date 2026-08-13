@@ -2720,6 +2720,7 @@ description: receiptDescription,
       const txPayload = {
         ...payload,
         linkedInvoices: receiptLinkedInvoices,
+        skipAccounting: payload.method === "check"
       };
       let createdReceiptObj: any = { ...payload };
 

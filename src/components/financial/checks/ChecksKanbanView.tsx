@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { DndContext, DragOverlay, closestCorners, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
-import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { DndContext, DragOverlay, closestCorners, DragEndEvent, DragStartEvent, useSensors, useSensor, PointerSensor, KeyboardSensor } from '@dnd-kit/core';
+import { SortableContext, useSortable, verticalListSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { toPersianDigits, getDaysRemaining } from './utils';
 import { Calendar, Building2, User, CreditCard } from 'lucide-react';
