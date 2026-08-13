@@ -279,7 +279,7 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
                               </button>
                               <button 
                                 onClick={() => { 
-                                  if (c.receiptNumber && onEditReceiptByCheck) {
+                                  if (onEditReceiptByCheck) {
                                     onEditReceiptByCheck(c, 'issued');
                                   } else {
                                     showNotification('این چک بدون فرم رسید ثبت شده است و قابلیت ویرایش از طریق رسید را ندارد. در صورت نیاز آن را حذف کرده و مجدداً از طریق فرم رسید ثبت نمایید.', 'error');

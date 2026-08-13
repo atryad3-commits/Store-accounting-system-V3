@@ -2913,12 +2913,12 @@ const handleEditReceiptByCheck = (check: any, type: 'issued' | 'received') => {
     const txType = type === 'issued' ? 'pay' : 'receive';
     let tx;
     if (check.receiptNumber) {
-      tx = transactions.find((t) => t.type === txType && t.receiptNumber === check.receiptNumber);
+      tx = transactions.find((t) => t.type === txType && String(t.receiptNumber) === String(check.receiptNumber));
       if (!tx) {
-        tx = transactions.find((t) => t.type === txType && t.method === 'check' && t.checkNumber === check.checkNumber);
+        tx = transactions.find((t) => t.type === txType && t.method === 'check' && String(t.checkNumber) === String(check.checkNumber));
       }
     } else {
-      tx = transactions.find((t) => t.type === txType && t.method === 'check' && t.checkNumber === check.checkNumber);
+      tx = transactions.find((t) => t.type === txType && t.method === 'check' && String(t.checkNumber) === String(check.checkNumber));
     }
     
     if (tx) {

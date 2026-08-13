@@ -273,7 +273,7 @@ async function innerGetDbData(key: string) {
       throw e;
     }
   } else {
-      // PG is not active. SQLite cannot be used for reads as per architecture rules.
+      if (key === "company_profile") { try { getDb().prepare("CREATE TABLE IF NOT EXISTS system_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT)").run(); const rows = getDb().prepare("SELECT * FROM system_settings").all(); if (!rows || rows.length === 0) return null; const obj = { id: "singleton" }; for (const row of rows as any[]) { try { (obj as any)[row.setting_key] = JSON.parse(row.setting_value); } catch(e) { (obj as any)[row.setting_key] = row.setting_value; } } return obj; } catch (e) { return null; } } else { try { const row = getDb().prepare("SELECT value FROM store WHERE key = ?").get(key) as any; if (row) { return JSON.parse(row.value); } return null; } catch (e) { return null; } }
       return null;
   }
 }
