@@ -190,7 +190,7 @@ export function CheckCalendar({ storeSettings, issuedChecks, receivedChecks, per
                           </div>
                           <div className="flex justify-between items-end border-t border-dashed border-gray-200 pt-3 mt-3">
                             <span className="text-xs text-emerald-600 font-bold">مبلغ :</span>
-                            <span className="font-sans text-emerald-600 font-black text-sm">{Number(c.amount).toLocaleString()} <span className="text-[10px] text-gray-400">تومان</span></span>
+                            <span className="font-sans text-emerald-600 font-black text-sm">{Number(c.amount).toLocaleString()} <span className="text-[10px] text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                           </div>
                         </div>
                       ))}
@@ -239,7 +239,7 @@ export function CheckCalendar({ storeSettings, issuedChecks, receivedChecks, per
                           </div>
                           <div className="flex justify-between items-end border-t border-dashed border-gray-200 pt-3 mt-3">
                             <span className="text-xs text-orange-600 font-bold">مبلغ :</span>
-                            <span className="font-sans text-orange-600 font-black text-sm">{Number(c.amount).toLocaleString()} <span className="text-[10px] text-gray-400">تومان</span></span>
+                            <span className="font-sans text-orange-600 font-black text-sm">{Number(c.amount).toLocaleString()} <span className="text-[10px] text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                           </div>
                         </div>
                       ))}

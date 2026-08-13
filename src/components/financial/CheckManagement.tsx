@@ -76,7 +76,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
   const displayIssuedChecks = paginatedIssued?.data || filters.filteredIssuedChecks;
   const displayReceivedChecks = paginatedReceived?.data || filters.filteredReceivedChecks;
 
-  const form = useCheckForm(issuedChecks, receivedChecks, fetchData, notify, currentUser, rollbackCashedTransaction);
+  const form = useCheckForm(issuedChecks, receivedChecks, fetchData, notify, currentUser, rollbackCashedTransaction, storeSettings);
 
   const [selectedCalendarDate, setSelectedCalendarDate] = React.useState<any[]>([new Date()]);
 
@@ -235,20 +235,22 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
             issuedChecks={issuedChecks} 
             receivedChecks={receivedChecks} 
             formatCurrency={(v) => Number(v).toLocaleString()}
+             storeSettings={storeSettings}
           />
           {activeSubTab === 'checkbooks' && <CheckbooksManager 
             showNotification={showNotification} 
             checkbooks={checkbooks} 
             setCheckbooks={setCheckbooks} 
-            accounts={accounts} 
+            accounts={accounts}
+              storeSettings={storeSettings} 
             setIssuedCheckbookFilter={filters.setIssuedCheckbookFilter} 
             setActiveSubTab={setActiveSubTab} 
-            storeSettings={storeSettings} 
           />}
           {activeSubTab === 'issued_checks' && viewMode === 'list' && (
             <IssuedChecksList 
               showNotification={notify} onEditReceiptByCheck={onEditReceiptByCheck}
               issuedChecks={issuedChecks} persons={persons} checkbooks={checkbooks} accounts={accounts}
+              storeSettings={storeSettings}
               issuedSearchQuery={filters.issuedSearchQuery} setIssuedSearchQuery={filters.setIssuedSearchQuery}
               issuedCheckStatusFilter={filters.issuedCheckStatusFilter} setIssuedCheckStatusFilter={filters.setIssuedCheckStatusFilter}
               issuedCheckbookFilter={filters.issuedCheckbookFilter} setIssuedCheckbookFilter={filters.setIssuedCheckbookFilter}
@@ -258,11 +260,12 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
               totalIssuedAmount={totalIssuedAmount} cashedIssuedAmount={cashedIssuedAmount}
               pendingIssuedAmount={pendingIssuedAmount} bouncedIssuedAmount={bouncedIssuedAmount}
               setViewingCheck={setViewingCheck}
+              storeSettings={storeSettings}
               setUpdatingCheckId={form.setUpdatingCheckId} setUpdatingCheckType={form.setUpdatingCheckType}
               setStatusVal={form.setStatusVal} setIsStatusModalOpen={form.setIsStatusModalOpen}
               setIsHistoryModalOpen={setIsHistoryModalOpen} setHistoryCheck={setHistoryCheck}
               setHistoryData={setHistoryData} handleDeleteIssuedCheck={deleteIssuedCheckHandler}
-              formatDateDisplay={formatDateDisplay} storeSettings={storeSettings}
+              formatDateDisplay={formatDateDisplay}
               sendNotification={sendNotification} getCheckAuditLogs={getCheckAuditLogs}
             />
           )}
@@ -278,6 +281,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                 form.setIsStatusModalOpen(true);
               }}
               setViewingCheck={setViewingCheck}
+              storeSettings={storeSettings}
               formatCurrency={(v) => Number(v).toLocaleString()}
             />
           )}
@@ -285,6 +289,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
             <ReceivedChecksList 
               showNotification={notify}
               receivedChecks={receivedChecks} persons={persons} checkbooks={checkbooks} accounts={accounts}
+              storeSettings={storeSettings}
               receivedSearchQuery={filters.receivedSearchQuery} setReceivedSearchQuery={filters.setReceivedSearchQuery}
               receivedCheckStatusFilter={filters.receivedCheckStatusFilter} setReceivedCheckStatusFilter={filters.setReceivedCheckStatusFilter}
               receivedSortBy={filters.receivedSortBy} setReceivedSortBy={filters.setReceivedSortBy}
@@ -293,11 +298,12 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
               totalReceivedAmount={totalReceivedAmount} cashedReceivedAmount={cashedReceivedAmount}
               inHandReceivedAmount={inHandReceivedAmount} bouncedReceivedAmount={bouncedReceivedAmount}
               setViewingCheck={setViewingCheck}
+              storeSettings={storeSettings}
               setUpdatingCheckId={form.setUpdatingCheckId} setUpdatingCheckType={form.setUpdatingCheckType}
               setStatusVal={form.setStatusVal} setIsStatusModalOpen={form.setIsStatusModalOpen}
               setIsHistoryModalOpen={setIsHistoryModalOpen} setHistoryCheck={setHistoryCheck}
               setHistoryData={setHistoryData} handleDeleteReceivedCheck={deleteReceivedCheckHandler}
-              formatDateDisplay={formatDateDisplay} storeSettings={storeSettings}
+              formatDateDisplay={formatDateDisplay}
               sendNotification={sendNotification} getCheckAuditLogs={getCheckAuditLogs} onEditReceiptByCheck={onEditReceiptByCheck}
             />
           )}
@@ -313,6 +319,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
                 form.setIsStatusModalOpen(true);
               }}
               setViewingCheck={setViewingCheck}
+              storeSettings={storeSettings}
               formatCurrency={(v) => Number(v).toLocaleString()}
             />
           )}
@@ -322,6 +329,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
             receivedChecks={receivedChecks}
             persons={persons}
             accounts={accounts}
+              storeSettings={storeSettings}
             checkbooks={checkbooks}
             showNotification={notify}
             userRole={user?.role}
@@ -330,8 +338,9 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
           />
         )}
         {activeSubTab === 'check_calendar' && (
-            <CheckCalendar storeSettings={storeSettings} 
+            <CheckCalendar 
               issuedChecks={issuedChecks} receivedChecks={receivedChecks} persons={persons} checkbooks={checkbooks} accounts={accounts}
+              storeSettings={storeSettings}
               selectedCalendarDate={selectedCalendarDate} setSelectedCalendarDate={setSelectedCalendarDate}
               normalizeDate={normalizeDate} getSelectedRange={getSelectedRange} setViewingCheck={setViewingCheck}
             />
@@ -345,6 +354,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
               issuedChecks={issuedChecks}
               receivedChecks={receivedChecks}
               accounts={accounts}
+              storeSettings={storeSettings}
             />
           )}
         </div>
@@ -383,7 +393,8 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
         isHistoryModalOpen={isHistoryModalOpen} setIsHistoryModalOpen={setIsHistoryModalOpen}
         historyCheck={historyCheck} historyData={historyData}
         persons={persons} checkbooks={checkbooks} accounts={accounts}
-        formatDateDisplay={formatDateDisplay} storeSettings={storeSettings} toPersianDigits={toPersianDigits}
+              storeSettings={storeSettings}
+        formatDateDisplay={formatDateDisplay} toPersianDigits={toPersianDigits}
       />
     </div>
   );

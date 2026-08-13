@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { AlertCircle, Calendar } from 'lucide-react';
 import { getDaysRemaining, toPersianDigits } from './utils';
 
-export function CheckNotifications({ issuedChecks, receivedChecks, formatCurrency }) {
+export function CheckNotifications({ issuedChecks, receivedChecks, formatCurrency, storeSettings }: any) {
   const notifications = useMemo(() => {
     const alerts: any[] = [];
     
@@ -15,7 +15,7 @@ export function CheckNotifications({ issuedChecks, receivedChecks, formatCurrenc
             id: `issued-${c.id}`,
             type: 'warning',
             title: 'سررسید چک پرداختی',
-            message: `چک شماره ${c.checkNumber} به مبلغ ${formatCurrency(c.amount)} تومان ${days === 0 ? 'امروز' : `${days} روز دیگر`} سررسید می‌شود.`,
+            message: `چک شماره ${c.checkNumber} به مبلغ ${formatCurrency(c.amount)} ${storeSettings?.currency || 'تومان'} ${days === 0 ? 'امروز' : `${days} روز دیگر`} سررسید می‌شود.`,
             days
           });
         }
@@ -30,7 +30,7 @@ export function CheckNotifications({ issuedChecks, receivedChecks, formatCurrenc
             id: `received-${c.id}`,
             type: 'info',
             title: 'سررسید چک دریافتی',
-            message: `چک شماره ${c.checkNumber} به مبلغ ${formatCurrency(c.amount)} تومان ${days === 0 ? 'امروز' : `${days} روز دیگر`} سررسید می‌شود.`,
+            message: `چک شماره ${c.checkNumber} به مبلغ ${formatCurrency(c.amount)} ${storeSettings?.currency || 'تومان'} ${days === 0 ? 'امروز' : `${days} روز دیگر`} سررسید می‌شود.`,
             days
           });
         }

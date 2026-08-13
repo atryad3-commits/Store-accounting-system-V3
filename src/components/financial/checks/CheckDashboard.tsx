@@ -15,7 +15,9 @@ import { CheckAgingReport } from './CheckAgingReport';
 export function CheckDashboard({ 
   totalIssuedAmount, cashedIssuedAmount, pendingIssuedAmount, bouncedIssuedAmount, 
   totalReceivedAmount, cashedReceivedAmount, inHandReceivedAmount, bouncedReceivedAmount,
-  issuedChecks = [], receivedChecks = [], accounts = []
+  issuedChecks = [], receivedChecks = [], accounts = [],
+  storeSettings
+
 }) {
   // Calculate KPIs
   const today = new Date();
@@ -74,7 +76,7 @@ export function CheckDashboard({
             </div>
             <p className="text-sm text-slate-500 font-medium mb-1">چک‌های دریافتنی در جریان</p>
             <p className="text-xl font-black text-slate-800" dir="ltr">
-              {Number(pendingReceivablesAmount).toLocaleString('fa-IR')} <span className="text-sm text-slate-500 font-normal">تومان</span>
+              {Number(pendingReceivablesAmount).toLocaleString('fa-IR')} <span className="text-sm text-slate-500 font-normal">{storeSettings?.currency || 'تومان'}</span>
             </p>
           </div>
 
@@ -88,7 +90,7 @@ export function CheckDashboard({
             </div>
             <p className="text-sm text-slate-500 font-medium mb-1">چک‌های پرداختنی معوق</p>
             <p className="text-xl font-black text-slate-800" dir="ltr">
-              {Number(overduePayablesAmount).toLocaleString('fa-IR')} <span className="text-sm text-slate-500 font-normal">تومان</span>
+              {Number(overduePayablesAmount).toLocaleString('fa-IR')} <span className="text-sm text-slate-500 font-normal">{storeSettings?.currency || 'تومان'}</span>
             </p>
           </div>
 
@@ -102,7 +104,7 @@ export function CheckDashboard({
             </div>
             <p className="text-sm text-slate-500 font-medium mb-1">مبلغ چک‌های برگشتی</p>
             <p className="text-xl font-black text-slate-800" dir="ltr">
-              {Number(bouncedThisMonthAmount).toLocaleString('fa-IR')} <span className="text-sm text-slate-500 font-normal">تومان</span>
+              {Number(bouncedThisMonthAmount).toLocaleString('fa-IR')} <span className="text-sm text-slate-500 font-normal">{storeSettings?.currency || 'تومان'}</span>
             </p>
           </div>
 
@@ -132,7 +134,7 @@ export function CheckDashboard({
               <div className="bg-white border text-right border-gray-100 rounded-2xl shadow-sm overflow-hidden flex flex-col items-center p-6 hover:shadow-md transition-shadow">
                 <h3 className="font-bold text-gray-800 self-start w-full border-b pb-3 mb-6 flex items-center justify-between">
                   نمودار وضعیت چک‌های صادره (پرداختی)
-                  <span className="text-xs text-gray-500 font-normal">کل: {totalIssuedAmount.toLocaleString()} تومان</span>
+                  <span className="text-xs text-gray-500 font-normal">کل: {totalIssuedAmount.toLocaleString()} {storeSettings?.currency || 'تومان'}</span>
                 </h3>
                 {totalIssuedAmount > 0 ? (
                   <div className="w-full flex-1 min-h-[300px]">
@@ -157,7 +159,7 @@ export function CheckDashboard({
                             <Cell key={`cell-${idx}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(val: number) => [val.toLocaleString() + ' تومان', 'مبلغ']} />
+                        <Tooltip formatter={(val: number) => [val.toLocaleString() + ' ' + (storeSettings?.currency || 'تومان'), 'مبلغ']} />
                         <Legend />
                       </PieChart>
                     </ResponsiveContainer>
@@ -171,7 +173,7 @@ export function CheckDashboard({
               <div className="bg-white border text-right border-gray-100 rounded-2xl shadow-sm overflow-hidden flex flex-col items-center p-6 hover:shadow-md transition-shadow">
                 <h3 className="font-bold text-gray-800 self-start w-full border-b pb-3 mb-6 flex items-center justify-between">
                   نمودار وضعیت چک‌های دریافتی (وصولی)
-                  <span className="text-xs text-gray-500 font-normal">کل: {totalReceivedAmount.toLocaleString()} تومان</span>
+                  <span className="text-xs text-gray-500 font-normal">کل: {totalReceivedAmount.toLocaleString()} {storeSettings?.currency || 'تومان'}</span>
                 </h3>
                 {totalReceivedAmount > 0 ? (
                   <div className="w-full flex-1 min-h-[300px]">
@@ -196,7 +198,7 @@ export function CheckDashboard({
                             <Cell key={`cell-rec-${idx}`} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(val: number) => [val.toLocaleString() + ' تومان', 'مبلغ']} />
+                        <Tooltip formatter={(val: number) => [val.toLocaleString() + ' ' + (storeSettings?.currency || 'تومان'), 'مبلغ']} />
                         <Legend />
                       </PieChart>
                     </ResponsiveContainer>
@@ -207,9 +209,9 @@ export function CheckDashboard({
               </div>
             </div>
           
-          <CheckAgingReport issuedChecks={issuedChecks} receivedChecks={receivedChecks} />
+          <CheckAgingReport issuedChecks={issuedChecks} receivedChecks={receivedChecks} storeSettings={storeSettings} />
           
-          <CashFlowForecast issuedChecks={issuedChecks} receivedChecks={receivedChecks} accounts={accounts} />
+          <CashFlowForecast issuedChecks={issuedChecks} receivedChecks={receivedChecks} accounts={accounts} storeSettings={storeSettings} />
           </div>
           </>
   );

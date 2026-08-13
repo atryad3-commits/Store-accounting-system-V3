@@ -58,7 +58,7 @@ export function CashFlowForecast({ issuedChecks = [], receivedChecks = [], accou
   }, [issuedChecks, receivedChecks, accounts, days]);
 
   const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('fa-IR').format(val) + ' تومان';
+    return new Intl.NumberFormat('fa-IR').format(val) + ' ' + (storeSettings?.currency || 'تومان');
   };
 
   const CustomTooltip = ({ active, payload }: any) => {

@@ -22,7 +22,7 @@ const STATUS_COLUMNS = {
   ]
 };
 
-function SortableCheckCard({ check, formatCurrency, persons, setViewingCheck, type }: any) {
+function SortableCheckCard({ check, formatCurrency, persons, setViewingCheck, type, storeSettings }: any) {
   const {
     attributes,
     listeners,
@@ -52,7 +52,7 @@ function SortableCheckCard({ check, formatCurrency, persons, setViewingCheck, ty
     >
       <div className="flex justify-between items-start mb-2">
         <span className="font-mono font-black text-slate-800 text-sm">{toPersianDigits(check.checkNumber)}</span>
-        <span className="font-black text-slate-800">{toPersianDigits(formatCurrency(check.amount))} <span className="text-[9px] text-slate-400">تومان</span></span>
+        <span className="font-black text-slate-800">{toPersianDigits(formatCurrency(check.amount))} <span className="text-[9px] text-slate-400">{storeSettings?.currency || 'تومان'}</span></span>
       </div>
       <div className="space-y-1 mt-3">
         <div className="flex items-center gap-1.5 text-xs text-slate-600">
@@ -76,7 +76,7 @@ function SortableCheckCard({ check, formatCurrency, persons, setViewingCheck, ty
   );
 }
 
-export function ChecksKanbanView({ checks, type, persons, onStatusChange, setViewingCheck, formatCurrency }: any) {
+export function ChecksKanbanView({ checks, type, persons, onStatusChange, setViewingCheck, formatCurrency, storeSettings }: any) {
   const columns = STATUS_COLUMNS[type as 'issued' | 'received'] || [];
   const [activeCheck, setActiveCheck] = useState<any>(null);
   const sensors = useSensors(
@@ -145,7 +145,7 @@ export function ChecksKanbanView({ checks, type, persons, onStatusChange, setVie
 
       <DragOverlay>
         {activeCheck ? (
-          <SortableCheckCard check={activeCheck} formatCurrency={formatCurrency} persons={persons} type={type} />
+          <SortableCheckCard storeSettings={storeSettings}  check={activeCheck} formatCurrency={formatCurrency} persons={persons} type={type} />
         ) : null}
       </DragOverlay>
     </DndContext>
@@ -159,7 +159,7 @@ function DroppableColumn({ id, checks, formatCurrency, persons, setViewingCheck,
   return (
     <div ref={setNodeRef} className="min-h-[150px]">
       {checks.map((c: any) => (
-        <SortableCheckCard key={c.id} check={c} formatCurrency={formatCurrency} persons={persons} setViewingCheck={setViewingCheck} type={type} />
+        <SortableCheckCard storeSettings={storeSettings}  key={c.id} check={c} formatCurrency={formatCurrency} persons={persons} setViewingCheck={setViewingCheck} type={type} />
       ))}
     </div>
   );

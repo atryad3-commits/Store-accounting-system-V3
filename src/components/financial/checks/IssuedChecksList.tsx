@@ -20,7 +20,7 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
               <div className="bg-gradient-to-br from-indigo-50/40 to-white border border-indigo-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-indigo-900 block">کل چک‌های صادره</span>
-                  <span className="text-base font-black text-indigo-950 font-sans block mt-1">{totalIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
+                  <span className="text-base font-black text-indigo-950 font-sans block mt-1">{totalIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                 </div>
                 <div className="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600">
                   <DollarSign className="w-5 h-5" />
@@ -30,7 +30,7 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
               <div className="bg-gradient-to-br from-emerald-50/40 to-white border border-emerald-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-emerald-950 block">مبلغ وصول شده (پاس شده)</span>
-                  <span className="text-base font-black text-emerald-700 font-sans block mt-1">{cashedIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
+                  <span className="text-base font-black text-emerald-700 font-sans block mt-1">{cashedIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                 </div>
                 <div className="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600">
                   <CheckCircle className="w-5 h-5" />
@@ -40,7 +40,7 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
               <div className="bg-gradient-to-br from-amber-50/40 to-white border border-amber-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-amber-900 block">در جریان سررسید</span>
-                  <span className="text-base font-black text-amber-700 font-sans block mt-1">{pendingIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
+                  <span className="text-base font-black text-amber-700 font-sans block mt-1">{pendingIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                 </div>
                 <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600 animate-pulse">
                   <Clock className="w-5 h-5 text-amber-600" />
@@ -50,7 +50,7 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
               <div className="bg-gradient-to-br from-rose-50/40 to-white border border-rose-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-rose-900 block">برگشت خورده (بک‌خورده)</span>
-                  <span className="text-base font-black text-rose-600 font-sans block mt-1">{bouncedIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
+                  <span className="text-base font-black text-rose-600 font-sans block mt-1">{bouncedIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                 </div>
                 <div className="w-9 h-9 bg-rose-50 rounded-lg flex items-center justify-center text-rose-600">
                   <AlertTriangle className="w-5 h-5" />
@@ -100,7 +100,7 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
                           title: 'گزارش چک‌های پرداختی',
                           columns: [
                             { header: 'شماره چک', key: 'checkNumber' },
-                            { header: 'مبلغ (تومان)', key: 'amount' },
+                            { header: `مبلغ (${storeSettings?.currency || 'تومان'})`, key: 'amount' },
                             { header: 'سررسید', key: 'dueDate' },
                             { header: 'وضعیت', key: 'statusLabel' }
                           ],
@@ -122,7 +122,7 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
                           title: 'گزارش چک‌های پرداختی',
                           columns: [
                             { header: 'شماره چک', key: 'checkNumber' },
-                            { header: 'مبلغ (تومان)', key: 'amount' },
+                            { header: `مبلغ (${storeSettings?.currency || 'تومان'})`, key: 'amount' },
                             { header: 'سررسید', key: 'dueDate' },
                             { header: 'وضعیت', key: 'statusLabel' }
                           ],

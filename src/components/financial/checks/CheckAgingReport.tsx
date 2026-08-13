@@ -79,7 +79,7 @@ export function CheckAgingReport({ issuedChecks, receivedChecks }: CheckAgingRep
               <tr>
                 <th className="px-4 py-3">بازه زمانی</th>
                 <th className="px-4 py-3">تعداد فقره</th>
-                <th className="px-4 py-3">مجموع مبلغ (تومان)</th>
+                <th className="px-4 py-3">مجموع مبلغ ({storeSettings?.currency || 'تومان'})</th>
                 <th className="px-4 py-3">% از کل</th>
               </tr>
             </thead>
