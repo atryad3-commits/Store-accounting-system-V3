@@ -236,7 +236,15 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
             receivedChecks={receivedChecks} 
             formatCurrency={(v) => Number(v).toLocaleString()}
           />
-          {activeSubTab === 'checkbooks' && <CheckbooksManager showNotification={showNotification} />}
+          {activeSubTab === 'checkbooks' && <CheckbooksManager 
+            showNotification={showNotification} 
+            checkbooks={checkbooks} 
+            setCheckbooks={setCheckbooks} 
+            accounts={accounts} 
+            setIssuedCheckbookFilter={filters.setIssuedCheckbookFilter} 
+            setActiveSubTab={setActiveSubTab} 
+            storeSettings={storeSettings} 
+          />}
           {activeSubTab === 'issued_checks' && viewMode === 'list' && (
             <IssuedChecksList 
               showNotification={notify} onEditReceiptByCheck={onEditReceiptByCheck}
