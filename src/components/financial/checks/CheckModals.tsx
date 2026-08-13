@@ -160,7 +160,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                     <div className="relative">
                        <DatePicker
                          value={safeParseDate(icDueDate)}
-                         onChange={(d: any) => setIcDueDate(d ? d.toDate().toISOString() : '')}
+                         onChange={(d: any) => setIcDueDate((d ? convertToGregorian(d) : ""))}
                          calendar={storeSettings?.calendarType === 'gregorian' ? undefined : persian}
                          locale={storeSettings?.calendarType === 'gregorian' ? undefined : persian_fa}
                          calendarPosition="bottom-right"
@@ -339,7 +339,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                     <div className="relative">
                        <DatePicker
                          value={safeParseDate(rcReceiveDate)}
-                         onChange={(d: any) => setRcReceiveDate(d ? d.toDate().toISOString() : '')}
+                         onChange={(d: any) => setRcReceiveDate((d ? convertToGregorian(d) : ""))}
                          calendar={storeSettings?.calendarType === 'gregorian' ? undefined : persian}
                          locale={storeSettings?.calendarType === 'gregorian' ? undefined : persian_fa}
                          calendarPosition="top-right"
@@ -354,7 +354,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                     <div className="relative">
                        <DatePicker
                          value={safeParseDate(rcDueDate)}
-                         onChange={(d: any) => setRcDueDate(d ? d.toDate().toISOString() : '')}
+                         onChange={(d: any) => setRcDueDate((d ? convertToGregorian(d) : ""))}
                          calendar={storeSettings?.calendarType === 'gregorian' ? undefined : persian}
                          locale={storeSettings?.calendarType === 'gregorian' ? undefined : persian_fa}
                          calendarPosition="top-right"

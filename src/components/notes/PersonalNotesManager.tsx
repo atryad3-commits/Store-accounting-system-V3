@@ -633,7 +633,7 @@ export function PersonalNotesManager({ storeSettings }: any) {
                                   value={editingNote.reminderDate ? new Date(editingNote.reminderDate) : null}
                                   onChange={(date: any) => {
                                       if (date) {
-                                          setEditingNote({...editingNote, reminderDate: date.toDate().toISOString()});
+                                          setEditingNote({...editingNote, reminderDate: convertToGregorian(date)});
                                       } else {
                                           setEditingNote({...editingNote, reminderDate: undefined});
                                       }

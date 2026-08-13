@@ -188,7 +188,7 @@ export default function PersonLedger(props: any) {
                               value={filterStartDate || null}
                               onChange={(date: any) => {
                                 setFilterStartDate(
-                                  date?.isValid ? date.toDate().toISOString() : ""
+                                  (date ? convertToGregorian(date) : "")
                                 );
                               }}
                             />
@@ -199,7 +199,7 @@ export default function PersonLedger(props: any) {
                               value={filterEndDate || null}
                               onChange={(date: any) => {
                                 setFilterEndDate(
-                                  date?.isValid ? date.toDate().toISOString() : ""
+                                  (date ? convertToGregorian(date) : "")
                                 );
                               }}
                             />

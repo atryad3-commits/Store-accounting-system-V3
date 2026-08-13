@@ -197,7 +197,7 @@ export default function CheckbooksManager(props: any) {
                     <div className="relative">
                        <DatePicker
                          value={safeParseDate(cbIssued)}
-                         onChange={(d: any) => setCbIssued(d ? d.toDate().toISOString() : '')}
+                         onChange={(d: any) => setCbIssued((d ? convertToGregorian(d) : ""))}
                          calendar={storeSettings?.calendarType === 'gregorian' ? undefined : persian}
                          locale={storeSettings?.calendarType === 'gregorian' ? undefined : persian_fa}
                          calendarPosition="bottom-right"
