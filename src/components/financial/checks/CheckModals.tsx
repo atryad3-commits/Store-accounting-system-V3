@@ -28,7 +28,6 @@ icAmount, setIcAmount,
 icIssueDate, setIcIssueDate,
 icDueDate, setIcDueDate,
 icDescription, setIcDescription,
-icAttachments, setIcAttachments,
 rcPayerId, setRcPayerId,
 rcBankName, setRcBankName,
 rcBranchName, setRcBranchName,
@@ -39,7 +38,6 @@ rcAmount, setRcAmount,
 rcReceiveDate, setRcReceiveDate,
 rcDueDate, setRcDueDate,
 rcDescription, setRcDescription,
-rcAttachments, setRcAttachments,
 updatingCheckType, setUpdatingCheckType,
 updatingCheckId, setUpdatingCheckId,
 statusVal, setStatusVal,
@@ -177,34 +175,6 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                   <textarea rows={2} value={icDescription} onChange={e => setIcDescription(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-xs" placeholder="بابت فاکتور خرید فلان یا هرگونه یادداشت اضافی..."></textarea>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-black text-gray-700 mb-1">تصویر چک (اختیاری)</label>
-                  <div className="flex flex-col gap-2">
-                    <input type="file" accept="image/*" multiple onChange={(e) => {
-                      const files = Array.from(e.target.files || []);
-                      files.forEach(file => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setIcAttachments(prev => [...(prev || []), reader.result as string]);
-                        };
-                        reader.readAsDataURL(file);
-                      });
-                    }} className="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
-                    {icAttachments?.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {icAttachments.map((att, i) => (
-                          <div key={i} className="relative group w-16 h-16 rounded-xl border overflow-hidden">
-                            <img src={att} alt="attachment" className="w-full h-full object-cover" />
-                            <button type="button" onClick={() => setIcAttachments(prev => prev.filter((_, idx) => idx !== i))} className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
                 <div className="flex justify-end gap-2.5 pt-4 border-t">
                   <button type="button" onClick={() => setIsIssuedModalOpen(false)} className="px-4 py-2 border bg-white border-gray-200 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50">انصراف</button>
                   <button type="submit" className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold shadow-sm">{editingIssuedCheckId ? 'ذخیره تغییرات' : 'تایید و صدور برگه چک'}</button>
@@ -223,7 +193,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                            const start = new Date(targetDate); start.setDate(start.getDate() - 15);
                            const end = new Date(targetDate); end.setDate(end.getDate() + 15);
                            const filtered = issuedChecks.filter(c => {
-                             if (!c.dueDate || c.status === 'blank' || c.status === 'cancelled' || c.status === 'bounced') return false;
+                             if (!c.dueDate || c.status === 'blank' || c.status === 'cancelled') return false;
                              const d = new Date(c.dueDate);
                              return d >= start && d <= end;
                            });
@@ -371,34 +341,6 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                   <textarea rows={2} value={rcDescription} onChange={e => setRcDescription(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-xs" placeholder="بابت فاکتور فروش یا هرگونه یادداشت..."></textarea>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-black text-gray-700 mb-1">تصویر چک (اختیاری)</label>
-                  <div className="flex flex-col gap-2">
-                    <input type="file" accept="image/*" multiple onChange={(e) => {
-                      const files = Array.from(e.target.files || []);
-                      files.forEach(file => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setRcAttachments(prev => [...(prev || []), reader.result as string]);
-                        };
-                        reader.readAsDataURL(file);
-                      });
-                    }} className="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
-                    {rcAttachments?.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {rcAttachments.map((att, i) => (
-                          <div key={i} className="relative group w-16 h-16 rounded-xl border overflow-hidden">
-                            <img src={att} alt="attachment" className="w-full h-full object-cover" />
-                            <button type="button" onClick={() => setRcAttachments(prev => prev.filter((_, idx) => idx !== i))} className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
                 <div className="flex justify-end gap-2.5 pt-4 border-t">
                   <button type="button" onClick={() => setIsReceivedModalOpen(false)} className="px-4 py-2 border bg-white border-gray-200 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50">انصراف</button>
                   <button type="submit" className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold shadow-sm">{editingReceivedCheckId ? 'ذخیره تغییرات' : 'ثبت و ذخیره چک'}</button>
@@ -417,7 +359,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                            const start = new Date(targetDate); start.setDate(start.getDate() - 15);
                            const end = new Date(targetDate); end.setDate(end.getDate() + 15);
                            const filtered = receivedChecks.filter(c => {
-                             if (!c.dueDate || c.status === 'returned' || c.status === 'bounced' || c.status === 'bounced_assigned') return false;
+                             if (!c.dueDate || c.status === 'returned') return false;
                              const d = new Date(c.dueDate);
                              return d >= start && d <= end;
                            });

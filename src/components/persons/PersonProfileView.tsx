@@ -3,7 +3,6 @@ import BeautifulLoading from '../BeautifulLoading';
 import React, { useMemo, useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { User, Phone, MapPin, Receipt, Wallet, FileText, ArrowRight, Building2, Calendar, Edit2, ShoppingCart, Truck, CheckCircle, Clock } from "lucide-react";
-import { PersonCheckHistory } from './PersonCheckHistory';
 import { getPersonFollowUps } from "../../services/dataService";
 
 interface PersonProfileViewProps {
@@ -408,9 +407,6 @@ export default function PersonProfileView({
           </div>
 
           {/* Recent Invoices */}
-
-          {/* Person Check History */}
-          <PersonCheckHistory personId={personId} issuedChecks={issuedChecks} receivedChecks={receivedChecks} />
 
           {/* CRM Follow Ups */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm md:col-span-3">

@@ -262,14 +262,6 @@ export const addCheckAuditLog = async (record: { checkId: string | number, check
 };
 
 export const addIssuedCheck = async (record: any) => {
-  if (Number(record.amount) <= 0) {
-    throw new Error('مبلغ چک نامعتبر است');
-  }
-  const existing = await getIssuedChecks();
-  if (record.checkNumber && record.checkbookId && existing.some(c => c.checkNumber === record.checkNumber && c.checkbookId === record.checkbookId && c.status !== 'cancelled')) {
-    throw new Error('این شماره چک قبلاً در این دسته‌چک ثبت شده است');
-  }
-
   let activeYear = null;
   if (record.issueDate) activeYear = await checkFinancialYear(record.issueDate);
   const now = Date.now();
@@ -289,14 +281,6 @@ export const addIssuedCheck = async (record: any) => {
 };
 
 export const updateIssuedCheck = async (id: string, record: any) => {
-  if (record.amount !== undefined && Number(record.amount) <= 0) {
-    throw new Error('مبلغ چک نامعتبر است');
-  }
-  const oldChecks = await getIssuedChecks();
-  if (record.checkNumber && record.checkbookId && oldChecks.some(c => c.id !== id && c.checkNumber === record.checkNumber && c.checkbookId === record.checkbookId && c.status !== 'cancelled')) {
-    throw new Error('این شماره چک قبلاً در این دسته‌چک ثبت شده است');
-  }
-
   let activeYear = null;
   if (record.issueDate) activeYear = await checkFinancialYear(record.issueDate);
   const updatedData = { ...record, updatedAt: Date.now() };
@@ -346,14 +330,6 @@ export const getReceivedChecks = async (page?: number, pageSize?: number, sortBy
 };
 
 export const addReceivedCheck = async (record: any) => {
-  if (Number(record.amount) <= 0) {
-    throw new Error('مبلغ چک نامعتبر است');
-  }
-  const existing = await getReceivedChecks();
-  if (record.checkNumber && record.bankName && existing.some(c => c.checkNumber === record.checkNumber && c.bankName === record.bankName && c.status !== 'returned')) {
-    throw new Error('این شماره چک از این بانک قبلاً ثبت شده است');
-  }
-
   const checkDate = record.receiveDate || record.issueDate;
   let activeYear = null;
   if (checkDate) activeYear = await checkFinancialYear(checkDate);
@@ -374,14 +350,6 @@ export const addReceivedCheck = async (record: any) => {
 };
 
 export const updateReceivedCheck = async (id: string, record: any) => {
-  if (record.amount !== undefined && Number(record.amount) <= 0) {
-    throw new Error('مبلغ چک نامعتبر است');
-  }
-  const oldChecks = await getReceivedChecks();
-  if (record.checkNumber && record.bankName && oldChecks.some(c => c.id !== id && c.checkNumber === record.checkNumber && c.bankName === record.bankName && c.status !== 'returned')) {
-    throw new Error('این شماره چک از این بانک قبلاً ثبت شده است');
-  }
-
   const checkDate = record.receiveDate || record.issueDate;
   let activeYear = null;
   if (checkDate) activeYear = await checkFinancialYear(checkDate);
@@ -866,20 +834,17 @@ export const syncCheckAccountingDocument = async (checkType: 'issued' | 'receive
           const persons = await getLocalData<any[]>('persons', []);
           const assignedPersonName = (persons.find((p: any) => String(p.id) === String(check.assignedToId)) || {name: check.assignedToId}).name;
           statusDescription = `برگشت چک خرج شده شماره ${checkNo} از شخص ${assignedPersonName}`;
-          // 1. Reversing the assignment (Person B didn't get their money, we owe them)
+          statusItems.push({
+            description: `بدهکار - اسناد دریافتنی بابت برگشت چک خرج شده ${checkNo}`,
+            debit: amount,
+            credit: 0,
+            ledgerAccountId: notesReceivableId});
           statusItems.push({
             description: `بستانکار - شخص (حساب پرداختنی) بابت برگشت چک خرج شده ${checkNo}`,
             debit: 0,
             credit: amount,
             ledgerAccountId: (ledgerAccounts.find((a: any) => String(a.code).startsWith('21') || String(a.code) === '21') || {id: 0}).id,
             detailedAccountId: check.assignedToId});
-          // 2. Reinstating the debt for the original payer (Person A owes us)
-          statusItems.push({
-            description: `بدهکار - طرف حساب ${personName} بابت برگشت چک خرج شده ${checkNo}`,
-            debit: amount,
-            credit: 0,
-            ledgerAccountId: personLedgerId,
-            detailedAccountId: personId});
         }
       } else if (status === 'returned' || status === 'bounced' || status === 'rejected') {
         if (checkType === 'issued') {

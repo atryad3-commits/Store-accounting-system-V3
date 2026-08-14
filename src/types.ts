@@ -90,7 +90,6 @@ export type IssuedCheck = {
   bankAccountId?: string | number;
   description?: string;
   imageUrl?: string;
-  attachments?: string[];
   history?: { status: string, date: string, desc?: string, user?: string }[];
   isActive?: boolean;
   salePrice?: number;
@@ -114,8 +113,6 @@ export type ReceivedCheck = {
   assignedToId?: string | number;
   accountId?: string | number;
   description?: string;
-  imageUrl?: string;
-  attachments?: string[];
   history?: { status: string, date: string, desc?: string, user?: string }[];
 };
 

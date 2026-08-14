@@ -5,7 +5,6 @@ import { useChecks } from './checks/useChecks';
 import { useCheckFilters } from './checks/useCheckFilters';
 import { useCheckForm } from './checks/useCheckForm';
 import { CheckDashboard } from './checks/CheckDashboard';
-import { CheckNotifications } from './checks/CheckNotifications';
 import { IssuedChecksList } from './checks/IssuedChecksList';
 import { PendingCheckApprovals } from './checks/PendingCheckApprovals';
 import { useAuth } from '../../context/AuthContext';
@@ -215,11 +214,6 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
         
         {/* SUBTABS */}
         <div className="print:m-0 print:p-0">
-          <CheckNotifications 
-            issuedChecks={issuedChecks} 
-            receivedChecks={receivedChecks} 
-            formatCurrency={(v) => Number(v).toLocaleString()}
-          />
           {activeSubTab === 'checkbooks' && <CheckbooksManager showNotification={showNotification} />}
           {activeSubTab === 'issued_checks' && (
             <IssuedChecksList 
@@ -288,9 +282,6 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
               pendingIssuedAmount={pendingIssuedAmount} bouncedIssuedAmount={bouncedIssuedAmount}
               totalReceivedAmount={totalReceivedAmount} cashedReceivedAmount={cashedReceivedAmount}
               inHandReceivedAmount={inHandReceivedAmount} bouncedReceivedAmount={bouncedReceivedAmount}
-              issuedChecks={issuedChecks}
-              receivedChecks={receivedChecks}
-              accounts={accounts}
             />
           )}
         </div>
