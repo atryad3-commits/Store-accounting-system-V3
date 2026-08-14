@@ -194,15 +194,10 @@ export default function PreviewModals(props: any) {
               <X className="w-5 h-5" />
             </button>
             <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
-                  <Eye className="w-6 h-6 text-indigo-500" />
-                  مشاهده اطلاعات چک {viewingCheck._type === 'issued' ? 'پرداختی' : viewingCheck._type === 'received' ? 'دریافتی' : ''}
-                </h3>
-                <button onClick={() => window.print()} className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-bold transition-colors">
-                  <Printer className="w-4 h-4" /> چاپ رسید
-                </button>
-              </div>
+              <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                <Eye className="w-6 h-6 text-indigo-500" />
+                مشاهده اطلاعات چک {viewingCheck._type === 'issued' ? 'پرداختی' : viewingCheck._type === 'received' ? 'دریافتی' : ''}
+              </h3>
               <div className="space-y-4">
                 <div className="flex justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
                   <span className="text-slate-500 text-sm font-bold">شماره چک</span>

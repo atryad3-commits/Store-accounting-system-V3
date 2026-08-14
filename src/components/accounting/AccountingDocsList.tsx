@@ -109,7 +109,7 @@ export default function AccountingDocsList({ onNavigateToCreate, onNavigateToVie
             <label className="block text-xs font-bold text-slate-700 mb-1.5">از تاریخ</label>
             <DatePicker
               value={fromDate}
-              onChange={(date: any) => setFromDate(date ? (convertToGregorian(date)) : '')}
+              onChange={(date: any) => setFromDate(date ? (typeof date.toDate === 'function' ? date.toDate().toISOString() : new Date(date).toISOString()) : '')}
               calendar={storeSettings?.calendarType === "gregorian" ? undefined : persian}
               locale={storeSettings?.calendarType === "gregorian" ? undefined : persian_fa}
               calendarPosition="bottom-right"
@@ -120,7 +120,7 @@ export default function AccountingDocsList({ onNavigateToCreate, onNavigateToVie
             <label className="block text-xs font-bold text-slate-700 mb-1.5">تا تاریخ</label>
             <DatePicker
               value={toDate}
-              onChange={(date: any) => setToDate(date ? (convertToGregorian(date)) : '')}
+              onChange={(date: any) => setToDate(date ? (typeof date.toDate === 'function' ? date.toDate().toISOString() : new Date(date).toISOString()) : '')}
               calendar={storeSettings?.calendarType === "gregorian" ? undefined : persian}
               locale={storeSettings?.calendarType === "gregorian" ? undefined : persian_fa}
               calendarPosition="bottom-right"

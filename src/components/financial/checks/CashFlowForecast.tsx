@@ -1,67 +1,66 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Calendar, DollarSign, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
-export function CashFlowForecast({ issuedChecks = [], receivedChecks = [], accounts = [] }: any) {
+
+export function CashFlowForecast() {
   const [days, setDays] = useState<30 | 60 | 90>(30);
 
-  const { chartData, initialBalance, hasNegativeBalance, minBalance } = useMemo(() => {
-    // 1. Initial Balance from accounts
-    const initBal = accounts.reduce((sum: number, acc: any) => {
-        return sum + (Number(acc.initialBalance) || 0) + (Number(acc.currentBalance) || 0); // Note: ideally just currentBalance, but we keep it simple
-    }, 0);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['cashflow_forecast', days],
+    queryFn: async () => {
+      const res = await fetch(`/api/data/cashflow-forecast?days=${days}`, {
+        headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('access_token') || ''), 'x-store-id': localStorage.getItem('activeStoreId') || 'default' }
+      });
+      if (!res.ok) throw new Error('Error fetching forecast');
+      return res.json();
+    },
+    refetchInterval: false,
+    staleTime: 60000,
+  });
 
-    // 2. Generate dates
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const forecast = [];
-    let runningBalance = initBal;
+  if (isLoading) {
+    return (
+      <div className="bg-white border text-right border-gray-100 rounded-2xl shadow-sm p-6 mt-6 flex justify-center items-center min-h-[300px]" dir="rtl">
+        <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
-    for (let i = 0; i <= days; i++) {
-        const d = new Date(today);
-        d.setDate(d.getDate() + i);
-        const dateStr = d.toISOString().split('T')[0];
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-100 text-red-600 rounded-2xl shadow-sm p-6 mt-6 text-center text-sm font-medium" dir="rtl">
+        خطا در دریافت اطلاعات پیش‌بینی نقدینگی
+      </div>
+    );
+  }
 
-        // Inflow (Received checks due on this date)
-        const inflow = receivedChecks
-            .filter((c: any) => c.status === 'received' || c.status === 'deposited')
-            .filter((c: any) => c.dueDate && c.dueDate.startsWith(dateStr))
-            .reduce((sum: number, c: any) => sum + Number(c.amount || 0), 0);
+  const forecast = data?.forecast || [];
+  const initialBalance = data?.initialBalance || 0;
+  const hasNegativeBalance = forecast.some((d: any) => d.runningBalance < 0);
+  const minBalance = Math.min(initialBalance, ...forecast.map((d: any) => d.runningBalance));
 
-        // Outflow (Issued checks due on this date)
-        const outflow = issuedChecks
-            .filter((c: any) => c.status === 'issued')
-            .filter((c: any) => c.dueDate && c.dueDate.startsWith(dateStr))
-            .reduce((sum: number, c: any) => sum + Number(c.amount || 0), 0);
-
-        runningBalance += (inflow - outflow);
-
-        const label = new Intl.DateTimeFormat('fa-IR', { month: 'short', day: 'numeric' }).format(d);
-
-        forecast.push({
-            date: dateStr,
-            dateKey: label,
-            label,
-            inflow,
-            outflow,
-            runningBalance,
-            "موجودی خالص": runningBalance,
-            "دریافتی پیش‌بینی شده": inflow,
-            "پرداختی پیش‌بینی شده": outflow,
-        });
-    }
-
-    const hasNeg = forecast.some(d => d.runningBalance < 0);
-    const minBal = Math.min(initBal, ...forecast.map(d => d.runningBalance));
-
-    return { chartData: forecast, initialBalance: initBal, hasNegativeBalance: hasNeg, minBalance: minBal };
-  }, [issuedChecks, receivedChecks, accounts, days]);
+  // Format data for chart
+  const chartData = forecast.map((item: any) => {
+    // Jalali date format for x-axis
+    const date = new Date(item.date);
+    const label = new Intl.DateTimeFormat('fa-IR', { month: 'short', day: 'numeric' }).format(date);
+    
+    return {
+      ...item,
+      label,
+      "موجودی خالص": item.runningBalance,
+      "دریافتی پیش‌بینی شده": item.inflow,
+      "پرداختی پیش‌بینی شده": item.outflow,
+    };
+  });
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('fa-IR').format(val) + ' تومان';
   };
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-slate-900/90 backdrop-blur-md border border-slate-700 p-3 rounded-xl shadow-xl text-right font-mono" dir="rtl">
@@ -152,28 +151,32 @@ export function CashFlowForecast({ issuedChecks = [], receivedChecks = [], accou
                 <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2}/>
                 <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
               </linearGradient>
+              <linearGradient id="colorNegative" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+              </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
             <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} dy={10} minTickGap={20} />
             <YAxis 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fontSize: 10, fill: '#64748b' }} 
-                tickFormatter={(val) => new Intl.NumberFormat('fa-IR', { notation: 'compact' }).format(val)}
-                dx={-10}
-               domain={[(dataMin: number) => Math.min(0, dataMin - 1000000), 'auto']}
+               axisLine={false} 
+               tickLine={false} 
+               tick={{ fontSize: 10, fill: '#64748b' }} 
+               tickFormatter={(val) => new Intl.NumberFormat('fa-IR', { notation: 'compact' }).format(val)} 
+               dx={-10}
+               domain={[(dataMin) => Math.min(0, dataMin - 1000000), 'auto']}
             />
             <Tooltip content={<CustomTooltip />} />
             <ReferenceLine y={0} stroke="#cbd5e1" strokeDasharray="3 3" />
             
             <Area 
-               type="monotone" 
-               dataKey="موجودی خالص" 
-               stroke="#4f46e5" 
-               strokeWidth={3}
-               fillOpacity={1}
-               fill="url(#colorBalance)"
-               activeDot={{ r: 6, strokeWidth: 0, fill: '#4f46e5' }}
+              type="monotone" 
+              dataKey="موجودی خالص" 
+              stroke="#4f46e5" 
+              strokeWidth={3} 
+              fillOpacity={1} 
+              fill="url(#colorBalance)" 
+              activeDot={{ r: 6, strokeWidth: 0, fill: '#4f46e5' }}
             />
           </AreaChart>
         </ResponsiveContainer>

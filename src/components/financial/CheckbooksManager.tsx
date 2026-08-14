@@ -6,12 +6,22 @@ import DatePickerModule from 'react-multi-date-picker';
 const DatePicker = CustomDatePicker;
 import persian from 'react-date-object/calendars/persian';
 import persian_fa from 'react-date-object/locales/persian_fa';
-import { addCheckbook, updateCheckbook, deleteCheckbook, getCheckbooks } from '../../services/accountingService';
-import { convertToGregorian, formatDateDisplay } from '../../utils/format';
 
 export default function CheckbooksManager(props: any) {
-  const { checkbooks, setCheckbooks, accounts, setIssuedCheckbookFilter, setActiveSubTab, storeSettings, showNotification } = props;
-  const notify = showNotification || ((msg: any) => console.log(msg));
+  const {
+    checkbooks,
+    setCheckbooks,
+    accounts,
+    setIssuedCheckbookFilter,
+    setActiveSubTab,
+    formatDateDisplay,
+    storeSettings,
+    addCheckbook,
+    updateCheckbook,
+    deleteCheckbook,
+    notify,
+    safeParseDate
+  } = props;
 
   const [isCheckbookModalOpen, setIsCheckbookModalOpen] = useState(false);
   const [editingCheckbookId, setEditingCheckbookId] = useState<string|number|null>(null);
@@ -38,7 +48,7 @@ export default function CheckbooksManager(props: any) {
          notify('دسته چک با موفقیت افزوده شد', 'success');
       }
       setIsCheckbookModalOpen(false);
-      setCheckbooks(await getCheckbooks());
+      setCheckbooks(await props.getCheckbooks());
     } catch (error) {
       notify('خطا در ذخیره دسته چک', 'error');
     }
@@ -49,7 +59,7 @@ export default function CheckbooksManager(props: any) {
       try {
         await deleteCheckbook(id.toString());
         notify('دسته چک با موفقیت حذف شد', 'success');
-        setCheckbooks(await getCheckbooks());
+        setCheckbooks(await props.getCheckbooks());
       } catch(error) {
         notify('خطا در حذف دسته چک', 'error');
       }
@@ -186,8 +196,8 @@ export default function CheckbooksManager(props: any) {
                     </label>
                     <div className="relative">
                        <DatePicker
-                         value={cbIssued}
-                         onChange={(d: any) => setCbIssued((d ? convertToGregorian(d) : ""))}
+                         value={safeParseDate(cbIssued)}
+                         onChange={(d: any) => setCbIssued(d ? d.toDate().toISOString() : '')}
                          calendar={storeSettings?.calendarType === 'gregorian' ? undefined : persian}
                          locale={storeSettings?.calendarType === 'gregorian' ? undefined : persian_fa}
                          calendarPosition="bottom-right"

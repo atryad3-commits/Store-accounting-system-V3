@@ -511,7 +511,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
                                 </label>
                                 <DatePicker
                                   value={newProductPriceDate}
-                                  onChange={(date: any) => setNewProductPriceDate(date ? (convertToGregorian(date)) : new Date().toISOString())}
+                                  onChange={(date: any) => setNewProductPriceDate(date ? (typeof date.toDate === 'function' ? date.toDate().toISOString() : new Date(date).toISOString()) : new Date().toISOString())}
                                   calendar={storeSettings?.calendarType === "gregorian" ? undefined : persian}
                                   locale={storeSettings?.calendarType === "gregorian" ? undefined : persian_fa}
                                   calendarPosition="bottom-right"
@@ -827,7 +827,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
                                                 <div className="flex items-center gap-2">
                                                   <DatePicker
                                                     value={editingHistoryDate}
-                                                    onChange={(date: any) => setEditingHistoryDate(date ? (convertToGregorian(date)) : new Date().toISOString())}
+                                                    onChange={(date: any) => setEditingHistoryDate(date ? (typeof date.toDate === 'function' ? date.toDate().toISOString() : new Date(date).toISOString()) : new Date().toISOString())}
                                                     calendar={storeSettings?.calendarType === "gregorian" ? undefined : persian}
                                                     locale={storeSettings?.calendarType === "gregorian" ? undefined : persian_fa}
                                                     calendarPosition="bottom-right"
@@ -918,7 +918,7 @@ const handleSubmitProduct = async (e?: React.FormEvent) => {
                                                 <div className="flex items-center gap-2">
                                                   <DatePicker
                                                     value={editingHistoryDate}
-                                                    onChange={(date: any) => setEditingHistoryDate(date ? (convertToGregorian(date)) : new Date().toISOString())}
+                                                    onChange={(date: any) => setEditingHistoryDate(date ? (typeof date.toDate === 'function' ? date.toDate().toISOString() : new Date(date).toISOString()) : new Date().toISOString())}
                                                     calendar={storeSettings?.calendarType === "gregorian" ? undefined : persian}
                                                     locale={storeSettings?.calendarType === "gregorian" ? undefined : persian_fa}
                                                     calendarPosition="bottom-right"

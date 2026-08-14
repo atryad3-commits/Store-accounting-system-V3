@@ -389,7 +389,9 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
         city: newPersonCity,
         isActive: newPersonIsActive,
         registrationDate: newPersonRegistrationDate ? (
-          convertToGregorian(newPersonRegistrationDate)
+          typeof newPersonRegistrationDate.toDate === "function"
+            ? newPersonRegistrationDate.toDate().toISOString()
+            : new Date(newPersonRegistrationDate).toISOString()
         ) : new Date().toISOString(),
       };
 
