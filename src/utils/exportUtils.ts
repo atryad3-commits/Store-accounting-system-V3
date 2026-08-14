@@ -54,11 +54,11 @@ export const exportToPDF = ({ filename, title, subtitle, columns, data }: Export
   // simplified output if the font is missing, but assume a generic approach.
   
   doc.setFontSize(16);
-  doc.text(title, 280, 15, { align: 'right' }); // RTL align
+  doc.text(title, 280, 15, { align: 'right', isRTL: true }); // RTL align
   
   if (subtitle) {
     doc.setFontSize(11);
-    doc.text(subtitle, 280, 22, { align: 'right' });
+    doc.text(subtitle, 280, 22, { align: 'right', isRTL: true });
   }
 
   const tableData = data.map(item => columns.map(col => String(item[col.key] || '')));

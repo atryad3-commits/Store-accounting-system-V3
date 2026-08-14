@@ -1,4 +1,3 @@
-import { convertToGregorian } from "../../../utils/format";
 import { toPersianDigits, getDaysRemaining, safeParseDate } from "./utils";
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -136,7 +135,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-gray-700 mb-1">مبلغ چک ({storeSettings?.currency || 'تومان'}) *</label>
+                  <label className="block text-xs font-black text-gray-700 mb-1">مبلغ چک (تومان) *</label>
                   <input required type="number" min="1" value={icAmount} onChange={e => setIcAmount(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-sm font-mono text-left block text-indigo-950 font-black" dir="ltr" placeholder="10,000,000" />
                 </div>
 
@@ -252,7 +251,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                                  <XAxis dataKey="date" tick={{fontSize: 10, fill: '#6B7280'}} tickMargin={10} axisLine={false} tickLine={false} />
                                  <YAxis tickFormatter={(val) => (val/1000000).toFixed(0) + 'm'} tick={{fontSize: 10, fill: '#6B7280'}} axisLine={false} tickLine={false} />
-                                 <Tooltip formatter={(value) => [Number(value).toLocaleString() + ' ' + (storeSettings?.currency || 'تومان'), 'جمع مبالغ پرداختی']} labelStyle={{color: '#374151', fontWeight: 'bold'}} />
+                                 <Tooltip formatter={(value) => [Number(value).toLocaleString() + ' تومان', 'جمع مبالغ پرداختی']} labelStyle={{color: '#374151', fontWeight: 'bold'}} />
                                  <Bar dataKey="amount" fill="#F43F5E" radius={[4, 4, 0, 0]} maxBarSize={40} />
                                </BarChart>
                              </ResponsiveContainer>
@@ -329,7 +328,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                     <input required type="text" value={rcCheckNumber} onChange={e => setRcCheckNumber(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-sm font-mono text-center" dir="ltr" placeholder="مثلا 12345/67" />
                   </div>
                   <div>
-                    <label className="block text-xs font-black text-gray-700 mb-1">مبلغ چک ({storeSettings?.currency || 'تومان'}) *</label>
+                    <label className="block text-xs font-black text-gray-700 mb-1">مبلغ چک (تومان) *</label>
                     <input required type="number" min="1" value={rcAmount} onChange={e => setRcAmount(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-sm font-mono text-left block text-indigo-950 font-black" dir="ltr" placeholder="25,000,000" />
                   </div>
                 </div>
@@ -446,7 +445,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                                  <XAxis dataKey="date" tick={{fontSize: 10, fill: '#6B7280'}} tickMargin={10} axisLine={false} tickLine={false} />
                                  <YAxis tickFormatter={(val) => (val/1000000).toFixed(0) + 'm'} tick={{fontSize: 10, fill: '#6B7280'}} axisLine={false} tickLine={false} />
-                                 <Tooltip formatter={(value) => [Number(value).toLocaleString() + ' ' + (storeSettings?.currency || 'تومان'), 'جمع مبالغ وصولی']} labelStyle={{color: '#374151', fontWeight: 'bold'}} />
+                                 <Tooltip formatter={(value) => [Number(value).toLocaleString() + ' تومان', 'جمع مبالغ وصولی']} labelStyle={{color: '#374151', fontWeight: 'bold'}} />
                                  <Bar dataKey="amount" fill="#10B981" radius={[4, 4, 0, 0]} maxBarSize={40} />
                                </BarChart>
                              </ResponsiveContainer>
@@ -625,7 +624,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                   </div>
                   <div>
                     <span className="text-gray-500 block mb-1">مبلغ:</span>
-                    <span className="font-sans font-black text-emerald-600 tracking-tight text-sm text-left block" dir="ltr">{Number(historyCheck.amount).toLocaleString()} <span className="text-[10px] text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
+                    <span className="font-sans font-black text-emerald-600 tracking-tight text-sm text-left block" dir="ltr">{Number(historyCheck.amount).toLocaleString()} <span className="text-[10px] text-gray-400">تومان</span></span>
                   </div>
                   <div>
                     <span className="text-gray-500 block mb-1">تاریخ سررسید:</span>

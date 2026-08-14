@@ -21,7 +21,7 @@ export function ReceivedChecksList({ showNotification, receivedChecks, persons, 
               <div className="bg-gradient-to-br from-indigo-50/40 to-white border border-indigo-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-indigo-900 block">مجموع چک‌های دریافتی</span>
-                  <span className="text-base font-black text-indigo-950 font-sans block mt-1">{totalReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
+                  <span className="text-base font-black text-indigo-950 font-sans block mt-1">{totalReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
                 </div>
                 <div className="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600">
                   <DollarSign className="w-5 h-5" />
@@ -31,7 +31,7 @@ export function ReceivedChecksList({ showNotification, receivedChecks, persons, 
               <div className="bg-gradient-to-br from-emerald-50/40 to-white border border-emerald-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-emerald-950 block">مبلع وصول شده و نقد شده</span>
-                  <span className="text-base font-black text-emerald-750 font-sans block mt-1">{cashedReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
+                  <span className="text-base font-black text-emerald-750 font-sans block mt-1">{cashedReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
                 </div>
                 <div className="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600">
                   <CheckCircle className="w-5 h-5" />
@@ -41,7 +41,7 @@ export function ReceivedChecksList({ showNotification, receivedChecks, persons, 
               <div className="bg-gradient-to-br from-amber-50/40 to-white border border-amber-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-amber-900 block">موجود فیزیکی یا خوابانده</span>
-                  <span className="text-base font-black text-amber-700 font-sans block mt-1">{inHandReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
+                  <span className="text-base font-black text-amber-700 font-sans block mt-1">{inHandReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
                 </div>
                 <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600 animate-pulse">
                   <Clock className="w-5 h-5" />
@@ -51,7 +51,7 @@ export function ReceivedChecksList({ showNotification, receivedChecks, persons, 
               <div className="bg-gradient-to-br from-rose-50/40 to-white border border-rose-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-rose-900 block">برگشت خورده (مشتری)</span>
-                  <span className="text-base font-black text-rose-650 font-sans block mt-1">{bouncedReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
+                  <span className="text-base font-black text-rose-650 font-sans block mt-1">{bouncedReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
                 </div>
                 <div className="w-9 h-9 bg-rose-50 rounded-lg flex items-center justify-center text-rose-600">
                   <AlertTriangle className="w-5 h-5" />
@@ -245,7 +245,7 @@ export function ReceivedChecksList({ showNotification, receivedChecks, persons, 
                               </button>
                               <button 
                                 onClick={() => { 
-                                  if (onEditReceiptByCheck) {
+                                  if (c.receiptNumber && onEditReceiptByCheck) {
                                     onEditReceiptByCheck(c, 'received');
                                   } else {
                                     showNotification('این چک بدون فرم رسید ثبت شده است و قابلیت ویرایش از طریق رسید را ندارد. در صورت نیاز آن را حذف کرده و مجدداً از طریق فرم رسید ثبت نمایید.', 'error');

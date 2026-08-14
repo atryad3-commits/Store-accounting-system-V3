@@ -80,6 +80,7 @@ export default function LoanCardPage(props: any) {
           loan={loan}
           installments={installments}
           formatCurrency={props.formatCurrency || ((v: number) => Number(v).toLocaleString())}
+          currency={props.storeSettings?.currency || 'تومان'}
           storeSettings={props.storeSettings}
           getPersonName={(personId) => {
             const p = persons.find(x => String(x.id) === String(personId));
@@ -118,6 +119,7 @@ export default function LoanCardPage(props: any) {
           person={persons.find(p => String(p.id) === String(loan.personId))}
           onClose={() => setPrintingLoanId(null)}
           formatCurrency={props.formatCurrency || ((v: number) => Number(v).toLocaleString())}
+          currency={props.storeSettings?.currency || 'تومان'}
           currency={props.storeSettings?.currency || 'تومان'}
         />
       )}

@@ -30,8 +30,7 @@ export function PersonCheckHistory({ personId, issuedChecks = [], receivedChecks
        }
     });
 
-    const bounceRateStr = totalClosedCount > 0 ? ((bouncedCount / totalClosedCount) * 100).toFixed(1) : 0;
-    const bounceRate = Number(bounceRateStr);
+    const bounceRate = totalClosedCount > 0 ? ((bouncedCount / totalClosedCount) * 100).toFixed(1) : 0;
     
     // Determine risk level based on bounce rate
     let riskLevel = { label: 'بدون ریسک (عالی)', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' };

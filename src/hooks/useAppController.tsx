@@ -2720,7 +2720,6 @@ description: receiptDescription,
       const txPayload = {
         ...payload,
         linkedInvoices: receiptLinkedInvoices,
-        skipAccounting: payload.method === "check"
       };
       let createdReceiptObj: any = { ...payload };
 
@@ -2913,12 +2912,12 @@ const handleEditReceiptByCheck = (check: any, type: 'issued' | 'received') => {
     const txType = type === 'issued' ? 'pay' : 'receive';
     let tx;
     if (check.receiptNumber) {
-      tx = transactions.find((t) => t.type === txType && String(t.receiptNumber) === String(check.receiptNumber));
+      tx = transactions.find((t) => t.type === txType && t.receiptNumber === check.receiptNumber);
       if (!tx) {
-        tx = transactions.find((t) => t.type === txType && t.method === 'check' && String(t.checkNumber) === String(check.checkNumber));
+        tx = transactions.find((t) => t.type === txType && t.method === 'check' && t.checkNumber === check.checkNumber);
       }
     } else {
-      tx = transactions.find((t) => t.type === txType && t.method === 'check' && String(t.checkNumber) === String(check.checkNumber));
+      tx = transactions.find((t) => t.type === txType && t.method === 'check' && t.checkNumber === check.checkNumber);
     }
     
     if (tx) {

@@ -8,8 +8,7 @@ export function useCheckForm(
   fetchData: () => Promise<void>,
   notify: (msg: string, type: 'success' | 'error' | 'info' | 'warning') => void,
   currentUser: string,
-  rollbackCashedTransaction: any,
-  storeSettings?: any
+  rollbackCashedTransaction: any
 ) {
   const [isIssuedModalOpen, setIsIssuedModalOpen] = useState(false);
   const [isReceivedModalOpen, setIsReceivedModalOpen] = useState(false);
@@ -226,7 +225,7 @@ export function useCheckForm(
               receiptNumber: existing.checkNumber,
               description: `تسویه و پاس شدن برگه چک صادره شماره ${existing.checkNumber} به ذینفع`
             });
-            notify(`چک شماره ${existing.checkNumber} با موفقیت پاس شد و مبلغ ${Number(existing.amount).toLocaleString()} ${storeSettings?.currency || 'تومان'} از حساب بانک کسر و در معین شخص ثبت گردید.`, 'success');
+            notify(`چک شماره ${existing.checkNumber} با موفقیت پاس شد و مبلغ ${Number(existing.amount).toLocaleString()} تومان از حساب بانک کسر و در معین شخص ثبت گردید.`, 'success');
           } else {
             notify(`چک شماره ${existing.checkNumber} پاس شد، اما به دلیل عدم یافتن بانک مرجع، سند کاهنده خودکار درج نگردید.`, 'warning');
           }
@@ -268,7 +267,7 @@ export function useCheckForm(
             receiptNumber: existing.checkNumber,
             description: `وصول و نقد شدن چک دریافتی شماره ${existing.checkNumber} - بانک ${existing.bankName || ''}`
           });
-          notify(`چک شماره ${existing.checkNumber} وصول گردید. مبلغ ${Number(existing.amount).toLocaleString()} ${storeSettings?.currency || 'تومان'} به حساب بانک واریز و اسناد دریافتنی بستانکار شد.`, 'success');
+          notify(`چک شماره ${existing.checkNumber} وصول گردید. مبلغ ${Number(existing.amount).toLocaleString()} تومان به حساب بانک واریز و اسناد دریافتنی بستانکار شد.`, 'success');
         } else if (statusVal === 'returned') {
           notify(`چک عودت داده شد و حساب شخص بدهکار گردید.`, 'success');
         } else if (statusVal === 'assigned' && assignedVendorId) {
