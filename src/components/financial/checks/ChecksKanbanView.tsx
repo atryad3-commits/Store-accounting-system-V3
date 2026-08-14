@@ -5,8 +5,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { toPersianDigits, getDaysRemaining } from './utils';
 import { Calendar, Building2, User, CreditCard } from 'lucide-react';
 
-import { formatDateDisplay } from '../../../utils/format';
-
 const STATUS_COLUMNS = {
   issued: [
     { id: 'issued', title: 'در انتظار پرداخت (صادره)', color: 'bg-slate-50 border-slate-200' },
@@ -59,7 +57,7 @@ function SortableCheckCard({ check, formatCurrency, persons, setViewingCheck, ty
       <div className="space-y-1 mt-3">
         <div className="flex items-center gap-1.5 text-xs text-slate-600">
           <Calendar className="w-3.5 h-3.5 text-slate-400" />
-          <span className={`font-bold ${isOverdue && !['cashed', 'returned', 'bounced_assigned', 'assigned'].includes(check.status) ? 'text-rose-600' : ''}`}>{formatDateDisplay(check.dueDate, storeSettings?.calendarType)}</span>
+          <span className={`font-bold ${isOverdue && !['cashed', 'returned', 'bounced_assigned', 'assigned'].includes(check.status) ? 'text-rose-600' : ''}`}>{check.dueDate}</span>
         </div>
         {(check.bankName || check.bankAccountId) && (
           <div className="flex items-center gap-1.5 text-xs text-slate-600">
@@ -136,7 +134,7 @@ export function ChecksKanbanView({ checks, type, persons, onStatusChange, setVie
                     // Dnd-kit sortable context needs a droppable area for the entire column
                     // We use useDroppable directly if we want empty columns to be droppable
                   }}>
-                    <DroppableColumn id={col.id} checks={colChecks} formatCurrency={formatCurrency} persons={persons} setViewingCheck={setViewingCheck} type={type} storeSettings={storeSettings} />
+                    <DroppableColumn id={col.id} checks={colChecks} formatCurrency={formatCurrency} persons={persons} setViewingCheck={setViewingCheck} type={type} />
                   </div>
                 </SortableContext>
               </div>
@@ -156,12 +154,12 @@ export function ChecksKanbanView({ checks, type, persons, onStatusChange, setVie
 
 import { useDroppable } from '@dnd-kit/core';
 
-function DroppableColumn({ id, checks, formatCurrency, persons, setViewingCheck, type, storeSettings }: any) {
+function DroppableColumn({ id, checks, formatCurrency, persons, setViewingCheck, type }: any) {
   const { setNodeRef } = useDroppable({ id });
   return (
     <div ref={setNodeRef} className="min-h-[150px]">
       {checks.map((c: any) => (
-        <SortableCheckCard storeSettings={storeSettings} key={c.id} check={c} formatCurrency={formatCurrency} persons={persons} setViewingCheck={setViewingCheck} type={type} />
+        <SortableCheckCard storeSettings={storeSettings}  key={c.id} check={c} formatCurrency={formatCurrency} persons={persons} setViewingCheck={setViewingCheck} type={type} />
       ))}
     </div>
   );

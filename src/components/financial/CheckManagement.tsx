@@ -260,6 +260,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
               totalIssuedAmount={totalIssuedAmount} cashedIssuedAmount={cashedIssuedAmount}
               pendingIssuedAmount={pendingIssuedAmount} bouncedIssuedAmount={bouncedIssuedAmount}
               setViewingCheck={setViewingCheck}
+              storeSettings={storeSettings}
               setUpdatingCheckId={form.setUpdatingCheckId} setUpdatingCheckType={form.setUpdatingCheckType}
               setStatusVal={form.setStatusVal} setIsStatusModalOpen={form.setIsStatusModalOpen}
               setIsHistoryModalOpen={setIsHistoryModalOpen} setHistoryCheck={setHistoryCheck}
@@ -297,6 +298,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
               totalReceivedAmount={totalReceivedAmount} cashedReceivedAmount={cashedReceivedAmount}
               inHandReceivedAmount={inHandReceivedAmount} bouncedReceivedAmount={bouncedReceivedAmount}
               setViewingCheck={setViewingCheck}
+              storeSettings={storeSettings}
               setUpdatingCheckId={form.setUpdatingCheckId} setUpdatingCheckType={form.setUpdatingCheckType}
               setStatusVal={form.setStatusVal} setIsStatusModalOpen={form.setIsStatusModalOpen}
               setIsHistoryModalOpen={setIsHistoryModalOpen} setHistoryCheck={setHistoryCheck}

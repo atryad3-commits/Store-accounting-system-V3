@@ -33,26 +33,9 @@ function getDb() {
   const storeId = storeContext.getStore() || 'default';
   if (!dbs[storeId]) {
     const dbFile = storeId === 'default' ? SQLITE_FILE : path.join(process.cwd(), `database_${storeId}.sqlite`);
+    // NOTE: This is strictly for one-time migration purposes.
     
-    const db = new DatabaseSync(dbFile);
-    
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS store (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL
-      )
-    `);
-
-    try {
-      db.exec(`
-        CREATE TABLE IF NOT EXISTS system_settings (
-          setting_key TEXT PRIMARY KEY,
-          setting_value TEXT
-        )
-      `);
-    } catch(e) {}
-
-    dbs[storeId] = db;
+    dbs[storeId] = new DatabaseSync(dbFile);
   }
   return dbs[storeId];
 }
@@ -81,11 +64,11 @@ async function loadPgPoolForStore(storeId: string) {
                 }
             } catch(e) { console.error('ERROR in loadPgPoolForStore default:', e); }
             
-            if (process.env.SQL_HOST && (process.env.SQL_ADMIN_USER || process.env.SQL_USER)) {
+            if (process.env.SQL_HOST && process.env.SQL_USER) {
                 const pool = new Pool({
                     host: process.env.SQL_HOST,
-                    user: process.env.SQL_ADMIN_USER || process.env.SQL_USER,
-                    password: process.env.SQL_ADMIN_PASSWORD || process.env.SQL_PASSWORD,
+                    user: process.env.SQL_USER,
+                    password: process.env.SQL_PASSWORD,
                     database: process.env.SQL_DB_NAME,
                 });
                 await pool.query('SELECT 1');
@@ -120,14 +103,12 @@ async function loadPgPoolForStore(storeId: string) {
             }
             
             if (business && business.db_type === 'postgres') {
-                if (process.env.SQL_HOST && (process.env.SQL_ADMIN_USER || process.env.SQL_USER)) {
-                    const pool = new Pool({
-                        host: process.env.SQL_HOST,
-                        user: process.env.SQL_ADMIN_USER || process.env.SQL_USER,
-                        password: process.env.SQL_ADMIN_PASSWORD || process.env.SQL_PASSWORD,
-                        database: business.db_name || process.env.SQL_DB_NAME
-                    });
-                    await pool.query('SELECT 1');
+                const configRaw = await fsPromises.readFile(DB_CONFIG_FILE, 'utf-8');
+                const config = JSON.parse(configRaw);
+                if (config.engine === 'postgres' && config.connectionString) {
+                    const url = new URL(config.connectionString);
+                    url.pathname = `/${business.db_name}`;
+                    const pool = await connectPgDb(url.toString());
                     activePgPools[storeId] = pool;
                     usePgMap[storeId] = true;
                     await ensurePostgresTables(pool);
@@ -870,13 +851,10 @@ async function startServer() {
           try {
               const configRaw = await fsPromises.readFile(DB_CONFIG_FILE, 'utf-8');
               const config = JSON.parse(configRaw);
-              if (process.env.SQL_HOST && (process.env.SQL_ADMIN_USER || process.env.SQL_USER)) {
-                  const pool = new Pool({
-                      host: process.env.SQL_HOST,
-                      user: process.env.SQL_ADMIN_USER || process.env.SQL_USER,
-                      password: process.env.SQL_ADMIN_PASSWORD || process.env.SQL_PASSWORD,
-                      database: business.db_name || process.env.SQL_DB_NAME
-                  });
+              if (config.engine === 'postgres' && config.connectionString) {
+                  const url = new URL(config.connectionString);
+                  url.pathname = `/${business.db_name}`;
+                  const pool = new Pool({ connectionString: url.toString() });
                   await pool.query('SELECT 1');
                   await pool.end();
                   return res.json({ success: true });
@@ -894,7 +872,7 @@ async function startServer() {
     }
   });
 
-  app.put('/api/databases/:id', async (req, res) => { console.log("HIT PUT", req.params.id);
+  app.put('/api/databases/:id', async (req, res) => {
     try {
       const { id } = req.params;
       const { name, db_type, db_host, db_port, db_name, db_user, db_password } = req.body;
@@ -973,27 +951,24 @@ async function startServer() {
   });
 
   app.post('/api/databases', async (req, res) => {
-    return res.json({ hello: "custom_debug" });
     try {
       const { name } = req.body;
       if (!name) return res.status(400).json({ error: 'Name is required' });
       
       const id = 'store_' + Math.random().toString(36).substring(2, 6) + '_' + Date.now().toString(36);
-      let actualDbType = 'sqlite'; console.log("SQL_HOST IS:", process.env.SQL_HOST);
+      let actualDbType = 'sqlite';
       
       try {
         const configRaw = await fsPromises.readFile(DB_CONFIG_FILE, 'utf-8');
         const config = JSON.parse(configRaw);
-        if (process.env.SQL_HOST && (process.env.SQL_ADMIN_USER || process.env.SQL_USER)) {
+        if (config.engine === 'postgres' && config.connectionString) {
           actualDbType = 'postgres';
+          // Provision a new Postgres database for this business
           const dbNameForBusiness = `store_${id}`.replace(/[^a-zA-Z0-9_]/g, '');
           
-          const client = new Client({ 
-             host: process.env.SQL_HOST,
-             user: process.env.SQL_ADMIN_USER || process.env.SQL_USER,
-             password: process.env.SQL_ADMIN_PASSWORD || process.env.SQL_PASSWORD,
-             database: 'postgres'
-          });
+          const url = new URL(config.connectionString);
+          url.pathname = '/postgres';
+          const client = new Client({ connectionString: url.toString() });
           await client.connect();
           await client.query(`CREATE DATABASE "${dbNameForBusiness}"`);
           await client.end();
@@ -1037,8 +1012,48 @@ async function startServer() {
           return res.json({ success: true, database: { id, name, db_type: 'postgres', db_name: dbNameForBusiness } });
         }
       } catch (e) {
-         console.error("PG_CREATE_ERROR:", e);
+         console.log("Error checking config or creating postgres DB, falling back to sqlite:", e);
       }
+
+      // SQLite fallback
+      try {
+        if (usePgMap['default'] && activePgPools['default']) {
+            await activePgPools['default'].query(`
+              CREATE TABLE IF NOT EXISTS businesses (
+                id VARCHAR PRIMARY KEY,
+                name VARCHAR NOT NULL,
+                db_type VARCHAR DEFAULT 'sqlite',
+                db_host VARCHAR,
+                db_port VARCHAR,
+                db_name VARCHAR,
+                db_user VARCHAR,
+                db_password VARCHAR
+              )
+            `);
+            await activePgPools['default'].query(`
+              INSERT INTO businesses (id, name, db_type, db_host, db_port, db_name, db_user, db_password)
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            `, [id, name, 'sqlite', '', '', '', '', '']);
+        } else {
+            const defaultDb = storeContext.run('default', () => getDb());
+            const stmt = defaultDb.prepare(`
+              INSERT INTO businesses (id, name, db_type, db_host, db_port, db_name, db_user, db_password)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `);
+            stmt.run(id, name, 'sqlite', '', '', '', '', '');
+        }
+      } catch(e) { }
+
+      const dbFile = path.join(process.cwd(), `database_${id}.sqlite`);
+      const newDb = new DatabaseSync(dbFile);
+      newDb.exec(`
+        CREATE TABLE IF NOT EXISTS store (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        )
+      `);
+
+      res.json({ success: true, database: { id, name, db_type: 'sqlite' } });
     } catch (e) {
       res.status(500).json({ error: e.message });
     }

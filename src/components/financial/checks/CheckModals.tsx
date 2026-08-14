@@ -629,7 +629,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                   </div>
                   <div>
                     <span className="text-gray-500 block mb-1">تاریخ سررسید:</span>
-                    <span className="font-bold text-gray-900">{formatDateDisplay(historyCheck.dueDate, storeSettings?.calendarType)}</span>
+                    <span className="font-bold text-gray-900">{historyCheck.dueDate}</span>
                   </div>
                   <div className="col-span-2">
                      <span className="text-gray-500 block mb-1">طرف حساب:</span>

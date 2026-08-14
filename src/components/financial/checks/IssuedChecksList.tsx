@@ -104,9 +104,8 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
                             { header: 'سررسید', key: 'dueDate' },
                             { header: 'وضعیت', key: 'statusLabel' }
                           ],
-                          data: filteredIssuedChecks.map((c: any) => ({
+                          data: filteredIssuedChecks.map(c => ({
                             ...c,
-                            dueDate: formatDateDisplay(c.dueDate, storeSettings?.calendarType),
                             statusLabel: c.status === 'issued' ? 'در جریان' : c.status === 'cashed' ? 'پاس شده' : c.status === 'bounced' ? 'برگشتی' : 'نامشخص'
                           }))
                         });
@@ -127,9 +126,8 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
                             { header: 'سررسید', key: 'dueDate' },
                             { header: 'وضعیت', key: 'statusLabel' }
                           ],
-                          data: filteredIssuedChecks.map((c: any) => ({
+                          data: filteredIssuedChecks.map(c => ({
                             ...c,
-                            dueDate: formatDateDisplay(c.dueDate, storeSettings?.calendarType),
                             statusLabel: c.status === 'issued' ? 'در جریان' : c.status === 'cashed' ? 'پاس شده' : c.status === 'bounced' ? 'برگشتی' : 'نامشخص'
                           }))
                         });
