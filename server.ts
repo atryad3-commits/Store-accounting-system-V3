@@ -33,9 +33,26 @@ function getDb() {
   const storeId = storeContext.getStore() || 'default';
   if (!dbs[storeId]) {
     const dbFile = storeId === 'default' ? SQLITE_FILE : path.join(process.cwd(), `database_${storeId}.sqlite`);
-    // NOTE: This is strictly for one-time migration purposes.
     
-    dbs[storeId] = new DatabaseSync(dbFile);
+    const db = new DatabaseSync(dbFile);
+    
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS store (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    `);
+
+    try {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS system_settings (
+          setting_key TEXT PRIMARY KEY,
+          setting_value TEXT
+        )
+      `);
+    } catch(e) {}
+
+    dbs[storeId] = db;
   }
   return dbs[storeId];
 }
