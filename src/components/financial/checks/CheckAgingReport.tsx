@@ -5,9 +5,10 @@ import { IssuedCheck, ReceivedCheck } from '../../../types';
 interface CheckAgingReportProps {
   issuedChecks: IssuedCheck[];
   receivedChecks: ReceivedCheck[];
+  storeSettings?: any;
 }
 
-export function CheckAgingReport({ issuedChecks, receivedChecks }: CheckAgingReportProps) {
+export function CheckAgingReport({ issuedChecks, receivedChecks, storeSettings }: CheckAgingReportProps) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 

@@ -6,6 +6,8 @@ import {
 import { Calendar as RMCalendar } from "react-multi-date-picker";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
+import { toPersianDigits } from "./utils";
+import { formatDateDisplay } from "../../../utils/format";
 
 export function CheckCalendar({ storeSettings, issuedChecks, receivedChecks, persons, checkbooks, accounts, selectedCalendarDate, setSelectedCalendarDate, normalizeDate, getSelectedRange, setViewingCheck }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,8 +26,11 @@ export function CheckCalendar({ storeSettings, issuedChecks, receivedChecks, per
   };
 
   const getDayChecks = (dateStr: string) => {
-    const received = receivedChecks.filter(c => normalizeDate(c.dueDate) === normalizeDate(dateStr));
-    const issued = issuedChecks.filter(c => normalizeDate(c.dueDate) === normalizeDate(dateStr));
+    // dateStr could be from react-multi-date-picker (e.g. 1403/05/22 in English or Persian digits)
+    const target = toPersianDigits(dateStr);
+    
+    const received = receivedChecks.filter((c: any) => toPersianDigits(formatDateDisplay(c.dueDate, storeSettings?.calendarType)) === target);
+    const issued = issuedChecks.filter((c: any) => toPersianDigits(formatDateDisplay(c.dueDate, storeSettings?.calendarType)) === target);
     return { received, issued };
   };
 

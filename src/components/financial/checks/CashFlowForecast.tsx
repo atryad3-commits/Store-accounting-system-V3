@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Calendar, DollarSign, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
 
-export function CashFlowForecast({ issuedChecks = [], receivedChecks = [], accounts = [] }: any) {
+export function CashFlowForecast({ issuedChecks = [], receivedChecks = [], accounts = [], storeSettings }: any) {
   const [days, setDays] = useState<30 | 60 | 90>(30);
 
   const { chartData, initialBalance, hasNegativeBalance, minBalance } = useMemo(() => {
