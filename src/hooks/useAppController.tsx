@@ -3527,6 +3527,7 @@ const handleSaveSettings = async (e: React.FormEvent) => {
       await fetchSettings();
       setSuccessMsg("تنظیمات فروشگاه با موفقیت ذخیره شد");
       setRequiresInitSetup(false);
+      window.location.reload();
     } catch (error) {
       console.error("Error saving settings", error);
     } finally {
