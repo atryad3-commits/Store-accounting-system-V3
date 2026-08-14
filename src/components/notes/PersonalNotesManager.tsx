@@ -1,3 +1,4 @@
+import { convertToGregorian } from "../../utils/format";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -633,7 +634,7 @@ export function PersonalNotesManager({ storeSettings }: any) {
                                   value={editingNote.reminderDate ? new Date(editingNote.reminderDate) : null}
                                   onChange={(date: any) => {
                                       if (date) {
-                                          setEditingNote({...editingNote, reminderDate: date.toDate().toISOString()});
+                                          setEditingNote({...editingNote, reminderDate: convertToGregorian(date)});
                                       } else {
                                           setEditingNote({...editingNote, reminderDate: undefined});
                                       }

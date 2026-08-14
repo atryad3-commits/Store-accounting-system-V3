@@ -549,7 +549,7 @@ export const updateTransaction = async (id: string | number, updated: any) => {
          const items = [];
          if (updated.method === 'check') {
              await syncInvoiceAllocations(newTx);
-     return newTx; // Check accounting is fully handled by syncCheckAccountingDocument
+             return newTx; // Check accounting is fully handled by syncCheckAccountingDocument
          } else {
 
          if (updated.categoryId === 'loan_given' || updated.categoryId === 'loan_received') {

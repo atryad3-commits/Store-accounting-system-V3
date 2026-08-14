@@ -4,7 +4,7 @@ import { ShieldCheck, Check, X, AlertTriangle, Send, ArrowDownLeft, Trash2 } fro
 import { formatDateDisplay } from '../../../utils/format';
 
 export function PendingCheckApprovals({
-  issuedChecks, receivedChecks, persons, accounts, checkbooks, showNotification, userRole, currentUserId, onCheckUpdated
+  issuedChecks, receivedChecks, persons, accounts, checkbooks, showNotification, userRole, currentUserId, onCheckUpdated, storeSettings
 }: any) {
   const [approvingId, setApprovingId] = useState<string | null>(null);
 
@@ -119,7 +119,7 @@ export function PendingCheckApprovals({
                     <span className="font-black text-gray-900 font-sans text-sm">
                       {Number(check.amount).toLocaleString()}
                     </span>
-                    <span className="text-[10px] text-gray-400 mr-1">تومان</span>
+                    <span className="text-[10px] text-gray-400 mr-1">{storeSettings?.currency || 'تومان'}</span>
                   </td>
                   <td className="py-3 text-sm text-gray-600">
                     <span className="font-sans" dir="ltr">{formatDateDisplay(check.dueDate)}</span>

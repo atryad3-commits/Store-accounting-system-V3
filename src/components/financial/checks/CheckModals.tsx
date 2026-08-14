@@ -1,3 +1,4 @@
+import { convertToGregorian } from "../../../utils/format";
 import { toPersianDigits, getDaysRemaining, safeParseDate } from "./utils";
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -28,6 +29,7 @@ icAmount, setIcAmount,
 icIssueDate, setIcIssueDate,
 icDueDate, setIcDueDate,
 icDescription, setIcDescription,
+icAttachments, setIcAttachments,
 rcPayerId, setRcPayerId,
 rcBankName, setRcBankName,
 rcBranchName, setRcBranchName,
@@ -38,6 +40,7 @@ rcAmount, setRcAmount,
 rcReceiveDate, setRcReceiveDate,
 rcDueDate, setRcDueDate,
 rcDescription, setRcDescription,
+rcAttachments, setRcAttachments,
 updatingCheckType, setUpdatingCheckType,
 updatingCheckId, setUpdatingCheckId,
 statusVal, setStatusVal,
@@ -133,7 +136,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-gray-700 mb-1">مبلغ چک (تومان) *</label>
+                  <label className="block text-xs font-black text-gray-700 mb-1">مبلغ چک ({storeSettings?.currency || 'تومان'}) *</label>
                   <input required type="number" min="1" value={icAmount} onChange={e => setIcAmount(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-sm font-mono text-left block text-indigo-950 font-black" dir="ltr" placeholder="10,000,000" />
                 </div>
 
@@ -158,7 +161,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                     <div className="relative">
                        <DatePicker
                          value={safeParseDate(icDueDate)}
-                         onChange={(d: any) => setIcDueDate(d ? d.toDate().toISOString() : '')}
+                         onChange={(d: any) => setIcDueDate((d ? convertToGregorian(d) : ""))}
                          calendar={storeSettings?.calendarType === 'gregorian' ? undefined : persian}
                          locale={storeSettings?.calendarType === 'gregorian' ? undefined : persian_fa}
                          calendarPosition="bottom-right"
@@ -173,6 +176,34 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                 <div>
                   <label className="block text-xs font-black text-gray-700 mb-1">توضیحات و بابت</label>
                   <textarea rows={2} value={icDescription} onChange={e => setIcDescription(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-xs" placeholder="بابت فاکتور خرید فلان یا هرگونه یادداشت اضافی..."></textarea>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-gray-700 mb-1">تصویر چک (اختیاری)</label>
+                  <div className="flex flex-col gap-2">
+                    <input type="file" accept="image/*" multiple onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      files.forEach(file => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setIcAttachments(prev => [...(prev || []), reader.result as string]);
+                        };
+                        reader.readAsDataURL(file);
+                      });
+                    }} className="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                    {icAttachments?.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {icAttachments.map((att, i) => (
+                          <div key={i} className="relative group w-16 h-16 rounded-xl border overflow-hidden">
+                            <img src={att} alt="attachment" className="w-full h-full object-cover" />
+                            <button type="button" onClick={() => setIcAttachments(prev => prev.filter((_, idx) => idx !== i))} className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2.5 pt-4 border-t">
@@ -193,7 +224,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                            const start = new Date(targetDate); start.setDate(start.getDate() - 15);
                            const end = new Date(targetDate); end.setDate(end.getDate() + 15);
                            const filtered = issuedChecks.filter(c => {
-                             if (!c.dueDate || c.status === 'blank' || c.status === 'cancelled') return false;
+                             if (!c.dueDate || c.status === 'blank' || c.status === 'cancelled' || c.status === 'bounced') return false;
                              const d = new Date(c.dueDate);
                              return d >= start && d <= end;
                            });
@@ -221,7 +252,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                                  <XAxis dataKey="date" tick={{fontSize: 10, fill: '#6B7280'}} tickMargin={10} axisLine={false} tickLine={false} />
                                  <YAxis tickFormatter={(val) => (val/1000000).toFixed(0) + 'm'} tick={{fontSize: 10, fill: '#6B7280'}} axisLine={false} tickLine={false} />
-                                 <Tooltip formatter={(value) => [Number(value).toLocaleString() + ' تومان', 'جمع مبالغ پرداختی']} labelStyle={{color: '#374151', fontWeight: 'bold'}} />
+                                 <Tooltip formatter={(value) => [Number(value).toLocaleString() + ' ' + (storeSettings?.currency || 'تومان'), 'جمع مبالغ پرداختی']} labelStyle={{color: '#374151', fontWeight: 'bold'}} />
                                  <Bar dataKey="amount" fill="#F43F5E" radius={[4, 4, 0, 0]} maxBarSize={40} />
                                </BarChart>
                              </ResponsiveContainer>
@@ -298,7 +329,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                     <input required type="text" value={rcCheckNumber} onChange={e => setRcCheckNumber(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-sm font-mono text-center" dir="ltr" placeholder="مثلا 12345/67" />
                   </div>
                   <div>
-                    <label className="block text-xs font-black text-gray-700 mb-1">مبلغ چک (تومان) *</label>
+                    <label className="block text-xs font-black text-gray-700 mb-1">مبلغ چک ({storeSettings?.currency || 'تومان'}) *</label>
                     <input required type="number" min="1" value={rcAmount} onChange={e => setRcAmount(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-sm font-mono text-left block text-indigo-950 font-black" dir="ltr" placeholder="25,000,000" />
                   </div>
                 </div>
@@ -309,7 +340,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                     <div className="relative">
                        <DatePicker
                          value={safeParseDate(rcReceiveDate)}
-                         onChange={(d: any) => setRcReceiveDate(d ? d.toDate().toISOString() : '')}
+                         onChange={(d: any) => setRcReceiveDate((d ? convertToGregorian(d) : ""))}
                          calendar={storeSettings?.calendarType === 'gregorian' ? undefined : persian}
                          locale={storeSettings?.calendarType === 'gregorian' ? undefined : persian_fa}
                          calendarPosition="top-right"
@@ -324,7 +355,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                     <div className="relative">
                        <DatePicker
                          value={safeParseDate(rcDueDate)}
-                         onChange={(d: any) => setRcDueDate(d ? d.toDate().toISOString() : '')}
+                         onChange={(d: any) => setRcDueDate((d ? convertToGregorian(d) : ""))}
                          calendar={storeSettings?.calendarType === 'gregorian' ? undefined : persian}
                          locale={storeSettings?.calendarType === 'gregorian' ? undefined : persian_fa}
                          calendarPosition="top-right"
@@ -339,6 +370,34 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                 <div>
                   <label className="block text-xs font-black text-gray-700 mb-1">بابت و توضیحات چک</label>
                   <textarea rows={2} value={rcDescription} onChange={e => setRcDescription(e.target.value)} className="w-full border rounded-xl px-4 py-2 text-xs" placeholder="بابت فاکتور فروش یا هرگونه یادداشت..."></textarea>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-gray-700 mb-1">تصویر چک (اختیاری)</label>
+                  <div className="flex flex-col gap-2">
+                    <input type="file" accept="image/*" multiple onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      files.forEach(file => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setRcAttachments(prev => [...(prev || []), reader.result as string]);
+                        };
+                        reader.readAsDataURL(file);
+                      });
+                    }} className="text-xs file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
+                    {rcAttachments?.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {rcAttachments.map((att, i) => (
+                          <div key={i} className="relative group w-16 h-16 rounded-xl border overflow-hidden">
+                            <img src={att} alt="attachment" className="w-full h-full object-cover" />
+                            <button type="button" onClick={() => setRcAttachments(prev => prev.filter((_, idx) => idx !== i))} className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-2.5 pt-4 border-t">
@@ -359,7 +418,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                            const start = new Date(targetDate); start.setDate(start.getDate() - 15);
                            const end = new Date(targetDate); end.setDate(end.getDate() + 15);
                            const filtered = receivedChecks.filter(c => {
-                             if (!c.dueDate || c.status === 'returned') return false;
+                             if (!c.dueDate || c.status === 'returned' || c.status === 'bounced' || c.status === 'bounced_assigned') return false;
                              const d = new Date(c.dueDate);
                              return d >= start && d <= end;
                            });
@@ -387,7 +446,7 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                                  <XAxis dataKey="date" tick={{fontSize: 10, fill: '#6B7280'}} tickMargin={10} axisLine={false} tickLine={false} />
                                  <YAxis tickFormatter={(val) => (val/1000000).toFixed(0) + 'm'} tick={{fontSize: 10, fill: '#6B7280'}} axisLine={false} tickLine={false} />
-                                 <Tooltip formatter={(value) => [Number(value).toLocaleString() + ' تومان', 'جمع مبالغ وصولی']} labelStyle={{color: '#374151', fontWeight: 'bold'}} />
+                                 <Tooltip formatter={(value) => [Number(value).toLocaleString() + ' ' + (storeSettings?.currency || 'تومان'), 'جمع مبالغ وصولی']} labelStyle={{color: '#374151', fontWeight: 'bold'}} />
                                  <Bar dataKey="amount" fill="#10B981" radius={[4, 4, 0, 0]} maxBarSize={40} />
                                </BarChart>
                              </ResponsiveContainer>
@@ -566,11 +625,11 @@ formatDateDisplay, storeSettings, toPersianDigits}) {
                   </div>
                   <div>
                     <span className="text-gray-500 block mb-1">مبلغ:</span>
-                    <span className="font-sans font-black text-emerald-600 tracking-tight text-sm text-left block" dir="ltr">{Number(historyCheck.amount).toLocaleString()} <span className="text-[10px] text-gray-400">تومان</span></span>
+                    <span className="font-sans font-black text-emerald-600 tracking-tight text-sm text-left block" dir="ltr">{Number(historyCheck.amount).toLocaleString()} <span className="text-[10px] text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                   </div>
                   <div>
                     <span className="text-gray-500 block mb-1">تاریخ سررسید:</span>
-                    <span className="font-bold text-gray-900">{historyCheck.dueDate}</span>
+                    <span className="font-bold text-gray-900">{formatDateDisplay(historyCheck.dueDate, storeSettings?.calendarType)}</span>
                   </div>
                   <div className="col-span-2">
                      <span className="text-gray-500 block mb-1">طرف حساب:</span>

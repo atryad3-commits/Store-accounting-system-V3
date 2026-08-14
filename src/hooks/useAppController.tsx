@@ -1279,9 +1279,7 @@ useEffect(() => {
               type: invoiceType,
               currency: invoiceCurrency,
               date:
-                typeof date?.toDate === "function"
-                  ? date.toDate().toISOString()
-                  : new Date(date || new Date()).toISOString(),
+                convertToGregorian(date),
                               
               customerId,
               sourceInvoiceId,
@@ -2678,9 +2676,7 @@ const handleSubmitReceipt = (type: "receive" | "pay", e: React.FormEvent) => {
       personId: receiptPersonId,
       amount: Number(receiptAmount),
       date:
-        typeof receiptDate.toDate === "function"
-          ? receiptDate.toDate().toISOString()
-          : new Date(receiptDate).toISOString(),
+        convertToGregorian(receiptDate),
 description: receiptDescription,
       note: receiptNote,
       receiptNumber: receiptNumber,
@@ -2692,7 +2688,7 @@ description: receiptDescription,
     } else {
       basePayload.checkNumber = receiptCheckNumber;
       basePayload.checkDueDate =
-        typeof receiptCheckDueDate.toDate === "function" ? receiptCheckDueDate.toDate().toISOString() : new Date(receiptCheckDueDate).toISOString();
+        convertToGregorian(receiptCheckDueDate);
       if (type === "receive") {
         basePayload.checkBankName = receiptCheckBankName;
       } else {
@@ -2724,6 +2720,7 @@ description: receiptDescription,
       const txPayload = {
         ...payload,
         linkedInvoices: receiptLinkedInvoices,
+        skipAccounting: payload.method === "check"
       };
       let createdReceiptObj: any = { ...payload };
 
@@ -2916,12 +2913,12 @@ const handleEditReceiptByCheck = (check: any, type: 'issued' | 'received') => {
     const txType = type === 'issued' ? 'pay' : 'receive';
     let tx;
     if (check.receiptNumber) {
-      tx = transactions.find((t) => t.type === txType && t.receiptNumber === check.receiptNumber);
+      tx = transactions.find((t) => t.type === txType && String(t.receiptNumber) === String(check.receiptNumber));
       if (!tx) {
-        tx = transactions.find((t) => t.type === txType && t.method === 'check' && t.checkNumber === check.checkNumber);
+        tx = transactions.find((t) => t.type === txType && t.method === 'check' && String(t.checkNumber) === String(check.checkNumber));
       }
     } else {
-      tx = transactions.find((t) => t.type === txType && t.method === 'check' && t.checkNumber === check.checkNumber);
+      tx = transactions.find((t) => t.type === txType && t.method === 'check' && String(t.checkNumber) === String(check.checkNumber));
     }
     
     if (tx) {
@@ -3114,9 +3111,7 @@ const handleSubmitSalary = async (e: React.FormEvent) => {
         personId: salaryPersonId,
         amount: netSalary,
         date:
-          typeof salaryDate.toDate === "function"
-            ? salaryDate.toDate().toISOString()
-            : new Date(salaryDate).toISOString(),
+          convertToGregorian(salaryDate),
                   
         resourceType: "none",
         resourceId: 0,
@@ -3828,7 +3823,7 @@ const getLastPriceForProduct = (
       : ["sale", "warehouse_remittance"];
 
     // Use the invoice date if available, otherwise current date
-    const currentInvoiceDate = date ? new Date(date).getTime() : new Date().getTime();
+    const currentInvoiceDate = date ? new Date(convertToGregorian(date)).getTime() : new Date().getTime();
 
     invoices.forEach((inv) => {
       if (targetTypes.includes(inv.type) && inv.items && inv.status !== 'voided' && !inv.isDeleted && inv.status !== 'draft' && !inv.isDraft) {
@@ -4589,9 +4584,7 @@ const getInvoiceNumber = (typeOverride?: string) => {
         validationErrors.push(`• گیت ۳: دوره مالی (${currentFY.title || currentFY.name || 'جاری'}) بسته شده است و امکان ثبت وجود ندارد.`);
       } else if (currentFY.startDate && currentFY.endDate) {
         const targetDate = customPayload?.date || date;
-        const invDateStr = typeof targetDate?.toDate === 'function' 
-          ? targetDate.toDate().toISOString().split('T')[0] 
-          : new Date(targetDate || Date.now()).toISOString().split('T')[0];
+        const invDateStr = convertToGregorian(targetDate).split('T')[0];
         const startDateStr = currentFY.startDate.split('T')[0];
         const endDateStr = currentFY.endDate.split('T')[0];
         if (invDateStr < startDateStr || invDateStr > endDateStr) {
@@ -4770,9 +4763,7 @@ const getInvoiceNumber = (typeOverride?: string) => {
         validationErrors.push(`• گیت ۳: دوره مالی (${currentFY.title || currentFY.name || 'جاری'}) بسته شده است و امکان ثبت وجود ندارد.`);
       } else if (currentFY.startDate && currentFY.endDate) {
         const targetDate = customPayload?.date || date;
-        const invDateStr = typeof targetDate?.toDate === 'function' 
-          ? targetDate.toDate().toISOString().split('T')[0] 
-          : new Date(targetDate || Date.now()).toISOString().split('T')[0];
+        const invDateStr = convertToGregorian(targetDate).split('T')[0];
         
         const startDateStr = currentFY.startDate.split('T')[0];
         const endDateStr = currentFY.endDate.split('T')[0];
@@ -4861,10 +4852,8 @@ const getInvoiceNumber = (typeOverride?: string) => {
           type: invoiceType,
           currency: invoiceCurrency,
           date:
-            typeof date.toDate === "function"
-              ? date.toDate().toISOString()
-              : new Date(date).toISOString(),
-          dueDate: invoiceDueDate ? (typeof invoiceDueDate.toDate === "function" ? invoiceDueDate.toDate().toISOString() : new Date(invoiceDueDate).toISOString()) : null,
+            convertToGregorian(date),
+          dueDate: invoiceDueDate ? (convertToGregorian(invoiceDueDate)) : null,
                       
           customerId,
           sourceInvoiceId,
@@ -5817,10 +5806,8 @@ const handleInvoicePreviewTrigger = () => {
       type: invoiceType,
       currency: invoiceCurrency,
       date:
-            typeof date.toDate === "function"
-              ? date.toDate().toISOString()
-              : new Date(date).toISOString(),
-          dueDate: invoiceDueDate ? (typeof invoiceDueDate.toDate === "function" ? invoiceDueDate.toDate().toISOString() : new Date(invoiceDueDate).toISOString()) : null,
+            convertToGregorian(date),
+          dueDate: invoiceDueDate ? (convertToGregorian(invoiceDueDate)) : null,
               
       customerId,
       

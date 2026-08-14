@@ -20,7 +20,7 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
               <div className="bg-gradient-to-br from-indigo-50/40 to-white border border-indigo-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-indigo-900 block">کل چک‌های صادره</span>
-                  <span className="text-base font-black text-indigo-950 font-sans block mt-1">{totalIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
+                  <span className="text-base font-black text-indigo-950 font-sans block mt-1">{totalIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                 </div>
                 <div className="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600">
                   <DollarSign className="w-5 h-5" />
@@ -30,7 +30,7 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
               <div className="bg-gradient-to-br from-emerald-50/40 to-white border border-emerald-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-emerald-950 block">مبلغ وصول شده (پاس شده)</span>
-                  <span className="text-base font-black text-emerald-700 font-sans block mt-1">{cashedIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
+                  <span className="text-base font-black text-emerald-700 font-sans block mt-1">{cashedIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                 </div>
                 <div className="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600">
                   <CheckCircle className="w-5 h-5" />
@@ -40,7 +40,7 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
               <div className="bg-gradient-to-br from-amber-50/40 to-white border border-amber-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-amber-900 block">در جریان سررسید</span>
-                  <span className="text-base font-black text-amber-700 font-sans block mt-1">{pendingIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
+                  <span className="text-base font-black text-amber-700 font-sans block mt-1">{pendingIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                 </div>
                 <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600 animate-pulse">
                   <Clock className="w-5 h-5 text-amber-600" />
@@ -50,7 +50,7 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
               <div className="bg-gradient-to-br from-rose-50/40 to-white border border-rose-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-rose-900 block">برگشت خورده (بک‌خورده)</span>
-                  <span className="text-base font-black text-rose-600 font-sans block mt-1">{bouncedIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
+                  <span className="text-base font-black text-rose-600 font-sans block mt-1">{bouncedIssuedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                 </div>
                 <div className="w-9 h-9 bg-rose-50 rounded-lg flex items-center justify-center text-rose-600">
                   <AlertTriangle className="w-5 h-5" />
@@ -73,15 +73,73 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
 
             {/* Actions & Filters Panel */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 bg-gray-50/40 border border-gray-100 p-4 rounded-xl print:hidden">
-              <div className="relative w-full md:w-80">
-                <Search className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />
-                <input 
-                  type="text" 
-                  value={issuedSearchQuery} 
-                  onChange={e => setIssuedSearchQuery(e.target.value)} 
-                  placeholder="جستجو بر اساس شماره چک، نام شخص، مبلغ، بانک، سررسید..."
-                  className="w-full pr-10 pl-4 py-2 border rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                />
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <div className="relative w-full md:w-80">
+                  <Search className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                  <input 
+                    type="text" 
+                    value={issuedSearchQuery} 
+                    onChange={e => setIssuedSearchQuery(e.target.value)} 
+                    placeholder="جستجو بر اساس شماره چک، شخص..."
+                    className="w-full pr-10 pl-4 py-2 border rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  />
+                </div>
+                
+                {/* Export Dropdown */}
+                <div className="relative group">
+                  <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors">
+                    <Printer className="w-4 h-4" />
+                    خروجی
+                  </button>
+                  <div className="absolute top-full right-0 mt-2 w-40 bg-white border border-gray-100 rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-20 flex flex-col overflow-hidden">
+                    <button 
+                      onClick={async () => {
+                        const { exportToExcel } = await import('../../../utils/exportUtils');
+                        exportToExcel({
+                          filename: 'چک‌های-پرداختی',
+                          title: 'گزارش چک‌های پرداختی',
+                          columns: [
+                            { header: 'شماره چک', key: 'checkNumber' },
+                            { header: `مبلغ (${storeSettings?.currency || 'تومان'})`, key: 'amount' },
+                            { header: 'سررسید', key: 'dueDate' },
+                            { header: 'وضعیت', key: 'statusLabel' }
+                          ],
+                          data: filteredIssuedChecks.map((c: any) => ({
+                            ...c,
+                            dueDate: formatDateDisplay(c.dueDate, storeSettings?.calendarType),
+                            statusLabel: c.status === 'issued' ? 'در جریان' : c.status === 'cashed' ? 'پاس شده' : c.status === 'bounced' ? 'برگشتی' : 'نامشخص'
+                          }))
+                        });
+                      }}
+                      className="px-4 py-2.5 text-xs text-right hover:bg-gray-50 text-gray-700 font-bold border-b border-gray-50"
+                    >
+                      خروجی Excel (XLSX)
+                    </button>
+                    <button 
+                      onClick={async () => {
+                        const { exportToPDF } = await import('../../../utils/exportUtils');
+                        exportToPDF({
+                          filename: 'چک‌های-پرداختی',
+                          title: 'گزارش چک‌های پرداختی',
+                          columns: [
+                            { header: 'شماره چک', key: 'checkNumber' },
+                            { header: `مبلغ (${storeSettings?.currency || 'تومان'})`, key: 'amount' },
+                            { header: 'سررسید', key: 'dueDate' },
+                            { header: 'وضعیت', key: 'statusLabel' }
+                          ],
+                          data: filteredIssuedChecks.map((c: any) => ({
+                            ...c,
+                            dueDate: formatDateDisplay(c.dueDate, storeSettings?.calendarType),
+                            statusLabel: c.status === 'issued' ? 'در جریان' : c.status === 'cashed' ? 'پاس شده' : c.status === 'bounced' ? 'برگشتی' : 'نامشخص'
+                          }))
+                        });
+                      }}
+                      className="px-4 py-2.5 text-xs text-right hover:bg-gray-50 text-gray-700 font-bold"
+                    >
+                      خروجی PDF
+                    </button>
+                  </div>
+                </div>
               </div>
 
 
@@ -223,7 +281,7 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
                               </button>
                               <button 
                                 onClick={() => { 
-                                  if (c.receiptNumber && onEditReceiptByCheck) {
+                                  if (onEditReceiptByCheck) {
                                     onEditReceiptByCheck(c, 'issued');
                                   } else {
                                     showNotification('این چک بدون فرم رسید ثبت شده است و قابلیت ویرایش از طریق رسید را ندارد. در صورت نیاز آن را حذف کرده و مجدداً از طریق فرم رسید ثبت نمایید.', 'error');
@@ -235,7 +293,15 @@ export function IssuedChecksList({ showNotification, onEditReceiptByCheck, issue
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button 
-                                onClick={() => handleDeleteIssuedCheck(c.id)} 
+                                onClick={() => {
+                                  if (c.status === 'cashed') {
+                                    alert('حذف چک وصول شده امکان‌پذیر نیست. ابتدا وضعیت آن را تغییر دهید.');
+                                    return;
+                                  }
+                                  if (window.confirm('آیا از حذف این چک اطمینان دارید؟ توجه: این عملیات غیرقابل بازگشت است و اسناد مرتبط حذف خواهند شد.')) {
+                                    handleDeleteIssuedCheck(c.id);
+                                  }
+                                }} 
                                 className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100 inline-block"
                                 title="حذف چک"
                               >

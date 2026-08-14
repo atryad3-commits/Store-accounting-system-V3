@@ -1,5 +1,5 @@
 import { toPersianDigits, getDaysRemaining } from "./utils";
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { 
@@ -11,6 +11,7 @@ import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 
 export function ReceivedChecksList({ showNotification, receivedChecks, persons, checkbooks, accounts, receivedSearchQuery, setReceivedSearchQuery, receivedCheckStatusFilter, setReceivedCheckStatusFilter, receivedSortBy, setReceivedSortBy, receivedSortDir, setReceivedSortDir, filteredReceivedChecks, totalReceivedAmount, cashedReceivedAmount, inHandReceivedAmount, bouncedReceivedAmount, setViewingCheck, setUpdatingCheckId, setUpdatingCheckType, setStatusVal, setIsStatusModalOpen, setIsHistoryModalOpen, setHistoryCheck, setHistoryData, handleDeleteReceivedCheck, formatDateDisplay, storeSettings, sendNotification, getCheckAuditLogs, onEditReceiptByCheck, receivedPage, setReceivedPage, totalReceivedPages }) {
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   return (
     <>
 /* SUBTAB 3: RECEIVED CHECKS */
@@ -20,7 +21,7 @@ export function ReceivedChecksList({ showNotification, receivedChecks, persons, 
               <div className="bg-gradient-to-br from-indigo-50/40 to-white border border-indigo-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-indigo-900 block">مجموع چک‌های دریافتی</span>
-                  <span className="text-base font-black text-indigo-950 font-sans block mt-1">{totalReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
+                  <span className="text-base font-black text-indigo-950 font-sans block mt-1">{totalReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                 </div>
                 <div className="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600">
                   <DollarSign className="w-5 h-5" />
@@ -30,7 +31,7 @@ export function ReceivedChecksList({ showNotification, receivedChecks, persons, 
               <div className="bg-gradient-to-br from-emerald-50/40 to-white border border-emerald-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-emerald-950 block">مبلع وصول شده و نقد شده</span>
-                  <span className="text-base font-black text-emerald-750 font-sans block mt-1">{cashedReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
+                  <span className="text-base font-black text-emerald-750 font-sans block mt-1">{cashedReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                 </div>
                 <div className="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600">
                   <CheckCircle className="w-5 h-5" />
@@ -40,7 +41,7 @@ export function ReceivedChecksList({ showNotification, receivedChecks, persons, 
               <div className="bg-gradient-to-br from-amber-50/40 to-white border border-amber-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-amber-900 block">موجود فیزیکی یا خوابانده</span>
-                  <span className="text-base font-black text-amber-700 font-sans block mt-1">{inHandReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
+                  <span className="text-base font-black text-amber-700 font-sans block mt-1">{inHandReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                 </div>
                 <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600 animate-pulse">
                   <Clock className="w-5 h-5" />
@@ -50,7 +51,7 @@ export function ReceivedChecksList({ showNotification, receivedChecks, persons, 
               <div className="bg-gradient-to-br from-rose-50/40 to-white border border-rose-100/60 p-4 rounded-xl flex items-center justify-between shadow-xs">
                 <div>
                   <span className="text-[10px] font-black text-rose-900 block">برگشت خورده (مشتری)</span>
-                  <span className="text-base font-black text-rose-650 font-sans block mt-1">{bouncedReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">تومان</span></span>
+                  <span className="text-base font-black text-rose-650 font-sans block mt-1">{bouncedReceivedAmount.toLocaleString()} <span className="text-[9px] font-bold text-gray-400">{storeSettings?.currency || 'تومان'}</span></span>
                 </div>
                 <div className="w-9 h-9 bg-rose-50 rounded-lg flex items-center justify-center text-rose-600">
                   <AlertTriangle className="w-5 h-5" />
@@ -142,7 +143,8 @@ export function ReceivedChecksList({ showNotification, receivedChecks, persons, 
                   <tbody className="divide-y divide-gray-50 bg-white">
                     {filteredReceivedChecks.map(c => {
                       const payer = persons.find(p => p.id?.toString() === c.payerId?.toString());
-                      return (
+                      const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  return (
                         <React.Fragment key={c.id}>
 <tr className="hover:bg-gray-50/50 transition-colors">
                           <td className="px-4 py-3.5">
@@ -243,7 +245,7 @@ export function ReceivedChecksList({ showNotification, receivedChecks, persons, 
                               </button>
                               <button 
                                 onClick={() => { 
-                                  if (c.receiptNumber && onEditReceiptByCheck) {
+                                  if (onEditReceiptByCheck) {
                                     onEditReceiptByCheck(c, 'received');
                                   } else {
                                     showNotification('این چک بدون فرم رسید ثبت شده است و قابلیت ویرایش از طریق رسید را ندارد. در صورت نیاز آن را حذف کرده و مجدداً از طریق فرم رسید ثبت نمایید.', 'error');
@@ -255,7 +257,15 @@ export function ReceivedChecksList({ showNotification, receivedChecks, persons, 
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button 
-                                onClick={() => handleDeleteReceivedCheck(c.id)} 
+                                onClick={() => {
+                                  if (c.status === 'cashed') {
+                                    alert('حذف چک وصول شده امکان‌پذیر نیست. ابتدا وضعیت آن را تغییر دهید.');
+                                    return;
+                                  }
+                                  if (window.confirm('آیا از حذف این چک اطمینان دارید؟ توجه: این عملیات غیرقابل بازگشت است و اسناد مرتبط حذف خواهند شد.')) {
+                                    handleDeleteReceivedCheck(c.id);
+                                  }
+                                }} 
                                 className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100 inline-block"
                                 title="حذف چک"
                               >
@@ -303,6 +313,50 @@ export function ReceivedChecksList({ showNotification, receivedChecks, persons, 
               </div>
             )}
         
+
+      {/* BULK ACTIONS */}
+      <AnimatePresence>
+        {selectedIds.length > 0 && (
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }} 
+            animate={{ y: 0, opacity: 1 }} 
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-6"
+          >
+            <div className="font-bold">
+              <span className="text-indigo-400 text-lg mr-2">{selectedIds.length}</span>
+              چک انتخاب شده
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => {
+                if(window.confirm('آیا از حذف گروهی این ' + selectedIds.length + ' چک اطمینان دارید؟\nاین عمل غیرقابل بازگشت است.')){
+                  selectedIds.forEach(id => handleDeleteReceivedCheck(id));
+                  setSelectedIds([]);
+                  showNotification('حذف گروهی با موفقیت انجام شد.', 'success');
+                }
+              }} className="px-4 py-2 bg-red-500/20 text-red-300 hover:bg-red-500 hover:text-white rounded-lg text-sm font-bold transition-colors">
+                حذف دسته‌جمعی
+              </button>
+              <button onClick={() => {
+                const selected = receivedChecks.filter(c => selectedIds.includes(c.id));
+                const allSameBank = selected.every(c => c.status === 'received' || c.status === 'deposited');
+                if (!allSameBank) {
+                  showNotification('فقط چک‌های نزد صندوق یا در جریان وصول قابل چاپ در فرم واگذاری هستند.', 'error');
+                  return;
+                }
+                // We dispatch a custom event that CheckManagement or App can listen to, or we can just render the modal here!
+                window.dispatchEvent(new CustomEvent('printBankTransfer', { detail: selected }));
+              }} className="px-4 py-2 bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500 hover:text-white rounded-lg text-sm font-bold transition-colors">
+                چاپ فرم واگذاری به بانک
+              </button>
+              <button onClick={() => setSelectedIds([])} className="px-4 py-2 text-slate-300 hover:text-white text-sm font-bold">
+                انصراف
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </>
   );
 }

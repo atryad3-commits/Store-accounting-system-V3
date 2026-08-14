@@ -5,7 +5,7 @@ import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
 import CustomDatePicker from "../ui/CustomDatePicker";
-import { toPersianDigits } from "../../utils/format";
+import { toPersianDigits, convertToGregorian } from "../../utils/format";
 import CurrencyInput from "../ui/CurrencyInput";
 import { addPerson, updatePerson, deletePerson } from "../../services/dataService";
 import { personSchema } from "../../schemas/validation";
@@ -389,9 +389,7 @@ const handleSubmitPerson = async (e?: React.FormEvent) => {
         city: newPersonCity,
         isActive: newPersonIsActive,
         registrationDate: newPersonRegistrationDate ? (
-          typeof newPersonRegistrationDate.toDate === "function"
-            ? newPersonRegistrationDate.toDate().toISOString()
-            : new Date(newPersonRegistrationDate).toISOString()
+          convertToGregorian(newPersonRegistrationDate)
         ) : new Date().toISOString(),
       };
 

@@ -5,6 +5,9 @@ import { useChecks } from './checks/useChecks';
 import { useCheckFilters } from './checks/useCheckFilters';
 import { useCheckForm } from './checks/useCheckForm';
 import { CheckDashboard } from './checks/CheckDashboard';
+import { ChecksKanbanView } from './checks/ChecksKanbanView';
+import { BankTransferPrintTemplate } from '../print/BankTransferPrintTemplate';
+import { CheckNotifications } from './checks/CheckNotifications';
 import { IssuedChecksList } from './checks/IssuedChecksList';
 import { PendingCheckApprovals } from './checks/PendingCheckApprovals';
 import { useAuth } from '../../context/AuthContext';
@@ -13,7 +16,7 @@ import { ReceivedChecksList } from './checks/ReceivedChecksList';
 import { CheckCalendar } from './checks/CheckCalendar';
 import { CheckModals } from './checks/CheckModals';
 import CheckbooksManager from './CheckbooksManager';
-import { BarChart as BarChartIcon, BookOpen, Send, ArrowDownLeft, Calendar } from 'lucide-react';
+import { Printer, X, BarChart as BarChartIcon, BookOpen, Send, ArrowDownLeft, Calendar, List, Kanban } from 'lucide-react';
 import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
 import { formatDateDisplay } from '../../utils/format';
@@ -29,6 +32,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
     }
   };
 
+  const [viewMode, setViewMode] = React.useState<'list' | 'kanban'>('list');
   const [activeSubTab, setActiveSubTab] = React.useState<'checkbooks' | 'issued_checks' | 'received_checks' | 'check_calendar' | 'check_charts' | 'check_panel'>(
     (activeTab === 'check_panel' || !activeTab) ? 'check_charts' : activeTab as any
   );
@@ -72,13 +76,14 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
   const displayIssuedChecks = paginatedIssued?.data || filters.filteredIssuedChecks;
   const displayReceivedChecks = paginatedReceived?.data || filters.filteredReceivedChecks;
 
-  const form = useCheckForm(issuedChecks, receivedChecks, fetchData, notify, currentUser, rollbackCashedTransaction);
+  const form = useCheckForm(issuedChecks, receivedChecks, fetchData, notify, currentUser, rollbackCashedTransaction, storeSettings);
 
   const [selectedCalendarDate, setSelectedCalendarDate] = React.useState<any[]>([new Date()]);
 
   const [isHistoryModalOpen, setIsHistoryModalOpen] = React.useState(false);
   const [historyCheck, setHistoryCheck] = React.useState<any>(null);
   const [historyData, setHistoryData] = React.useState<any[]>([]);
+  const [bankTransferChecks, setBankTransferChecks] = React.useState<any[] | null>(null);
 
   const toPersianDigits = (str: string | number | undefined | null) => {
     if (str === null || str === undefined) return '';
@@ -188,7 +193,8 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
           </div>
         </div>
 
-        <div className="bg-white p-2 rounded-xl border border-gray-100 shadow-sm flex overflow-x-auto gap-2 mb-6 custom-scrollbar print:hidden">
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-6 print:hidden">
+          <div className="bg-white p-2 rounded-xl border border-gray-100 shadow-sm flex overflow-x-auto gap-2 custom-scrollbar max-w-full">
           {[
             { id: 'check_charts', label: 'داشبورد', icon: <BarChartIcon className="w-4 h-4" /> },
             { id: 'checkbooks', label: 'دسته‌چک‌ها', icon: <BookOpen className="w-4 h-4" /> },
@@ -211,14 +217,40 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
             </button>
           ))}
         </div>
+          {(activeSubTab === 'issued_checks' || activeSubTab === 'received_checks') && (
+            <div className="bg-white p-1.5 rounded-xl border border-gray-100 shadow-sm flex items-center shrink-0">
+              <button onClick={() => setViewMode('list')} className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors ${viewMode === 'list' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500 hover:bg-slate-50'}`}>
+                <List className="w-4 h-4" /> لیست
+              </button>
+              <button onClick={() => setViewMode('kanban')} className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors ${viewMode === 'kanban' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500 hover:bg-slate-50'}`}>
+                <Kanban className="w-4 h-4" /> کانبان (برد)
+              </button>
+            </div>
+          )}
+        </div>
         
         {/* SUBTABS */}
         <div className="print:m-0 print:p-0">
-          {activeSubTab === 'checkbooks' && <CheckbooksManager showNotification={showNotification} />}
-          {activeSubTab === 'issued_checks' && (
+          <CheckNotifications 
+            issuedChecks={issuedChecks} 
+            receivedChecks={receivedChecks} 
+            formatCurrency={(v) => Number(v).toLocaleString()}
+             storeSettings={storeSettings}
+          />
+          {activeSubTab === 'checkbooks' && <CheckbooksManager 
+            showNotification={showNotification} 
+            checkbooks={checkbooks} 
+            setCheckbooks={setCheckbooks} 
+            accounts={accounts}
+              storeSettings={storeSettings} 
+            setIssuedCheckbookFilter={filters.setIssuedCheckbookFilter} 
+            setActiveSubTab={setActiveSubTab} 
+          />}
+          {activeSubTab === 'issued_checks' && viewMode === 'list' && (
             <IssuedChecksList 
               showNotification={notify} onEditReceiptByCheck={onEditReceiptByCheck}
               issuedChecks={issuedChecks} persons={persons} checkbooks={checkbooks} accounts={accounts}
+              storeSettings={storeSettings}
               issuedSearchQuery={filters.issuedSearchQuery} setIssuedSearchQuery={filters.setIssuedSearchQuery}
               issuedCheckStatusFilter={filters.issuedCheckStatusFilter} setIssuedCheckStatusFilter={filters.setIssuedCheckStatusFilter}
               issuedCheckbookFilter={filters.issuedCheckbookFilter} setIssuedCheckbookFilter={filters.setIssuedCheckbookFilter}
@@ -232,14 +264,31 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
               setStatusVal={form.setStatusVal} setIsStatusModalOpen={form.setIsStatusModalOpen}
               setIsHistoryModalOpen={setIsHistoryModalOpen} setHistoryCheck={setHistoryCheck}
               setHistoryData={setHistoryData} handleDeleteIssuedCheck={deleteIssuedCheckHandler}
-              formatDateDisplay={formatDateDisplay} storeSettings={storeSettings}
+              formatDateDisplay={formatDateDisplay}
               sendNotification={sendNotification} getCheckAuditLogs={getCheckAuditLogs}
             />
           )}
-          {activeSubTab === 'received_checks' && (
+          {activeSubTab === 'issued_checks' && viewMode === 'kanban' && (
+            <ChecksKanbanView 
+              checks={issuedChecks} 
+              type="issued" 
+              persons={persons} 
+              onStatusChange={(id, status) => {
+                form.setUpdatingCheckId(id);
+                form.setUpdatingCheckType('issued');
+                form.setStatusVal(status);
+                form.setIsStatusModalOpen(true);
+              }}
+              setViewingCheck={setViewingCheck}
+              storeSettings={storeSettings}
+              formatCurrency={(v) => Number(v).toLocaleString()}
+            />
+          )}
+          {activeSubTab === 'received_checks' && viewMode === 'list' && (
             <ReceivedChecksList 
               showNotification={notify}
               receivedChecks={receivedChecks} persons={persons} checkbooks={checkbooks} accounts={accounts}
+              storeSettings={storeSettings}
               receivedSearchQuery={filters.receivedSearchQuery} setReceivedSearchQuery={filters.setReceivedSearchQuery}
               receivedCheckStatusFilter={filters.receivedCheckStatusFilter} setReceivedCheckStatusFilter={filters.setReceivedCheckStatusFilter}
               receivedSortBy={filters.receivedSortBy} setReceivedSortBy={filters.setReceivedSortBy}
@@ -252,8 +301,24 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
               setStatusVal={form.setStatusVal} setIsStatusModalOpen={form.setIsStatusModalOpen}
               setIsHistoryModalOpen={setIsHistoryModalOpen} setHistoryCheck={setHistoryCheck}
               setHistoryData={setHistoryData} handleDeleteReceivedCheck={deleteReceivedCheckHandler}
-              formatDateDisplay={formatDateDisplay} storeSettings={storeSettings}
+              formatDateDisplay={formatDateDisplay}
               sendNotification={sendNotification} getCheckAuditLogs={getCheckAuditLogs} onEditReceiptByCheck={onEditReceiptByCheck}
+            />
+          )}
+          {activeSubTab === 'received_checks' && viewMode === 'kanban' && (
+             <ChecksKanbanView 
+              checks={receivedChecks} 
+              type="received" 
+              persons={persons} 
+              onStatusChange={(id, status) => {
+                form.setUpdatingCheckId(id);
+                form.setUpdatingCheckType('received');
+                form.setStatusVal(status);
+                form.setIsStatusModalOpen(true);
+              }}
+              setViewingCheck={setViewingCheck}
+              storeSettings={storeSettings}
+              formatCurrency={(v) => Number(v).toLocaleString()}
             />
           )}
           {activeSubTab === ('pending_approvals' as any) && (
@@ -262,6 +327,7 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
             receivedChecks={receivedChecks}
             persons={persons}
             accounts={accounts}
+              storeSettings={storeSettings}
             checkbooks={checkbooks}
             showNotification={notify}
             userRole={user?.role}
@@ -270,8 +336,9 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
           />
         )}
         {activeSubTab === 'check_calendar' && (
-            <CheckCalendar storeSettings={storeSettings} 
+            <CheckCalendar 
               issuedChecks={issuedChecks} receivedChecks={receivedChecks} persons={persons} checkbooks={checkbooks} accounts={accounts}
+              storeSettings={storeSettings}
               selectedCalendarDate={selectedCalendarDate} setSelectedCalendarDate={setSelectedCalendarDate}
               normalizeDate={normalizeDate} getSelectedRange={getSelectedRange} setViewingCheck={setViewingCheck}
             />
@@ -282,10 +349,40 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
               pendingIssuedAmount={pendingIssuedAmount} bouncedIssuedAmount={bouncedIssuedAmount}
               totalReceivedAmount={totalReceivedAmount} cashedReceivedAmount={cashedReceivedAmount}
               inHandReceivedAmount={inHandReceivedAmount} bouncedReceivedAmount={bouncedReceivedAmount}
+              issuedChecks={issuedChecks}
+              receivedChecks={receivedChecks}
+              accounts={accounts}
+              storeSettings={storeSettings}
             />
           )}
         </div>
       </div>
+
+      {bankTransferChecks && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm print:absolute print:inset-0 print:p-0 print:bg-white" dir="rtl">
+          <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl relative flex flex-col print:max-h-none print:shadow-none print:border-none">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 print:hidden shrink-0 bg-slate-50">
+              <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                <Printer className="w-6 h-6 text-indigo-500" />
+                چاپ فرم واگذاری به بانک
+              </h3>
+              <div className="flex items-center gap-3">
+                <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold transition-colors">
+                  <Printer className="w-4 h-4" /> چاپ فرم
+                </button>
+                <button onClick={() => setBankTransferChecks(null)} className="p-2 text-slate-400 hover:bg-slate-200 hover:text-slate-600 rounded-full transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 print:p-0">
+               <BankTransferPrintTemplate checks={bankTransferChecks} storeSettings={storeSettings} account={accounts.find((a: any) => a.id === bankTransferChecks[0]?.depositAccountId)} />
+            </div>
+          </div>
+        </div>
+      )}
+
       <CheckModals issuedChecks={issuedChecks} 
         showNotification={notify}
         receivedChecks={receivedChecks}
@@ -294,7 +391,8 @@ export default function CheckManagement({ showNotification, activeTab = 'checkbo
         isHistoryModalOpen={isHistoryModalOpen} setIsHistoryModalOpen={setIsHistoryModalOpen}
         historyCheck={historyCheck} historyData={historyData}
         persons={persons} checkbooks={checkbooks} accounts={accounts}
-        formatDateDisplay={formatDateDisplay} storeSettings={storeSettings} toPersianDigits={toPersianDigits}
+              storeSettings={storeSettings}
+        formatDateDisplay={formatDateDisplay} toPersianDigits={toPersianDigits}
       />
     </div>
   );
